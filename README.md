@@ -1,7 +1,7 @@
 # DesignThinkingProject
 ## Integrantes
-* Natalia Carpintero - @carpinteron
-* Andrés Carrero - @
+* Natalia Carpintero - @Carpinteron
+* Andrés Carrero - @AndresCarrero00
 * Paula Núñez - @pzarante
 * Andrés Serrano - @
 ---
