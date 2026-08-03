@@ -5,6 +5,10 @@
 **Nombre del equipo:**
 
 **Integrantes:**
+* Natalia Carpintero - @Carpinteron
+* Andrés Carrero - @AndresCarrero00
+* Paula Núñez - @pzarante
+* Andrés Serrano - @serranoaf23
 
 ---
 
@@ -12,21 +16,25 @@
 
 **Nombre o seudónimo:** Mariana Vergara Garay
 
-**Edad, si es relevante:**
+**Edad, si es relevante:** 22 años
 
 **Rol:**
 
 **Relación con la Universidad del Norte:**
 
-> No es necesario registrar información personal que permita identificar al entrevistado.
+Egresada de la Universidad del Norte, Diseñadora Gráfica. 
 
 ---
 
 ## Objetivo de la entrevista
 
 ¿Por qué decidieron entrevistar a esta persona?
+Porque es una egresada de Diseño Gráfico que participa constantemente en proyectos colaborativos, trabaja con equipos de distintas áreas y tiene experiencia tanto formando como integrando grupos de trabajo.
+
 
 ¿Qué esperan aprender de esta entrevista?
+Queremos comprender cómo nacen sus proyectos, cómo encuentra colaboradores, qué factores considera al formar equipos, cuáles son las principales dificultades durante ese proceso y qué necesidades no están siendo cubiertas actualmente.
+
 
 ---
 
@@ -46,15 +54,17 @@
 
 Escriban las preguntas más importantes utilizadas durante la entrevista.
 
-1.
+1. Cuéntame sobre el último proyecto en el que participaste.
 
-2.
 
-3.
+2.Cuando tienes una idea, ¿qué haces primero?
 
-4.
 
-5.
+3. Piensa en la última vez que buscaste colaboradores. ¿Qué fue lo más difícil?
+
+4.¿Qué información te gustaría conocer antes de decidir trabajar con alguien?
+
+5. Si pudieras cambiar una sola cosa del proceso de formar equipos, ¿qué cambiarías?
 
 ---
 
