@@ -28,10 +28,12 @@ Diseñadora Gráfica egresada de la Universidad del Norte. Actualmente también 
 Comprender, desde la fase de Empatizar de Design Thinking, cómo Mariana concibe y desarrolla sus proyectos, cómo encuentra y evalúa colaboradores, qué herramientas usa, qué la motiva, y qué necesidades y frustraciones tiene — para contrastarlas con la hipótesis de una plataforma que permita a estudiantes publicar ideas, encontrar colaboradores, formar equipos multidisciplinarios y mostrar resultados.
 
 ¿Por qué decidieron entrevistar a esta persona?
+
 Porque es una egresada de Diseño Gráfico que se caracteriza por participar constantemente en proyectos académicos y personales, colaborar con diferentes equipos y asumir un rol activo en la creación y desarrollo de iniciativas. Su experiencia puede ayudar a comprender cómo evolucionan este tipo de proyectos y cuáles son las necesidades que surgen durante ese proceso.
 
 
 ¿Qué esperan aprender de esta entrevista?
+
 Queremos comprender cómo una persona con alta participación en proyectos identifica oportunidades, desarrolla ideas, encuentra colaboradores, organiza el trabajo y enfrenta los retos de trabajar en equipo. También buscamos entender cómo influye su formación en Diseño Gráfico dentro de proyectos interdisciplinarios, qué oportunidades percibe para colaborar con estudiantes de otras carreras y qué necesidades considera que aún no están siendo atendidas.
 
 ---
@@ -46,8 +48,8 @@ La entrevista se realizó de manera virtual y se dividió en dos sesiones.
 
 **Lugar o medio:** Google Meet
 
-1. ** FASE 1 "Desarrollo de serie animada"** más centrada en su trayectoria, su proyecto actual, cómo forma equipos, cómo convierte ideas en proyectos y sus criterios de colaboración.
-2. ** FASE 2 "Diseño, colaboración y plataforma de proyectos"** (~34 min) — más centrada en el valor del diseño, el trabajo interdisciplinario, las herramientas que usa, y un ejercicio donde se le pide imaginar y describir la plataforma ideal para conectar estudiantes con proyectos.
+1. **FASE 1 "Desarrollo de serie animada"** más centrada en su trayectoria, su proyecto actual, cómo forma equipos, cómo convierte ideas en proyectos y sus criterios de colaboración.
+2. **FASE 2 "Diseño, colaboración y plataforma de proyectos"** (~34 min) — más centrada en el valor del diseño, el trabajo interdisciplinario, las herramientas que usa, y un ejercicio donde se le pide imaginar y describir la plataforma ideal para conectar estudiantes con proyectos.
 
 **Duración aproximada:** 1 hora y 35 minutos en total
 ---
@@ -104,20 +106,12 @@ La entrevista se realizó de manera virtual y se dividió en dos sesiones.
 
 ¿Qué necesidades pudieron identificar?
 
--   Contar con formas de descubrir proyectos y oportunidades de
-    colaboración fuera del círculo cercano de compañeros y profesores.
--   Conocer, antes de formar un equipo, las habilidades, experiencia,
-    intereses, disponibilidad y forma de trabajar de los posibles
-    colaboradores.
--   Presentar las ideas de manera clara, incluyendo sus objetivos, etapa
-    actual, necesidades y referencias, para que otras personas puedan
-    comprenderlas antes de decidir participar.
--   Mantener claridad sobre los roles, responsabilidades y expectativas
-    de cada integrante durante el desarrollo del proyecto.
--   Tener espacios donde sea posible recibir retroalimentación e iterar
-    sobre las decisiones tomadas.
--   Organizar la información y el avance del proyecto sin tener que
-    dispersarlo entre demasiadas herramientas.
+-   Contar con formas de descubrir proyectos y oportunidades de colaboración fuera del círculo cercano de compañeros y profesores.
+-   Conocer, antes de formar un equipo, las habilidades, experiencia, intereses, disponibilidad y forma de trabajar de los posibles colaboradores.
+-   Presentar las ideas de manera clara, incluyendo sus objetivos, etapa actual, necesidades y referencias, para que otras personas puedan comprenderlas antes de decidir participar.
+-   Mantener claridad sobre los roles, responsabilidades y expectativas de cada integrante durante el desarrollo del proyecto.
+-   Tener espacios donde sea posible recibir retroalimentación e iterar sobre las decisiones tomadas.
+-   Organizar la información y el avance del proyecto sin tener que dispersarlo entre demasiadas herramientas.
 
 
 ---
