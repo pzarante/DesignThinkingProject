@@ -93,7 +93,7 @@ La entrevista se realizó de manera virtual y se dividió en dos sesiones.
  
 > "Lo que más busco a la hora de compartir un proyecto es comunicación, compromiso, disposición, sobre todo para recibir feedback."
 
-> "Muchas veces personas [...] buscan colaboradores teniendo únicamente la idea en la cabeza [...] eso hace muy difícil que alguien quiera unirse." "Muchas personas buscan colaboradores teniendo únicamente la idea en la cabeza."
+> "Muchas veces personas [...] buscan colaboradores teniendo únicamente la idea en la cabeza [...] eso hace muy difícil que alguien quiera unirse."
 
 >"No puedes tener un proyecto si no planificas y tienes constancia para poder realizarlo."
 > "La comunicación es lo que puede avanzar o puede tumbar un proyecto."
