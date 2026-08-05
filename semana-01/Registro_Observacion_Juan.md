@@ -112,6 +112,7 @@ Después de escuchar esta historia, ¿qué oportunidades identifica el equipo pa
 Escriban un párrafo corto (5–10 líneas) explicando qué fue lo más valioso que aprendieron de esta conversación y cómo influirá en el desarrollo de su proyecto.
 
 Lo más valioso que extrajimos de esta conversación es que la innovación exitosa requiere equilibrar la visión creativa con la madurez operativa y financiera. La historia de Urbanhype demuestra que el talento individual o un buen concepto estético deben complementarse con estructuras organizadas, disponibilidad real de tiempo y empatía humana para sostener un equipo. Aprendimos que el diseño es una herramienta transversal de resolución de problemas que aporta valor desde la conceptualización, y no una simple etapa decorativa final. En nuestro proyecto, este aprendizaje influirá directamente en la forma en que buscaremos colaboradores: priorizaremos la actitud y el compromiso, utilizaremos herramientas de prototipado rápido para comunicar nuestras ideas sin ambigüedades y formalizaremos la gestión desde el inicio para garantizar la viabilidad del proyecto.
+
 -
 
 
