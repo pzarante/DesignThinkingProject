@@ -17,7 +17,8 @@
 
 **Cantidad de personas entrevistadas:** 2 usuarios potenciales
 
-**Tipo de usuarios consultados:** Una estudiante de Arquitectura (8vo Semestre) llamada Daniela Slamanca y una Diseñadora Gráfica egresada de la Universidad del Norte de nombre Mariana Vergara. Ambas entrevistadas cuentan con experiencia liderando y/o participando en equipos desarrolladores de proyectos independientes.
+**Tipo de usuarios consultados:** Una estudiante de Arquitectura (8vo Semestre) llamada Daniela Salamanca y una Diseñadora Gráfica egresada de la Universidad del Norte de nombre Mariana Vergara. Ambas entrevistadas cuentan con experiencia liderando y/o participando en equipos desarrolladores de proyectos independientes.
+
 ---
 
 ### Historia de innovación
