@@ -229,3 +229,6 @@ Antes de realizar las entrevistas y conocer la historia de innovación, ¿qué c
 ## Conclusión del equipo
 
 Escriban un párrafo de entre 5 y 10 líneas que responda la siguiente pregunta:
+
+Las entrevistas realizadas nos confirmaron que el principal obstáculo para desarrollar proyectos en equipos no es únicamente la falta de ideas o personas interesadas, sino encontrar a las personas adecuadas, alineadas con los objetivos del proyecto y sostener su compromiso en el tiempo. La comunicación, la disponibilidad real y la compatibilidad en la forma de trabajar pesan tanto o más que las habilidades técnicas. También aprendimos que una idea necesita materializarse visualmente y estructurarse con claridad antes de convocar a otros; de lo contrario, difícilmente genera la confianza y motivación que un líder esperaría de los demás. Este aprendizaje nos lleva a replantear el enfoque de nuestro sistema: más que un simple directorio de perfiles, necesitamos construir un espacio que permita descubrir proyectos, conocer la forma de trabajar de los colaboradores y facilitar la organización y el seguimiento del equipo una vez conformado. 
+
