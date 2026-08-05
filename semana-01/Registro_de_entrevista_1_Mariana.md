@@ -40,22 +40,26 @@ Queremos comprender cómo una persona con alta participación en proyectos ident
 
 ¿Dónde y cómo se realizó la entrevista?
 
-La entrevista se dividió en **dos sesiones de Google Meet** el dia 4 de Agosto, 2026:
+La entrevista se realizó de manera virtual y se dividió en dos sesiones.
 
-1. **"Desarrollo de serie animada"** más centrada en su trayectoria, su proyecto actual, cómo forma equipos, cómo convierte ideas en proyectos y sus criterios de colaboración.
-2. **"Diseño, colaboración y plataforma de proyectos"** (~34 min) — más centrada en el valor del diseño, el trabajo interdisciplinario, las herramientas que usa, y un ejercicio donde se le pide imaginar y describir la plataforma ideal para conectar estudiantes con proyectos.
+**Fecha:** 4 de agosto de 2026
+
+**Lugar o medio:** Google Meet
+
+1. ** FASE 1 "Desarrollo de serie animada"** más centrada en su trayectoria, su proyecto actual, cómo forma equipos, cómo convierte ideas en proyectos y sus criterios de colaboración.
+2. ** FASE 2 "Diseño, colaboración y plataforma de proyectos"** (~34 min) — más centrada en el valor del diseño, el trabajo interdisciplinario, las herramientas que usa, y un ejercicio donde se le pide imaginar y describir la plataforma ideal para conectar estudiantes con proyectos.
+
+**Duración aproximada:** 1 hora y 35 minutos en total
 ---
 
 ## Preguntas realizadas
 
-1. ¿Sobre qué proyectos recientes has trabajado?
-2. ¿Cómo surgen tus proyectos? ¿Son idea tuya o te unes a otros? Cuando tienes una idea, ¿qué haces primero? ¿Cuando una idea se trasnforma en proyecto?
-3. ¿Cómo ha cambiado tu forma de trabajar desde primer semestre hasta ahora? ¿Qué metodología o estructura usas para desarrollar un proyecto?
-5. ¿Cómo conviertes una idea en algo que otros puedan entender?
-6. Piensa en la última vez que buscaste colaboradores. ¿Qué fue lo más difícil? ¿Qué información necesitas antes de invitar a alguien?
-7. ¿Has trabajado con personas de otras carreras? ¿Cómo fue? ¿Notas fricciones de comunicación al trabajar con otras disciplinas?
-8. ¿Cuándo empieza a complicarse un proyecto?
-9. Si pudieras crear una herramienta perfecta para ayudar a estudiantes a encontrar colaboradores y desarrollar proyectos, ¿cómo sería?
+1. ¿Cómo surgen tus proyectos y en qué momento consideras que una idea se convierte en un proyecto?
+2. ¿Cómo ha cambiado tu forma de trabajar desde primer semestre hasta ahora? ¿Qué metodología o estructura usas para desarrollar un proyecto actualmente?
+3. ¿Cómo conviertes una idea en algo que otros puedan entender  y en qué herramientas te apoyas para organizarla?
+4. Piensa en la última vez que buscaste colaboradores. ¿Qué fue lo más difícil? ¿Qué información necesitas antes de invitar a alguien?
+5. ¿Cómo ha sido tu experiencia trabajando con personas de otras carreras y cuáles son las principales dificultades que aparecen al trabajar en equipo?
+6. Si pudieras crear una herramienta perfecta para ayudar a estudiantes a encontrar colaboradores y desarrollar proyectos, ¿cómo sería?
 
 ---
 
@@ -76,6 +80,7 @@ La entrevista se dividió en **dos sesiones de Google Meet** el dia 4 de Agosto,
 **Criterios para colaborar.** Antes de invitar a alguien a un proyecto quiere ver: portafolio alineado al proyecto, disponibilidad real, interés genuino en el rol, y compatibilidad en la forma de trabajar.
 
 **Ejercicio de plataforma ideal.** Al pedirle explícitamente que imaginara la plataforma perfecta, describe: un espacio para **descubrir proyectos** (no solo publicar los propios) donde cada proyecto muestre en qué etapa está, qué necesita y cuánto tiempo requiere; un sistema para conocer a los colaboradores por habilidades, intereses, disponibilidad, experiencia y portafolio; comunidades integradas (menciona Discord, Somos Kado); y un mecanismo tipo formulario de postulación que sirva de primer filtro.
+
 ---
 
 ## Frases clave
@@ -88,6 +93,9 @@ La entrevista se dividió en **dos sesiones de Google Meet** el dia 4 de Agosto,
 
 > "Muchas veces personas [...] buscan colaboradores teniendo únicamente la idea en la cabeza [...] eso hace muy difícil que alguien quiera unirse." "Muchas personas buscan colaboradores teniendo únicamente la idea en la cabeza."
 
+>"No puedes tener un proyecto si no planificas y tienes constancia para poder realizarlo."
+> "La comunicación es lo que puede avanzar o puede tumbar un proyecto."
+
 > "Los proyectos fracasan no por creatividad y no por problemas técnicos ni por falta de dinero [...] sino por falta de constancia o incluso la dificultad de formar equipos que realmente funcionan."
 
 ---
@@ -96,19 +104,21 @@ La entrevista se dividió en **dos sesiones de Google Meet** el dia 4 de Agosto,
 
 ¿Qué necesidades pudieron identificar?
 
-- Espacio de ideas aletaotrias y construcciones, maybe hilos, anonimato, que se siga en el proceso de idea a proyecto
+-   Contar con formas de descubrir proyectos y oportunidades de
+    colaboración fuera del círculo cercano de compañeros y profesores.
+-   Conocer, antes de formar un equipo, las habilidades, experiencia,
+    intereses, disponibilidad y forma de trabajar de los posibles
+    colaboradores.
+-   Presentar las ideas de manera clara, incluyendo sus objetivos, etapa
+    actual, necesidades y referencias, para que otras personas puedan
+    comprenderlas antes de decidir participar.
+-   Mantener claridad sobre los roles, responsabilidades y expectativas
+    de cada integrante durante el desarrollo del proyecto.
+-   Tener espacios donde sea posible recibir retroalimentación e iterar
+    sobre las decisiones tomadas.
+-   Organizar la información y el avance del proyecto sin tener que
+    dispersarlo entre demasiadas herramientas.
 
-- Filtros segun intereses, dedicado al perfil
-
-- Conexion con anuncios de ferias, oportunidades de peech o posibilidad de lograr una visibilidad o un financiamiento.
-- Cunando uno esta buscando a interesados a un proyecto pueden construir un formularios personalizado de pendiendo de lo que busca
-- se ofrece plantillas modificables
-- tienen la necesidad de visualizacion
-- espacio para conectar y hablar
-- que salgan ferias o espacios en donde los proyectos sepan que pueden postularse.
-- conexion con herramientas colaborativas, o almenos que se visualicen sus productos, pueden ser link o documentos.
-- enseñar como es un flujo correcto de trabajo
-- 
 
 ---
 
@@ -159,20 +169,26 @@ La entrevista se dividió en **dos sesiones de Google Meet** el dia 4 de Agosto,
 - **No hay evidencia de que Mariana use, o quiera usar, un sistema centralizado de "búsqueda de colaboradores"** más allá de redes sociales, comunidades de Discord y su círculo universitario. Su plataforma ideal es más un "foro para descubrir proyectos" que un buscador de personas por filtros — matiz importante frente a la hipótesis inicial del equipo, centrada en "búsqueda de colaboradores".
 - **El feedback que ella busca de las personas en sus proyectos es deliberadamente agresivo/sin filtro** ("dime como si me odiaras"), lo cual contrasta con mecanismos típicos de feedback estructurado y amable que suelen diseñarse en plataformas colaborativas.
 - La actual estrategia de reclutamiento que planea usar para su serie (construir audiencia en redes sociales primero, luego convocar audiciones) **no pasa por ninguna plataforma de "colaboradores"** — pasa por construir una comunidad pública propia. Esto cuestiona si una plataforma cerrada de proyectos universitarios sería su primera opción real.
-
-
-¿Qué respuestas o comportamientos sorprendieron al equipo?
-
-- el hehco que diseño grafico este aplicado en muchos
-
--LAS iteraciones, todo lo que conlleva
-
-- que a muchos estudiantes los mueve la pasion
-- crear una plataforma para estudiantes, no algo academico, sino un espacio para ellos donde se puedan desenvolver, recibir guias, feedback y buscar oportunidades fuera de la u o papers, ferias o reconocimientos
+-   La entrevistada dio más importancia a la compatibilidad, la comunicación y el compromiso de los colaboradores que a sus habilidades técnicas por sí solas.
+-   La dificultad no está únicamente en encontrar personas, sino encontrar personas que compartan la visión del proyecto y puedan  mantener su participación en el tiempo.
+-   La entrevistada considera que una idea necesita estar suficientemente desarrollada antes de buscar colaboradores; presentar únicamente una idea general puede dificultar que otras personas se interesen.
+-   El trabajo interdisciplinario no fue visto como un problema en sí mismo. Las principales dificultades aparecen cuando no hay claridad en la comunicación, los objetivos o las responsabilidades.
+-   Aunque utiliza una herramienta central para organizarse, necesita recurrir a otras alternativas cuando sus compañeros no se sienten cómodos utilizándola.
 
 ---
 
 ## Conclusión
-La evidencia de ambas sesiones **respalda de forma sólida** la premisa central del enunciado *Innovation Hub*: existe una necesidad real de que los proyectos estudiantiles puedan mostrarse con claridad (etapa, objetivos, documentación) y de que los estudiantes puedan descubrir y evaluar colaboradores antes de comprometerse. Sin embargo, el hallazgo más importante **no está explícito en el enunciado original**: para Mariana, el problema central no es la escasez de colaboradores, sino la **dificultad de encontrar a las personas correctas y de sostener el compromiso en el tiempo**. Esto desplaza el foco de diseño desde "conectar personas" hacia "ayudar a evaluar compatibilidad y sostener la constancia del equipo" — un matiz que debería guiar las decisiones de producto más que la simple existencia de un directorio de perfiles.
+
+
+La entrevista permitió comprender que desarrollar un proyecto no depende solamente de tener una buena idea o de reunir personas con las habilidades necesarias. Para que un equipo funcione también son fundamentales la comunicación, el compromiso, la disponibilidad y la claridad sobre lo que se quiere lograr.
+
+La evidencia de ambas sesiones **respalda de forma sólida** la premisa central del enunciado *Innovation Hub*: existe una necesidad real de que los proyectos estudiantiles puedan mostrarse con claridad (etapa, objetivos, documentación) y de que los estudiantes puedan descubrir y evaluar colaboradores antes de comprometerse. Sin embargo, el hallazgo más importante **no está explícito en el enunciado original**: para Mariana, el problema central no es la escasez de colaboradores, sino la **dificultad de encontrar a las personas correctas y de sostener el compromiso en el tiempo**. 
+
+Encontrar colaboradores adecuados puede ser difícil cuando las oportunidades dependen principalmente de contactos cercanos, recomendaciones o comunidades dispersas. Antes de integrarse a un proyecto, resulta importante poder conocer tanto las capacidades de una persona como sus intereses y forma de trabajar.
+
+Esto desplaza el foco de diseño desde "conectar personas" hacia "ayudar a evaluar compatibilidad y sostener la constancia del equipo" — un matiz que debería guiar las decisiones de producto más que la simple existencia de un directorio de perfiles.
 
 También es relevante que su "plataforma ideal", descrita espontáneamente, se parece más a un **foro de descubrimiento de proyectos con comunidades integradas** que a un buscador de talento por filtros — lo cual valida ciertas funcionalidades del enunciado (feed de proyectos, etapas, filtros) pero cuestiona si el enfoque debe centrarse tanto en "reclutar" como en "descubrir y pertenecer".
+
+Finalmente, la experiencia de Mariana muestra que los proyectos requieren espacios para organizar información, comunicar avances, recibir retroalimentación y realizar iteraciones. Estos elementos son relevantes para comprender cómo podría apoyarse mejor el desarrollo de proyectos colaborativos dentro de la comunidad universitaria.
+
