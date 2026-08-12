@@ -32,7 +32,7 @@ Actualmente depende principalmente de compañeros conocidos, recomendaciones, pr
 
 La necesidad más importante que decidimos abordar es **encontrar colaboradores adecuados para un proyecto, considerando no solamente sus habilidades técnicas, sino también su disponibilidad, intereses, compromiso y forma de trabajar**.
 
-Esta necesidad fue priorizada porque aparece de manera recurrente en los tres usuarios analizados y puede determinar si una idea logra desarrollarse, queda limitada o incluso se pone en pausa.
+Priorizamos esta necesidad porque aparece de manera recurrente en los tres usuarios analizados y puede determinar si una idea logra desarrollarse, queda limitada o incluso se pone en pausa.
 
 ---
 
