@@ -103,11 +103,16 @@ Posible solución: plantilla para estructurar proyectos, espacio para referencia
 
 ¿Qué cosas parecían importantes para unos usuarios, pero no para otros?
 
-- Búsqueda dirigida vs. descubrimiento: Daniela y el planteamiento inicial del equipo se acercan más a la necesidad de encontrar perfiles específicos para cubrir habilidades. Mariana, en cambio, describe espontáneamente una plataforma ideal como un espacio para descubrir proyectos y comunidades, no únicamente como un buscador de personas. Esta diferencia debe considerarse una hipótesis y no una conclusión generalizable, porque la idea de plataforma de Mariana surgió dentro de un ejercicio hipotético.
+- Búsqueda dirigida vs. descubrimiento: **La forma de encontrar colaboradores no es igual en los tres casos.**
+ Daniela y Juan David recurren principalmente a personas conocidas, recomendaciones y redes cercanas, mientras que Mariana también muestra interés en descubrir proyectos y comunidades fuera de su círculo inmediato. Ella, en cambio, describe espontáneamente una plataforma ideal como un espacio para descubrir proyectos y comunidades, no únicamente como un buscador de personas. Esta diferencia debe considerarse una hipótesis y no una conclusión generalizable, porque la idea de plataforma de Mariana surgió dentro de un ejercicio hipotético.
 
-- Nivel de madurez de la idea: Daniela y Mariana señalan que una idea debe estar suficientemente estructurada para generar confianza antes de buscar colaboradores. Sin embargo, en la reflexión del equipo también aparece la posibilidad de que algunos estudiantes necesiten compartir ideas todavía inmaduras para validarlas o encontrar apoyo. Esto último no está suficientemente validado por las entrevistas, por lo que debe tratarse como hipótesis a investigar.
+- Nivel de madurez de la idea:**El nivel de madurez necesario para presentar una idea puede variar.**
+   Daniela y Mariana señalan que una idea debe estar suficientemente estructurada para generar confianza antes de buscar colaboradores. Sin embargo, en la reflexión del equipo también aparece la posibilidad de que algunos estudiantes necesiten compartir ideas todavía inmaduras para validarlas o encontrar apoyo. Esto último no está suficientemente validado por las entrevistas, por lo que debe tratarse como hipótesis a investigar.
 
 - Forma de recibir feedback: Mariana busca deliberadamente un feedback muy directo y sin filtros, mientras que no tenemos evidencia suficiente de que esa preferencia sea compartida por Daniela o Juan David. Por tanto, no debería asumirse que todos los usuarios quieren el mismo tipo de retroalimentación.
+
+- **Las necesidades cambian según la etapa del proyecto.**
+  En algunos casos la principal dificultad aparece al encontrar colaboradores; en otros, después de formar el equipo, aparecen problemas relacionados con comunicación, organización, expectativas o gestión.
 
 ---
 
@@ -117,7 +122,9 @@ Completen la frase:
 
 `Los usuarios necesitan...`
 
-1. **Los usuarios necesitan encontrar personas que sean adecuadas para las necesidades del proyecto, considerando no solamente sus habilidades, sino también su disponibilidad, intereses, compromiso y forma de trabajar.**
+1.
+
+**Los usuarios necesitan encontrar personas que sean adecuadas para las necesidades del proyecto, considerando no solamente sus habilidades, sino también su disponibilidad, intereses, compromiso y forma de trabajar.**
 
 Esto se repite en las experiencias de Daniela, Mariana y Juan David.
 
