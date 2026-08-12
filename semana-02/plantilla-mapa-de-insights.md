@@ -22,7 +22,7 @@
 
 - Mariana: Diseñadora Gráfica egresada y estudiante de Animación 3D, directora creativa de una serie animada independiente. Tiene experiencia desarrollando proyectos con productos finales, formando equipos y buscando colaboradores para cubrir roles específicos.
   
-- Patrón común: No son usuarios que busquen realizar una operación aislada, sino personas que desarrollan proyectos y necesitan comunicar una propuesta, encontrar personas adecuadas para colaborar, organizar el trabajo y recibir retroalimentación. Sin embargo, sus necesidades no se limitan a "encontrar personas": también aparece la necesidad de encontrar personas compatibles con la visión, disponibilidad y forma de trabajo del proyecto.
+- **Patrón común:** No son usuarios que busquen realizar una operación aislada, sino personas que desarrollan proyectos y necesitan comunicar una propuesta, encontrar personas adecuadas para colaborar, organizar el trabajo y recibir retroalimentación. Sin embargo, sus necesidades no se limitan a "encontrar personas": también aparece la necesidad de encontrar personas compatibles con la visión, disponibilidad y forma de trabajo del proyecto.
 
 El problema parece estar menos relacionado con la ausencia absoluta de personas interesadas y más con la dificultad de encontrar, evaluar y coordinar colaboradores adecuados para que un proyecto pueda avanzar y mantenerse en el tiempo.
 
