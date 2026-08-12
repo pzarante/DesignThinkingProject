@@ -16,6 +16,8 @@
 
 ¿Qué tipos de usuarios revisó el equipo esta semana?
 
+Se analizaron tres personas con experiencia en el desarrollo de proyectos académicos, creativos o de emprendimiento:
+
 - Juan David: Emprendedor y fundador de Urbanhype. Desarrolla productos que requieren combinar capacidades creativas, comerciales y de gestión, y ha tenido que conformar equipos mediante contactos, recomendaciones y redes sociales.
 
 - Daniela: Estudiante de Arquitectura de octavo semestre que participa en proyectos académicos de urbanismo, patrimonio y diseño arquitectónico. Trabaja con entregables y necesita integrar diferentes habilidades para desarrollar sus propuestas.
@@ -32,15 +34,21 @@ El problema parece estar menos relacionado con la ausencia absoluta de personas 
 
 ¿Qué ideas, necesidades o dificultades aparecieron varias veces?
 
-### Hallazgo 1
+### Hallazgo 1: Encontrar colaboradores adecuados depende demasiado de las redes cercanas
 
 **¿Qué observamos?**
 
-En los tres casos aparece dificultad para encontrar colaboradores con las capacidades necesarias fuera del círculo cercano. Daniela mencionó que ha dejado pasar propuestas por no encontrar personas con habilidades específicas o disponibilidad; Mariana ha tenido proyectos en stand-by por no encontrar perfiles adecuados; y Juan David señaló la dificultad de contactar perfiles complementarios fuera de su facultad.
+En los tres casos aparece dificultad para encontrar colaboradores con las capacidades necesarias fuera del círculo cercano, la conformación de equipos se apoya principalmente en personas que ya conocen, recomendaciones, compañeros, profesores o redes sociales.
 
-Hecho observado: Los entrevistados utilizan principalmente compañeros conocidos, recomendaciones, profesores o redes sociales para encontrar personas.
+Daniela mencionó que ha dejado pasar propuestas por no encontrar personas con habilidades específicas o disponibilidad.También explicó que ha tenido dificultades para encontrar personas con habilidades específicas y que algunas propuestas no se han podido realizar por falta de personas disponibles.
 
-Interpretación: Las oportunidades de colaboración actualmente dependen bastante de las redes personales y de canales dispersos.
+Mariana seleccionó a sus colaboradoras porque ya conocía su forma de trabajar y reconocía características como compromiso, organización y compatibilidad con su proceso. También mencionó dificultades para encontrar perfiles específicos fuera de su círculo cercano.
+
+Juan David señaló la dificultad de contactar perfiles complementarios fuera de su facultad.Explicó que para conformar sus equipos recurrió a conocidos de clase, recomendaciones de profesores y personas cuyos trabajos ya había observado.
+
+Hecho observado: Los tres utilizan principalmente redes personales o canales informales para encontrar colaboradores.
+
+Interpretación: Las oportunidades de colaboración actualmente depende en gran medida de las conexiones que cada persona ya posee y de canales dispersos.
 
 **¿Por qué importa?**
 
@@ -48,16 +56,18 @@ Porque una persona puede tener una idea viable y saber qué perfil necesita, per
 
 Oportunidad de diseño: Facilitar que los estudiantes descubran personas, proyectos y comunidades fuera de su círculo inmediato.
 
-Posible solución — NO necesidad: búsqueda o descubrimiento de colaboradores por habilidades, intereses, proyectos o roles faltantes.
+Posible solución: Búsqueda o descubrimiento de colaboradores por habilidades, intereses, proyectos o roles faltantes. Espacios para descubrir proyectos y personas con capacidades complementarias.
 
-### Hallazgo 2
+### Hallazgo 2: Las habilidades técnicas no son suficientes para elegir un colaborador
 
 **¿Qué observamos?**
 Los tres casos muestran que el portafolio o la habilidad técnica por sí solos no son suficientes para determinar con quién trabajar. Daniela prioriza responsabilidad, compromiso y comunicación; Mariana considera comunicación, compromiso, disposición, disponibilidad e interés genuino; y Juan David señala que la actitud, el compromiso y la "química humana" también pesan al conformar un equipo.
 
-Hecho observado: Comunicación, compromiso, disponibilidad y compatibilidad aparecen repetidamente como criterios relevantes.
+En los tres casos, el conocimiento técnico aparece acompañado de factores relacionados con la manera en que una persona trabaja con los demás.
 
-Interpretación: Al formar un equipo existe una incertidumbre que no se resuelve únicamente con conocer las habilidades técnicas de una persona.
+Hecho observado: Comunicación, compromiso, disponibilidad y compatibilidad aparecen repetidamente como criterios relevantes. Los entrevistados no consideran que el portafolio o las habilidades técnicas sean suficientes para determinar con quién trabajar.
+
+Interpretación: Al formar un equipo existe una incertidumbre que no se resuelve únicamente con conocer las habilidades técnicas de una persona sino también sobre si una persona será compatible con el equipo.
 
 **¿Por qué importa?**
 
@@ -65,12 +75,15 @@ Porque encontrar a alguien técnicamente capacitado no garantiza que pueda parti
 
 Oportunidad de diseño: Ayudar a las personas a conocer mejor las condiciones de colaboración antes de comprometerse con un equipo.
 
-Posible solución — NO necesidad: información de disponibilidad, intereses, experiencia, forma de trabajo o mecanismos de postulación.
+Posible solución: Información de disponibilidad, intereses, experiencia, forma de trabajo o mecanismos de postulación.
 
-### Hallazgo 3
+### Hallazgo 3: Una idea necesita ser suficientemente clara para que otros puedan entenderla y participar
 
 **¿Qué observamos?**
-Tanto Daniela como Mariana destacan la importancia de materializar y estructurar una idea antes de compartirla o buscar colaboradores. Daniela explica que comienza con investigación, diagramas, bocetos, modelos y renders; Mariana señala que presentar únicamente una idea en la cabeza dificulta que otras personas quieran unirse. Juan David también destacó el valor de aterrizar visualmente las ideas mediante bocetos, moodboards y prototipos.
+
+Tanto Daniela como Mariana destacan la importancia de materializar y estructurar una idea antes de compartirla o buscar colaboradores. Daniela explica que comienza con investigación, diagramas, bocetos, modelos y renders.También indicó que comparte una idea cuando ya tiene un concepto suficientemente estructurado.
+
+Mariana señala que presentar únicamente una idea en la cabeza dificulta que otras personas quieran unirse. Juan David también destacó el valor de aterrizar visualmente las ideas mediante bocetos, moodboards y prototipos.
 
 Hecho observado: Los entrevistados utilizan referencias, bocetos, moodboards, prototipos, documentos y otros recursos para comunicar sus ideas.
 
@@ -78,11 +91,11 @@ Interpretación: La claridad con la que se presenta una idea influye en la capac
 
 **¿Por qué importa?**
 
-Porque el problema no está solamente en encontrar colaboradores. El responsable del proyecto también necesita comunicar suficientemente bien qué quiere hacer, por qué, en qué etapa se encuentra y qué necesita de los demás.
+Porque el problema no está solamente en encontrar colaboradores que esten disponibles. El responsable del proyecto también necesita comunicar suficientemente bien qué quiere hacer, por qué, en qué etapa se encuentra y qué necesita de los demás. Es importante que quienes podrían participar entiendan qué se quiere hacer, qué se necesita y cuál sería su aporte.
 
 Oportunidad de diseño: Facilitar que una idea pueda ser comunicada de manera clara y comprensible desde sus primeras etapas.
 
-Posible solución — NO necesidad: plantilla para estructurar proyectos, espacio para referencias visuales, moodboard o documentación del proyecto.
+Posible solución: plantilla para estructurar proyectos, espacio para referencias visuales, moodboard o documentación del proyecto.
 
 ---
 
