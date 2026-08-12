@@ -104,11 +104,33 @@ Completen la frase:
 
 `Los usuarios necesitan...`
 
-1.
+1. **Los usuarios necesitan encontrar personas que sean adecuadas para las necesidades del proyecto, considerando no solamente sus habilidades, sino también su disponibilidad, intereses, compromiso y forma de trabajar.**
 
-2.
+Esto se repite en las experiencias de Daniela, Mariana y Juan David.
 
-3.
+**Oportunidad de diseño:** Reducir la incertidumbre que existe antes de formar un equipo.
+
+**Posible solución:** Mostrar información relevante sobre cada colaborador o establecer mecanismos de primer contacto/postulación.
+
+---
+
+2. **Los usuarios necesitan comunicar sus ideas de manera suficientemente clara para que otras personas puedan comprenderlas, evaluar su interés y decidir si quieren participar.**
+
+Mariana señala explícitamente que buscar colaboradores teniendo únicamente la idea en la cabeza dificulta conseguir que alguien quiera unirse. Daniela también explica que comparte una propuesta cuando ya tiene un concepto estructurado que puede justificar y comunicar.
+
+**Oportunidad de diseño:** Apoyar la construcción y comunicación de la propuesta antes y durante la búsqueda de equipo.
+
+**Posible solución:** Espacio estructurado para presentar objetivos, problema, etapa, referencias y necesidades del proyecto.
+
+---
+
+3. **Los usuarios necesitan mantener claridad sobre las responsabilidades, expectativas y comunicación del equipo durante el desarrollo del proyecto.**
+
+La comunicación y el compromiso aparecen como factores centrales en las tres experiencias. Mariana incluso señala que la comunicación puede hacer avanzar o tumbar un proyecto.
+
+**Oportunidad de diseño:** Ayudar a los equipos no solo a formarse, sino también a sostener una dinámica de trabajo clara.
+
+**Posible solución:** Espacios de organización, seguimiento, comunicación, actualizaciones o documentación compartida.
 
 ---
 
@@ -116,16 +138,16 @@ Completen la frase:
 
 ¿Qué impide hoy que los usuarios resuelvan bien este problema?
 
-- 
+- Dependencia de redes personales y canales dispersos: actualmente recurren a compañeros conocidos, profesores, recomendaciones, redes sociales o comunidades externas para encontrar colaboradores. Esto dificulta descubrir perfiles complementarios que estén fuera de su círculo inmediato.
 
-- 
+- Información insuficiente antes de colaborar: conocer únicamente el portafolio o las habilidades técnicas no permite saber si una persona tiene disponibilidad, interés o una forma de trabajo compatible con el proyecto. Mariana señala explícitamente la importancia de conocer estos aspectos antes de invitar a alguien.
 
-- 
+- Ideas poco aterrizadas: cuando una propuesta no tiene suficiente claridad, referencias u objetivos, puede ser difícil para otra persona comprender qué se espera de ella y decidir si quiere participar.
+
+- Dificultades durante el trabajo en equipo: incluso después de encontrar personas, la falta de comunicación, compromiso o claridad puede provocar retrasos, sobrecarga de trabajo o que el proyecto quede en pausa.
 
 ---
 
 ## Insight principal
 
-Escriban una idea breve que conecte comportamiento, necesidad y oportunidad.
-
-`Nos dimos cuenta de que...`
+Nos dimos cuenta de que el reto de desarrollar proyectos colaborativos no consiste simplemente en encontrar personas interesadas, sino en lograr que las personas adecuadas puedan encontrarse, entender la propuesta, evaluar si existe compatibilidad y mantener una colaboración clara durante el desarrollo. Para que esto ocurra, la idea debe estar suficientemente aterrizada para comunicar qué se quiere lograr y qué se necesita del equipo, mientras que los colaboradores necesitan conocer aspectos que van más allá del portafolio, como su disponibilidad, intereses, compromiso y forma de trabajar. Por eso, la oportunidad no está únicamente en conectar personas, sino en reducir la incertidumbre antes y durante la formación del equipo.
