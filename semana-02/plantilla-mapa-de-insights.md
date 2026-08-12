@@ -24,7 +24,7 @@ Se analizaron tres personas con experiencia en el desarrollo de proyectos acadé
 
 - Mariana: Diseñadora Gráfica egresada y estudiante de Animación 3D, directora creativa de una serie animada independiente. Tiene experiencia desarrollando proyectos con productos finales, formando equipos y buscando colaboradores para cubrir roles específicos.
   
-- **Patrón común:** No son usuarios que busquen realizar una operación aislada, sino personas que desarrollan proyectos y necesitan comunicar una propuesta, encontrar personas adecuadas para colaborar, organizar el trabajo y recibir retroalimentación. Sin embargo, sus necesidades no se limitan a "encontrar personas": también aparece la necesidad de encontrar personas compatibles con la visión, disponibilidad y forma de trabajo del proyecto.
+- **Patrón común:** No son usuarios que buscan resolver algo puntual y ya; son personas que están sacando adelante un proyecto, y eso implica comunicar bien su propuesta, encontrar gente adecuada para trabajar en ella, organizar el equipo y recibir retroalimentación en el camino. Y no basta con "encontrar personas": necesitan encontrar personas que encajen con la visión, la disponibilidad y la forma de trabajo del proyecto.
 
 El problema parece estar menos relacionado con la ausencia absoluta de personas interesadas y más con la dificultad de encontrar, evaluar y coordinar colaboradores adecuados para que un proyecto pueda avanzar y mantenerse en el tiempo.
 
@@ -40,7 +40,7 @@ El problema parece estar menos relacionado con la ausencia absoluta de personas 
 
 En los tres casos aparece dificultad para encontrar colaboradores con las capacidades necesarias fuera del círculo cercano, la conformación de equipos se apoya principalmente en personas que ya conocen, recomendaciones, compañeros, profesores o redes sociales.
 
-Daniela mencionó que ha dejado pasar propuestas por no encontrar personas con habilidades específicas o disponibilidad.También explicó que ha tenido dificultades para encontrar personas con habilidades específicas y que algunas propuestas no se han podido realizar por falta de personas disponibles.
+Daniela mencionó que ha dejado pasar propuestas por no encontrar personas con habilidades específicas o disponibilidad.
 
 Mariana seleccionó a sus colaboradoras porque ya conocía su forma de trabajar y reconocía características como compromiso, organización y compatibilidad con su proceso. También mencionó dificultades para encontrar perfiles específicos fuera de su círculo cercano.
 
