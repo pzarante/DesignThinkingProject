@@ -37,7 +37,7 @@ Registren al menos 6 flujos posibles.
 
 Estructura de comunidad/proyecto: partimos de la idea de que una comunidad es un espacio más amplio (equivalente a una organización, colectivo o "marca paraguas") del cual pueden derivarse varios proyectos —igual que un negocio puede tener un proyecto legal, uno de marketing, etc.— aunque un proyecto también puede existir de forma independiente, sin pertenecer a ninguna comunidad. Cada proyecto tiene su propio feed, muestra su versión/etapa actual y de qué trata. Para que un proyecto deje de ser solo una idea informal y pase a considerarse un proyecto "formal" dentro de la app, debe completar ciertos campos mínimos (problema, objetivo, etapa, referencias); mientras eso no ocurra, puede quedarse como una idea más efímera, sin toda esa estructura.
 
-1.Crear una comunidad o un proyecto. Formulario de creación con campos que evitan que la propuesta se quede solo en "idea suelta" (problema, objetivo, etapa, habilidades/roles requeridos, referencias visuales), seguido de una confirmación de creación.
+1. Crear una comunidad o un proyecto. Formulario de creación con campos que evitan que la propuesta se quede solo en "idea suelta" (problema, objetivo, etapa, habilidades/roles requeridos, referencias visuales), seguido de una confirmación de creación.
 
 2. Explorar el feed de comunidades y proyectos. Un feed principal (tipo dashboard de inicio) donde se puede navegar comunidades y proyectos activos, pensado como espacio de descubrimiento e inspiración, no solo como buscador dirigido.
 
