@@ -40,11 +40,17 @@ Estructura de comunidad/proyecto: partimos de la idea de que una comunidad es un
 1.Crear una comunidad o un proyecto. Formulario de creación con campos que evitan que la propuesta se quede solo en "idea suelta" (problema, objetivo, etapa, habilidades/roles requeridos, referencias visuales), seguido de una confirmación de creación.
 
 2. Explorar el feed de comunidades y proyectos. Un feed principal (tipo dashboard de inicio) donde se puede navegar comunidades y proyectos activos, pensado como espacio de descubrimiento e inspiración, no solo como buscador dirigido.
+
 3.  Ver el detalle/perfil de un proyecto. Incluye su etapa de desarrollo, versión actual, novedades publicadas por el equipo, de qué se trata, y el espacio donde otros usuarios pueden opinar (comentarios, reacciones, feedback).
+
 4.  Seguir una comunidad / inscribirse a un proyecto. El usuario puede seguir comunidades completas o inscribirse puntualmente a proyectos específicos que le interesan.
+
 5.  Interactuar con un proyecto. Comentar, reaccionar, invitar a alguien más, y dejar feedback sobre lo publicado.
+
 6.  Guardar proyectos de interés. Permite marcar proyectos para volver a ellos después, reforzando el uso de la app como espacio de inspiración además de conexión.
+
 7.  Conectar con personas por afinidad, no por filtros rígidos. Explorar perfiles y encontrar personas por intereses y gustos en común (no por carrera o filtros técnicos exclusivamente), conectando perfiles con proyectos.
+
 8.  Postularse mediante un formulario personalizado. Cuando un proyecto está abierto a nuevos miembros, se habilita una opción de "unirse" que despliega un formulario editable, personalizado por los miembros del proyecto, para que quien se postula deje su información.
   
 
