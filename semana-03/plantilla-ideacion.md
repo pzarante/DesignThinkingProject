@@ -5,7 +5,11 @@
 **Nombre del equipo:**
 
 **Integrantes:**
-
+* Natalia Carpintero - @Carpinteron
+* Andrés Carrero - @AndresCarrero00
+* Paula Núñez - @pzarante
+* Andrés Serrano - @serranoaf23
+  
 ---
 
 ## Recordatorio del problema
