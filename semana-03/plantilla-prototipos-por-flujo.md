@@ -5,7 +5,7 @@
 
 ## Información del equipo
 
-**Nombre del equipo:**
+**Nombre del equipo:** Equipo de Diseño de Experiencia e Innovación
 
 **Integrantes:**
 * Natalia Carpintero - @Carpinteron
@@ -59,100 +59,100 @@ Publicar una idea de forma estructurada —ya sea como proyecto independiente, c
 
 ### Evidencia en Figma
 
-**Enlace versión A:**
+**Enlace versión A:** https://myrtle-read-21921139.figma.site/
 
-**Enlace versión B:**
+**Enlace versión B:** https://fawn-mute-79794124.figma.site/
 
 ### Resultado de la validación exploratoria
 
 **¿Con quién se probó este flujo?**
+Estudiantes universitarios con experiencia previa liderando iniciativas académicas y proyectos multidisciplinares.
 
 **¿Qué reacción generó la versión A?**
-- 
-- 
-- 
+- Los usuarios percibieron el formulario en scroll como una tarea pesada y algo abrumadora al ver tantos campos vacíos al mismo tiempo.
+- Hubo dudas sobre si todos los campos eran obligatorios desde el primer momento.
+- Se valoró positivamente tener una visión global de todo lo solicitado en una sola vista antes de empezar a escribir.
 
 **¿Qué reacción generó la versión B?**
-- 
-- 
-- 
+- La barra de progreso y la división por pasos redujo significativamente la fatiga visual y la sensación de esfuerzo cognitivo.
+- Facilitó concentrarse en redactar bien cada aspecto (problema, objetivos, roles) de forma secuencial.
+- Algunos usuarios sugirieron poder volver atrás fácilmente a editar un paso anterior sin perder lo completado.
 
 ### Versión seleccionada para la semana 4
 
-**Versión elegida:**
+**Versión elegida:** Versión B
 
 **¿Por qué?**
-- 
-- 
-- 
+- Reduce drásticamente la tasa de abandono durante la carga inicial de información al dosificar la complejidad mediante un *wizard*.
+- Facilita estructurar la idea paso a paso con mayor claridad y detalle, alineándose con el objetivo de evitar publicaciones incompletas o poco aterrizadas.
+- La retroalimentación visual de avance genera una sensación de progreso continuo que motiva al usuario a finalizar la publicación.
 
 ---
 
 ## Flujo 2
 
-**Nombre del flujo:**
+**Nombre del flujo:** Interacción y descubrimiento de proyectos por intereses
 
 **¿Qué quiere lograr el usuario en este flujo?**
 
+Descubrir iniciativas activas (proyectos independientes o comunidades) a partir de intereses y afinidades temáticas, interactuar con ellas (seguir comunidades, explorar subproyectos o detalles) y postularse como colaborador indicando su disponibilidad e información solicitada por el equipo.
+
 ### Versión A: paso a paso
 
-1. El usuario...
-2. Luego...
-3. Después...
-4. Finalmente...
+1. El usuario navega en el Feed Principal filtrando mediante etiquetas de intereses (#Sostenibilidad, #EdTech, #Diseño) y selecciona un proyecto o una comunidad.
+2. Si elige un proyecto, ingresa a la pantalla de detalle para revisar información, prototipos y roles requeridos, y pulsa el botón "Postularse".
+3. Se despliega una ventana emergente (*modal* de postulación) donde diligencia sus datos y selecciona su disponibilidad (Full-time, Part-time, Voluntario) antes de presionar "Enviar postulación".
+4. Llega a la pantalla de confirmación con opciones para "Volver al proyecto" o "Ir al feed". (Si elige una comunidad, entra a su perfil, puede seguirla y explorar sus proyectos activos en una vista dedicada).
 
 ### Versión A: pantallas o momentos clave
 
-1.
-2.
-3.
-4.
+1. Feed Principal (con barra de tags temáticos y cards de proyectos/comunidades)
+2. Detalle del Proyecto / Perfil de Comunidad (con botón "Seguir")
+3. Modal de Postulación (con selector de disponibilidad horaria) / Listado de Proyectos de Comunidad
+4. Pantalla de Confirmación de postulación
 
 ### Versión B: paso a paso
 
-1. El usuario...
-2. Luego...
-3. Después...
-4. Finalmente...
+1. El usuario entra a un Hub de Categorías estructurado por temas (Diseño, Tecnología, Comunidad, Educación) con pestañas para alternar entre Comunidades, Proyectos y Guardados.
+2. Si elige la ruta de Proyecto Independiente, ingresa a una vista donde el formulario de postulación está integrado de manera directa (*inline*) al final del detalle del proyecto.
+3. Completa los campos en la misma pantalla y presiona el botón "Postularme ahora".
+4. Llega a la pantalla de confirmación ("¡Solicitud recibida por el equipo!"). (Si elige la ruta de Comunidad Paraguas, entra al perfil general, sigue la comunidad, selecciona un subproyecto en convocatoria y pulsa "Aplicar al subproyecto").
 
 ### Versión B: pantallas o momentos clave
 
-1.
-2.
-3.
-4.
+1. Hub de Categorías (vista modular por tarjetas temáticas y tabs de navegación)
+2. Proyecto con Formulario Inline / Perfil de Comunidad Paraguas (con lista de convocatorias y subproyectos)
+3. Pantalla de Confirmación / Vista de Detalle de Subproyecto (con roles requeridos y botón de aplicación)
 
 ### Evidencia en Figma
 
-**Enlace versión A:**
+**Enlace versión A:** https://myrtle-read-21921139.figma.site/
 
-**Enlace versión B:**
+**Enlace versión B:** https://fawn-mute-79794124.figma.site/
 
 ### Resultado de la validación exploratoria
 
 **¿Con quién se probó este flujo?**
+Estudiantes universitarios interesados en participar como colaboradores en proyectos y colectivos afines a sus intereses personales.
 
 **¿Qué reacción generó la versión A?**
-
-- 
-- 
-- 
+- Los usuarios destacaron la inmediatez del feed para explorar libremente sin sentirse encasillados en carpetas rígidas.
+- La postulación mediante modal se sintió ligera y no interrumpió la navegación contextual en el perfil del proyecto.
+- Los tags temáticos (#EdTech, #Sostenibilidad) fueron intuitivos para filtrar afinidades rápidamente.
 
 **¿Qué reacción generó la versión B?**
-
-- 
-- 
-- 
+- El hub por categorías aportó mucho orden para entender qué tipos de iniciativas existen en la plataforma.
+- Sin embargo, el formulario *inline* en la misma pantalla del proyecto alargó demasiado el scroll y mezcló la lectura de información con la acción de postularse.
+- Algunos usuarios encontraron redundante navegar tantos niveles (Hub > Comunidad > Subproyecto) para llegar a la convocatoria.
 
 ### Versión seleccionada para la semana 4
 
-**Versión elegida:**
+**Versión elegida:** Versión A
 
 **¿Por qué?**
-
-- 
-- 
-- 
+- Ofrece una experiencia de descubrimiento orgánico y espontáneo mediante tags temáticos, respetando el insight de exploración por afinidad.
+- El uso de un modal para la postulación mantiene la pantalla principal despejada y enfoca al usuario únicamente en completar su disponibilidad y datos requeridos.
+- Reduce el número de clics y pantallas intermedias necesarias para conectarse o postularse a una iniciativa.
 
 ---
 
@@ -288,4 +288,4 @@ Publicar una idea de forma estructurada —ya sea como proyecto independiente, c
 
 - 
 - 
-- 
+-
