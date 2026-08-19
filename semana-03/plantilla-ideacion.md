@@ -35,24 +35,38 @@ Ejemplos de flujo:
 
 Registren al menos 6 flujos posibles.
 
-Estructura de comunidad/proyecto: partimos de la idea de que una comunidad es un espacio más amplio (equivalente a una organización, colectivo o "marca paraguas") del cual pueden derivarse varios proyectos —igual que un negocio puede tener un proyecto legal, uno de marketing, etc.— aunque un proyecto también puede existir de forma independiente, sin pertenecer a ninguna comunidad. Cada proyecto tiene su propio feed, muestra su versión/etapa actual y de qué trata. Para que un proyecto deje de ser solo una idea informal y pase a considerarse un proyecto "formal" dentro de la app, debe completar ciertos campos mínimos (problema, objetivo, etapa, referencias); mientras eso no ocurra, puede quedarse como una idea más efímera, sin toda esa estructura.
+**Estructura de comunidad/proyecto:** partimos de la idea de que una comunidad es un espacio más amplio (equivalente a una organización, colectivo o "marca paraguas") del cual pueden derivarse varios proyectos —igual que un negocio puede tener un proyecto legal, uno de marketing, etc.— aunque un proyecto también puede existir de forma independiente, sin pertenecer a ninguna comunidad. Cada proyecto tiene su propio feed, muestra su versión/etapa actual y de qué trata. Para que un proyecto deje de ser solo una idea informal y pase a considerarse un proyecto "formal" dentro de la app, debe completar ciertos campos mínimos (problema, objetivo, etapa, referencias); mientras eso no ocurra, puede quedarse como una idea más efímera, sin toda esa estructura.
 
-1. Crear una comunidad o un proyecto. Formulario de creación con campos que evitan que la propuesta se quede solo en "idea suelta" (problema, objetivo, etapa, habilidades/roles requeridos, referencias visuales), seguido de una confirmación de creación.
+**Estados de un proyecto.** Un proyecto no nace "formal": puede empezar en un **estado de idea**, informal, sin tener aún todos los campos obligatorios llenos ni nada oficial. En ese estado, el proyecto solo cuenta con un feed de opiniones donde el equipo que la propone puede preguntarle a la gente, lanzar encuestas o compartir avances muy tempranos mientras terminan de definir la idea. Cuando el equipo decide **formalizar** el proyecto (pasa, por ejemplo, a etapa de planeación), ahí sí se vuelve obligatorio llenar todos los campos (problema, objetivo, alcance, habilidades/roles requeridos, referencias visuales). Esto retoma directamente uno de los hallazgos del Mapa de insights: una idea poco aterrizada dificulta que otros quieran unirse, así que el sistema debe permitir que la idea "madure" antes de exigirle toda la estructura, sin excluir a quien todavía está explorando.
 
-2. Explorar el feed de comunidades y proyectos. Un feed principal (tipo dashboard de inicio) donde se puede navegar comunidades y proyectos activos, pensado como espacio de descubrimiento e inspiración, no solo como buscador dirigido.
+A continuación, el detalle de los flujos posibles que identificamos:
 
-3.  Ver el detalle/perfil de un proyecto. Incluye su etapa de desarrollo, versión actual, novedades publicadas por el equipo, de qué se trata, y el espacio donde otros usuarios pueden opinar (comentarios, reacciones, feedback).
+1. **Feed de comunidades.** Un espacio de descubrimiento específico para explorar comunidades activas —no proyectos sueltos—, pensado para quien busca un colectivo más amplio al que sumarse (por ejemplo, un grupo de estudiantes de una facultad o un club de proyectos) en lugar de una iniciativa puntual. Se puede filtrar/buscar por área de interés (no por carrera), retomando la tensión identificada en semana 2 sobre que Mariana prefiere descubrir por afinidad y no por filtros técnicos rígidos.
 
-4.  Seguir una comunidad / inscribirse a un proyecto. El usuario puede seguir comunidades completas o inscribirse puntualmente a proyectos específicos que le interesan.
+2. **Feed de proyectos.** El espacio de descubrimiento equivalente, pero para proyectos individuales, sean independientes o pertenecientes a una comunidad. Muestra todos los proyectos activos en este momento, también filtrables/buscables por área de interés.
 
-5.  Interactuar con un proyecto. Comentar, reaccionar, invitar a alguien más, y dejar feedback sobre lo publicado.
+3.  **Dashboard de inicio.** La pantalla principal al entrar a la app, que combina ambos feeds (comunidades y proyectos) en un solo punto de entrada, permitiendo alternar entre explorar comunidades o explorar proyectos según lo que el usuario esté buscando en ese momento.
 
-6.  Guardar proyectos de interés. Permite marcar proyectos para volver a ellos después, reforzando el uso de la app como espacio de inspiración además de conexión.
+4. **Formulario de creación (proyecto / comunidad).** Un único flujo de creación que, desde el inicio, le pregunta al usuario qué quiere crear. Cada tipo tiene su propio formulario, con la información específica que le corresponde:
+   - Si elige crear un **proyecto**, se le da la opción de asociarlo a una comunidad existente (si ya pertenece a una o quiere vincularlo) o dejarlo como independiente. Puede empezar en estado de idea (campos mínimos) o directamente estructurado si ya tiene todo definido.
+   - Si elige crear una **comunidad**, el formulario se enfoca en definir el espacio general: nombre, descripción/visión, logo, cómo quieren presentarse y tags —sin necesidad todavía de especificar proyectos concretos dentro de ella; esos se agregan después, como proyectos nuevos vinculados a esa comunidad. También se muestra qué proyectos y qué equipo/usuarios hacen parte de la comunidad.
+   - En cualquiera de los dos casos, el formulario se puede **borrar sin problema** si el usuario decide no continuar.
+     
+ 4. **Confirmación de creación.** Pantalla de cierre del flujo, adaptada según lo que se creó: si fue un proyecto, lleva al perfil del proyecto recién creado; si fue una comunidad, lleva al perfil de esa comunidad, desde donde luego se pueden ir agregando proyectos.
+ 
+ 5.  **Publicación de novedades o versiones de proyectos.** Una vez el proyecto ya existe, este flujo permite actualizar su estado —nueva versión, avance, cambio de etapa (por ejemplo, de idea a planeación)— y que esa actualización aparezca en el feed para quienes siguen el proyecto o la comunidad a la que pertenece. Es lo que mantiene "vivo" un proyecto después de su creación inicial, y refuerza uno de los hallazgos de semana 1: los usuarios valoran ver que una idea sigue evolucionando, no solo su versión inicial.
+ 
+ 6.   **Seguir una comunidad / inscribirse a un proyecto.** Aquí también aplica la diferenciación comunidad/proyecto, pero a nivel de la relación que el usuario establece con cada uno:
+   - **Seguir una comunidad:** el usuario se suscribe al espacio más amplio, recibiendo actualizaciones de todos los proyectos que pertenezcan a esa comunidad, sin comprometerse con uno en particular.
+   - **Inscribirse a un proyecto:** el usuario muestra interés puntual en un proyecto específico —propio o dentro de una comunidad—, lo cual puede derivar en una postulación formal si el proyecto está buscando colaboradores.
 
-7.  Conectar con personas por afinidad, no por filtros rígidos. Explorar perfiles y encontrar personas por intereses y gustos en común (no por carrera o filtros técnicos exclusivamente), conectando perfiles con proyectos.
+8. **Interactuar con un proyecto (invitar, comentar, reaccionar, dar feedback).** Además de la presentación del proyecto, su feed tiene un espacio para montar contenido como publicaciones: el equipo puede mostrar encuestas o prototipos esperando feedback de la gente, incluso mientras el proyecto todavía está en estado de idea. Sobre esto:
+   - **Invitar:** el creador o un miembro del equipo puede invitar directamente a alguien a sumarse al proyecto, en lugar de esperar a que la persona lo descubra por su cuenta. Esto es relevante porque, según lo que encontramos en las entrevistas de semana 1, gran parte de la conformación de equipos hoy ocurre por invitación directa a conocidos, más que por búsqueda abierta.
+   - **Comentar:** espacio de retroalimentación abierta sobre el proyecto, disponible tanto para quienes ya están inscritos como para quienes solo lo están explorando, permitiendo ese primer contacto o validación temprana que Mariana y Juan David mencionaron como valiosa.
 
-8.  Postularse mediante un formulario personalizado. Cuando un proyecto está abierto a nuevos miembros, se habilita una opción de "unirse" que despliega un formulario editable, personalizado por los miembros del proyecto, para que quien se postula deje su información.
-  
+9. **Conectar con personas.** Este es el flujo que responde directamente a la necesidad priorizada en el POV: encontrar colaboradores adecuados no solo por habilidades, sino por disponibilidad, intereses, compromiso y forma de trabajo. A diferencia de "seguir una comunidad" o "inscribirse a un proyecto" (que parten de un proyecto/comunidad ya publicado), este flujo permite descubrir **personas** directamente —explorar perfiles por intereses o habilidades afines, ver en qué están trabajando actualmente y con qué disponibilidad cuentan— para luego conectar esa persona con un proyecto concreto, ya sea invitándola o simplemente estableciendo contacto antes de que exista una vacante formal.
+
+10. **Plantilla editable de formulario (postulación).** Este componente responde a una necesidad transversal que aparece en varios de los flujos anteriores: cuando un proyecto está abierto a nuevos colaboradores, quien lo crea o administra puede personalizar el formulario que verán quienes se postulen —agregando o quitando preguntas según lo que ese proyecto en particular necesite saber de un candidato (por ejemplo, disponibilidad horaria, portafolio, experiencia previa)—. Esto evita que todos los proyectos de la plataforma usen exactamente el mismo formulario genérico de postulación, y les da a los líderes de proyecto la misma flexibilidad que hoy tienen al reclutar de forma informal por WhatsApp o redes sociales, pero de manera estructurada.
 
 ---
 
@@ -66,22 +80,23 @@ Seleccionen entre 2 y 4 flujos para trabajar esta semana.
 
 **¿Qué quiere lograr el usuario en este flujo?**
 
-Publicar una idea o proyecto de forma estructurada —dentro de una comunidad existente o de manera independiente— completando los campos mínimos necesarios (problema, objetivo,alcance, etapa actual, habilidades o roles requeridos, referencias visuales) para que deje de ser una idea suelta e informal y se convierta en un proyecto que otros puedan entender y a partir del cual puedan decidir sumarse.
+Publicar una comunidad o un proyecto usando el formulario correspondiente a cada tipo. Si crea una **comunidad**, define su identidad general (nombre, visión, logo, tags, cómo se presenta) como espacio "paraguas" bajo el cual luego podrá ir agregando proyectos. Si crea un **proyecto**, puede empezar en un **estado de idea** —informal, sin todos los campos obligatorios, apoyándose en un feed de opiniones y encuestas para validar la idea con la comunidad mientras la termina de definir— y más adelante **formalizarlo** llenando todos los campos requeridos (problema, objetivo, alcance, etapa, habilidades/roles necesarios, referencias visuales), momento en el cual deja de ser una idea suelta y se vuelve un proyecto que otros pueden entender y considerar para sumarse. En cualquiera de los dos formularios, el usuario puede borrar el borrador sin problema si decide no continuar. Al finalizar, una pantalla de confirmación adaptada al tipo creado lo lleva al perfil recién creado, desde donde después podrá publicar novedades o cambios de versión que mantengan el proyecto "vivo" en el feed de quienes lo siguen.
 
 **¿Por qué este flujo es importante?**
-Porque las tres personas entrevistadas coinciden en que una idea poco aterrizada dificulta que otros quieran unirse e identifican la documentación temprana de la idea como una funcionalidad esencial. Sin este flujo resuelto, ningún otro flujo de descubrimiento o conexión tendría contenido de calidad sobre el cual construirse.
+
+Porque el Hallazgo 3 del Mapa de insights muestra que las tres personas entrevistadas coinciden en que una idea poco aterrizada dificulta que otros quieran unirse, y el Banco de ideas ya identificaba la documentación temprana como una funcionalidad **esencial**. Permitir un estado de "idea" informal antes de exigir todos los campos, en cambio, responde a un riesgo que el propio equipo señaló en su Reflexión de Semana 2: crear barreras tan altas para publicar una idea que desmotiven a los usuarios a compartirla en etapas iniciales. Sin este flujo resuelto —incluyendo sus dos niveles de madurez, idea y formalizado— ningún otro flujo de descubrimiento o conexión tendría contenido de calidad sobre el cual construirse.
 
 ### Flujo 2
 
-**Nombre del flujo:** Interacción y descubrimiento de proyectos por intereses
+**Nombre del flujo:** Interacción  con un proyecto
 
 **¿Qué quiere lograr el usuario en este flujo?**
 
-Explorar el feed de proyectos y comunidades activos guiándose por afinidad de intereses (no por filtros rígidos de carrera o habilidad), poder seguir comunidades, guardar proyectos que le llamen la atención, comentar y reaccionar, e inscribirse a los que realmente le interesen.
+Relacionarse con un proyecto o comunidad según su nivel de interés: **seguir** una comunidad completa para recibir actualizaciones de todos sus proyectos sin comprometerse con uno en particular, o **inscribirse** puntualmente a un proyecto específico que le interese, lo cual puede derivar en una postulación formal si el proyecto está buscando colaboradores. Dentro del feed de cada proyecto, el usuario puede **comentar** y reaccionar —incluso mientras el proyecto todavía está en estado de idea, respondiendo encuestas o dando feedback sobre prototipos que el equipo publique buscando validación—, y un miembro del equipo del proyecto puede **invitar** directamente a alguien a sumarse, en vez de depender solo de que esa persona lo descubra por su cuenta.
 
 **¿Por qué este flujo es importante?**
 
-Porque, según la tensión identificada en el Mapa de insights de Semana 2, Mariana describió espontáneamente la plataforma ideal como un espacio de descubrimiento más que como un buscador dirigido por filtros técnicos, y por hallazgos anteriores se evidencia que depender solo de redes cercanas es hoy la principal barrera para encontrar colaboradores adecuados. Este flujo ataca directamente esa barrera, abriendo la posibilidad de encontrar proyectos y personas por afinidad genuina, más allá del círculo inmediato de cada estudiante.
+Porque, según la tensión identificada en el Mapa de insights de Semana 2, Mariana describió espontáneamente la plataforma ideal como un espacio de **descubrimiento** más que como un buscador dirigido por filtros técnicos, y el Hallazgo 1 muestra que depender solo de redes cercanas es hoy la principal barrera para encontrar colaboradores adecuados. Además, la Reflexión de Urbanhype (Juan David) y el Registro de entrevista de Mariana coinciden en que, en la práctica, gran parte de la conformación de equipos hoy ocurre por **invitación directa a conocidos**, más que por búsqueda abierta —de ahí que "invitar" sea un mecanismo tan central como "descubrir". Este flujo ataca ambas caras del problema: abre la posibilidad de encontrar proyectos y personas por afinidad genuina más allá del círculo inmediato, y a la vez conserva el mecanismo de invitación directa que los usuarios ya usan de forma natural. También habilita el feedback temprano (comentarios, encuestas, prototipos) que Mariana y Juan David mencionaron como valioso incluso antes de que un proyecto esté formalizado.
 
 ### Flujo 3
 
@@ -99,5 +114,4 @@ Porque, según la tensión identificada en el Mapa de insights de Semana 2, Mari
 
 **¿Por qué este flujo es importante?**
 
-> Si el equipo solo va a trabajar 2 o 3 flujos, puede dejar vacío el último.
-> El equipo decidió trabajar únicamente estos 2 flujos esta semana; se dejan sin desarrollar los Flujos 3 y 4 (conexión directa entre personas por perfil/gustos, y exploración avanzada de proyectos ya finalizados) para etapas posteriores.
+>  El equipo decidió trabajar únicamente estos 2 flujos esta semana; se dejan sin desarrollar los Flujos 3 y 4 —**Conectar con personas** (descubrir perfiles por intereses/disponibilidad, más allá de un proyecto ya publicado) y **Plantilla editable de formulario** (personalizar las preguntas de postulación por proyecto)— para etapas posteriores. Ambas ideas ya quedaron descritas en la sección "Flujos posibles" (puntos 9 y 10) para no perder el trabajo de esta semana, aunque no se profundizarán todavía en el detalle de pantallas.
