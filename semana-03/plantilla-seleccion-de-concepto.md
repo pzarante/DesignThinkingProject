@@ -2,7 +2,7 @@
 
 ## Información del equipo
 
-**Nombre del equipo:**
+**Nombre del equipo:** Equipo de Diseño de Experiencia e Innovación
 
 **Integrantes:**
 * Natalia Carpintero - @Carpinteron
@@ -66,11 +66,11 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Qué criterios usó el equipo para decidir estos flujos?
 
-- Impacto para el usuario
-- Frecuencia de uso
-- Valor para el sistema
-- Riesgo o incertidumbre
-- Dependencia entre flujos
+- [x] Impacto para el usuario
+- [x] Frecuencia de uso
+- [x] Valor para el sistema
+- [x] Riesgo o incertidumbre
+- [x] Dependencia entre flujos
 
 **Expliquen brevemente:**
 
@@ -88,43 +88,43 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Con quién validaron los prototipos de baja resolución?
 
-- Usuario potencial
-- Compañero
-- Otro:
+- [x] Usuario potencial
+- [ ] Compañero
+- [ ] Otro:
 
 ¿Cuántas personas participaron en total?
 
-**Cantidad:**
+**Cantidad:** 4 participantes
 
 ### Flujo 1
 
 **¿Qué aprendieron al comparar las dos versiones de este flujo?**
 
-- 
+- El formulario único con scroll continuo (Versión A) generó una percepción de sobrecarga visual y fatiga cognitiva al mostrar todos los campos vacíos de golpe.
 
-- 
+- La estructura por pasos tipo wizard (Versión B) facilitó la concentración en cada aspecto clave del proyecto (problema, alcance, roles) y redujo la sensación de esfuerzo gracias a la barra de progreso.
 
-- 
+- Los usuarios manifestaron que el wizard ayuda a que el líder de proyecto se tome el tiempo de aterrizar mejor su propuesta sin sentirse intimidado por la cantidad total de campos.
 
 **¿Qué versión pasa a la semana 4?**
 
-- Versión A
-- Versión B
+- [ ] Versión A
+- [x] Versión B
 
 ### Flujo 2
 
 **¿Qué aprendieron al comparar las dos versiones de este flujo?**
 
-- 
+- El feed principal con filtros por tags temáticos y modal de postulación rápida (Versión A) facilitó un descubrimiento mucho más orgánico y directo de iniciativas.
 
-- 
+- La postulación integrada inline dentro de la página del proyecto (Versión B) hizo que la pantalla se sintiera excesivamente larga, mezclando la lectura de la propuesta con el llenado de datos.
 
-- 
+- El selector de disponibilidad horaria dentro del modal de la Versión A fue valorado positivamente como una forma ágil y clara de definir expectativas antes de postularse.
 
 **¿Qué versión pasa a la semana 4?**
 
-- Versión A
-- Versión B
+- [x] Versión A
+- [ ] Versión B
 
 ### Flujo 3
 
@@ -138,8 +138,8 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 **¿Qué versión pasa a la semana 4?**
 
-- Versión A
-- Versión B
+- [ ] Versión A
+- [ ] Versión B
 
 ### Flujo 4
 
@@ -153,8 +153,8 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 **¿Qué versión pasa a la semana 4?**
 
-- Versión A
-- Versión B
+- [ ] Versión A
+- [ ] Versión B
 
 ---
 
@@ -162,17 +162,21 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Qué flujos y qué versiones pasan a la semana 4?
 
+Pasan a la semana 4 los dos flujos principales priorizados por el equipo:
+1. **Flujo 1 (Creación de proyecto / comunidad):** Se selecciona la **Versión B** (Wizard por pasos).
+2. **Flujo 2 (Interacción y descubrimiento de proyectos por intereses):** Se selecciona la **Versión A** (Feed continuo con modal de postulación).
+
 ---
 
 ## Razones de la decisión
 
 ¿Por qué estas decisiones parecen las mejores para avanzar después de la validación exploratoria?
 
-- 
+- **Reducción de la carga cognitiva:** La combinación del wizard para la creación y el modal para la postulación fragmenta tareas complejas en pasos sencillos y manejables para el usuario.
 
-- 
+- **Fidelidad al insight de descubrimiento:** Mantener un feed con tags temáticos en lugar de categorías rígidas permite una exploración basada en afinidad e intereses espontáneos.
 
-- 
+- **Equilibrio entre estructura y agilidad:** Permite que los proyectos nazcan bien documentados sin que el proceso de creación ni el de postulación se sientan pesados o burocráticos.
 
 ---
 
@@ -180,11 +184,11 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Qué cosas siguen sin estar claras y deben validarse mejor en la semana 4?
 
-- 
+- Validar si los pasos del wizard en móvil resultan demasiado largos o si requieren una opción para guardar borrador y continuar después.
 
-- 
+- Evaluar si las opciones predeterminadas de disponibilidad en el modal (Full-time, Part-time, Voluntario) son suficientes para acordar compromisos de trabajo reales entre estudiantes.
 
-- 
+- Comprobar si los tags de interés temático logran jerarquizar bien el feed cuando haya una alta densidad y variedad de proyectos publicados.
 
 ---
 
@@ -192,8 +196,8 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 Completen las frases:
 
-`Creemos que los usuarios valorarán...`
+`Creemos que los usuarios valorarán...` poder estructurar sus ideas paso a paso sin sentirse abrumados por formularios extensos, así como descubrir convocatorias alineadas a sus intereses personales mediante una postulación ágil.
 
-`Creemos que los usuarios usarán esta solución porque...`
+`Creemos que los usuarios usarán esta solución porque...` les permite conectar con personas y proyectos compatibles fuera de su círculo social habitual, conociendo de antemano el nivel de madurez de la idea y el compromiso requerido.
 
-`Sabremos que vamos por buen camino si...`
+`Sabremos que vamos por buen camino si...` los usuarios completan la creación de sus proyectos sin abandonar el wizard en las pruebas de usabilidad y logran postularse a una iniciativa en menos de 2 minutos a través del feed.
