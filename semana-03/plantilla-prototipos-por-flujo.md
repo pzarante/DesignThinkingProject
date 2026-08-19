@@ -59,9 +59,9 @@ Publicar una idea de forma estructurada —ya sea como proyecto independiente, c
 
 ### Evidencia en Figma
 
-**Enlace versión A:** https://myrtle-read-21921139.figma.site/
+**Enlace versión A:** https://twist-anime-74641097.figma.site/
 
-**Enlace versión B:** https://fawn-mute-79794124.figma.site/
+**Enlace versión B:** https://magic-loom-82785747.figma.site/
 
 ### Resultado de la validación exploratoria
 
