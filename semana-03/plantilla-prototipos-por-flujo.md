@@ -87,7 +87,6 @@ Publicar una idea de forma estructurada —ya sea como proyecto independiente, c
 - 
 
 ---
----
 
 ## Flujo 2
 
