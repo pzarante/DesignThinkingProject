@@ -66,11 +66,11 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Qué criterios usó el equipo para decidir estos flujos?
 
-- [x] Impacto para el usuario
-- [x] Frecuencia de uso
-- [x] Valor para el sistema
-- [x] Riesgo o incertidumbre
-- [x] Dependencia entre flujos
+- Impacto para el usuario
+- Frecuencia de uso
+- Valor para el sistema
+- Riesgo o incertidumbre
+- Dependencia entre flujos
 
 **Expliquen brevemente:**
 
@@ -88,9 +88,9 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 ¿Con quién validaron los prototipos de baja resolución?
 
-- [x] Usuario potencial
-- [ ] Compañero
-- [ ] Otro:
+- Usuario potencial
+- Compañero
+- Otro:
 
 ¿Cuántas personas participaron en total?
 
@@ -108,8 +108,7 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 **¿Qué versión pasa a la semana 4?**
 
-- [ ] Versión A
-- [x] Versión B
+- Versión B
 
 ### Flujo 2
 
@@ -123,8 +122,7 @@ Si el descubrimiento no funciona adecuadamente, los usuarios podrían no encontr
 
 **¿Qué versión pasa a la semana 4?**
 
-- [x] Versión A
-- [ ] Versión B
+- Versión A
 
 ### Flujo 3
 
