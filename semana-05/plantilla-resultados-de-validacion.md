@@ -46,20 +46,26 @@ Resuman los 3 aprendizajes más importantes de esta nueva ronda de validación.
 ### Hallazgo 1
 
 **¿Qué ocurrió?**
+Los cuatro participantes identificaron sin ayuda la sección "Recomendados para ti" como lo primero que veían al entrar, y tres de ellos comentaron espontáneamente que les parecía más fácil saber por dónde empezar que en la versión anterior.
 
 **¿Qué significa?**
+El cambio de jerarquía sí resolvió el problema que veníamos arrastrando desde la semana 4: cuando lo relevante para el usuario queda arriba, deja de sentirse como una pantalla de inicio genérica.
 
 ### Hallazgo 2
 
 **¿Qué ocurrió?**
+Al llegar a la vista de postulantes, dos participantes (el emprendedor y uno de los compañeros) tardaron en encontrar cómo volver al detalle general del proyecto después de revisar una postulación, porque no había un botón de regreso claramente visible dentro de esa vista.
 
 **¿Qué significa?**
+Resolvimos el vacío de no tener esta función, pero al construirla nos quedó un problema de navegación nuevo: la pantalla de postulantes se siente un poco aislada del resto del flujo del proyecto.
 
 ### Hallazgo 3
 
 **¿Qué ocurrió?**
+El adulto que participó fue el único que mencionó todavía tener dudas sobre para qué servía el buscador del Home, al punto de preguntar directamente "¿esto es lo mismo que filtrar en Explorar?". Los otros tres no lo usaron en ningún momento durante la prueba.
 
 **¿Qué significa?**
+La duda que ya habíamos anotado en el plan de iteración sigue vigente. El buscador del Home no se está usando ni se entiende bien su propósito, lo que refuerza que probablemente deba quitarse o rediseñarse antes de la siguiente etapa.
 
 ---
 
@@ -67,11 +73,9 @@ Resuman los 3 aprendizajes más importantes de esta nueva ronda de validación.
 
 ¿En qué partes hubo dudas, errores o confusión?
 
-- 
-
-- 
-
-- 
+- Falta de botón de regreso claro dentro de la vista de postulantes.
+- Confusión sobre la utilidad del buscador del Home frente al buscador de Explorar.
+- Uno de los compañeros no notó en un primer momento que "Mis Proyectos" ahora mostraba menos elementos, y buscó un proyecto antiguo que ya no aparecía anclado ni entre los recientes.
 
 ---
 
@@ -79,11 +83,10 @@ Resuman los 3 aprendizajes más importantes de esta nueva ronda de validación.
 
 ¿Qué elementos parecieron útiles, claros o valiosos para los usuarios?
 
-- 
-
-- 
-
-- 
+- La nueva jerarquía del Home, especialmente tener "Recomendados para ti" de primero.
+- El botón "Crear" fijo, que el emprendedor mencionó como algo que agilizaba publicar una idea sin tener que buscarlo.
+- La vista de postulantes en sí, una vez que lograban llegar a ella: los cuatro coincidieron en que la información mostrada (motivación, disponibilidad, rol de interés) era suficiente para decidir si contactar a alguien.
+- La mejora en legibilidad de los textos, comentada sin que se les preguntara directamente por dos de los participantes.
 
 ---
 
@@ -103,19 +106,14 @@ Registren frases importantes de los usuarios.
 
 ### Confirmadas
 
-- 
-
-- 
-
-- 
+- Priorizar "Recomendados para ti" en el Home mejora la percepción de relevancia del contenido inicial.
+- Simplificar "Mis Proyectos" reduce la sobrecarga visual, aunque con un costo de encontrabilidad que hay que resolver.
+- Un botón "Crear" sticky facilita que los usuarios accedan a la creación sin buscarlo activamente.
 
 ### No confirmadas
 
-- 
-
-- 
-
-- 
+- Que el buscador del Home tuviera un propósito claro y diferenciado del de Explorar: la prueba mostró lo contrario.
+- Que la vista de postulantes se sintiera completamente integrada al resto del flujo del proyecto: falta resolver la navegación de regreso.
 
 ---
 
