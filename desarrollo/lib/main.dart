@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import 'app_routes.dart';
 import 'central.dart';
 import 'core/app_theme.dart';
 import 'core/i_local_preferences.dart';
@@ -10,6 +11,7 @@ import 'core/local_preferences_secured.dart';
 import 'core/local_preferences_shared.dart';
 
 import 'features/auth/auth_dependencies.dart';
+import 'features/home/home_dependencies.dart';
 import 'features/product/product_dependencies.dart';
 
 void main() async {
@@ -22,6 +24,7 @@ void main() async {
   Get.put<ILocalPreferences>(preferences, permanent: true);
 
   registerAuth();
+  registerHome();
   registerProduct();
   runApp(const MyApp());
 }
@@ -37,6 +40,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
       home: const Central(),
+      getPages: AppRoutes.pages,
     );
   }
 }
