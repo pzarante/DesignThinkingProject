@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
 import 'app_routes.dart';
-import 'central.dart';
 import 'core/app_theme.dart';
 import 'core/i_local_preferences.dart';
 import 'core/local_preferences_secured.dart';
@@ -39,7 +38,7 @@ class MyApp extends StatelessWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       debugShowCheckedModeBanner: false,
-      home: const Central(),
+      initialRoute: AppRoutes.home,
       getPages: AppRoutes.pages,
     );
   }
