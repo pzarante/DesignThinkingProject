@@ -37,6 +37,8 @@ class MyApp extends StatelessWidget {
       title: 'Clean template',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
+      themeMode: ThemeMode
+          .light, // fuerza claro, ignora el modo del sistema (esto solo es para que se parezca más al figma)
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.home,
       getPages: AppRoutes.pages,

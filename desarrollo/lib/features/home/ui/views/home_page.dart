@@ -8,7 +8,6 @@ import '../../../../core/widgets/app_icon_badge.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
 import '../../domain/models/home_feed.dart';
-import '../../domain/models/project.dart';
 import '../viewmodels/home_controller.dart';
 import '../widgets/feed_entry_tile.dart';
 import '../widgets/project_card.dart';
@@ -75,9 +74,9 @@ class HomePage extends StatelessWidget {
   }
 
   void _notifyPending(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Sección aún no disponible.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Sección aún no disponible.')));
   }
 }
 
@@ -98,18 +97,24 @@ class _FeedList extends StatelessWidget {
       ),
       children: [
         greeting,
+        const AppSectionHeader(title: 'Recomendado para ti'),
+        for (final project in feed.recommendedProjects)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ProjectCard(project: project),
+          ),
         const AppSectionHeader(title: 'Comunidades que sigues'),
         for (final community in feed.followedCommunities)
           FeedEntryTile(
             icon: Icons.groups_outlined,
             title: community.name,
+            subtitle: community.lastActivity,
           ),
-        const AppSectionHeader(title: 'Recomendado para ti'),
-        for (final project in feed.recommendedProjects)
-          FeedEntryTile(
-            icon: Icons.layers_outlined,
-            title: project.name,
-            subtitle: _projectLabels(project),
+        const AppSectionHeader(title: 'Mis Proyectos'),
+        for (final project in feed.myProjectsSummary)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: ProjectCard(project: project),
           ),
         const AppSectionHeader(title: 'Ferias y oportunidades'),
         for (final opportunity in feed.opportunities)
@@ -119,18 +124,7 @@ class _FeedList extends StatelessWidget {
             subtitle:
                 '${opportunity.participatingProjects} proyectos participando',
           ),
-        const AppSectionHeader(title: 'Mis Proyectos'),
-        for (final project in feed.myProjects)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: ProjectCard(project: project),
-          ),
       ],
     );
   }
-
-  String _projectLabels(Project project) => [
-    ...project.tags,
-    if (project.stage != null) project.stage!,
-  ].join(' • ');
 }

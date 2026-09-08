@@ -21,7 +21,7 @@ class ProjectCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const _Cover(),
+            _Cover(imageUrl: project.imageUrl, isNew: project.isNew),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -64,11 +64,47 @@ class ProjectCard extends StatelessWidget {
 }
 
 class _Cover extends StatelessWidget {
-  const _Cover();
+  const _Cover({this.imageUrl, this.isNew = false});
+
+  final String? imageUrl;
+  final bool isNew;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+
+    return Stack(
+      children: [
+        if (imageUrl == null)
+          _placeholder(colors)
+        else
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Image.network(
+              imageUrl!,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, progress) {
+                if (progress == null) return child;
+                return Container(
+                  color: colors.surfaceContainerHighest,
+                  child: const Center(child: CircularProgressIndicator()),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) =>
+                  _placeholder(colors),
+            ),
+          ),
+        if (isNew)
+          Positioned(
+            top: AppSpacing.sm,
+            left: AppSpacing.sm,
+            child: _NewBadge(),
+          ),
+      ],
+    );
+  }
+
+  Widget _placeholder(ColorScheme colors) {
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
@@ -77,6 +113,32 @@ class _Cover extends StatelessWidget {
           Icons.image_outlined,
           size: AppSpacing.xl,
           color: colors.onSurfaceVariant,
+        ),
+      ),
+    );
+  }
+}
+
+class _NewBadge extends StatelessWidget {
+  const _NewBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 4,
+      ),
+      decoration: BoxDecoration(
+        color: colors.tertiaryContainer,
+        borderRadius: BorderRadius.circular(AppSpacing.xs),
+      ),
+      child: Text(
+        'NUEVO',
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: colors.onTertiaryContainer,
+          fontWeight: FontWeight.bold,
         ),
       ),
     );
