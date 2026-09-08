@@ -15,11 +15,13 @@ class LocalHomeSource implements IHomeSource {
         id: 'c1',
         name: 'Studio Creativo UNI',
         lastActivity: '3 publicaciones nuevas',
+        tags: ['Tecnología'],
       ),
       Community(
         id: 'c2',
         name: 'Narrativa Digital',
         lastActivity: 'Sin actividad reciente',
+        tags: ['Comunicación'],
       ),
     ],
     recommendedProjects: [

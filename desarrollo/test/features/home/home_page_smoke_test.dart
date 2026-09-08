@@ -56,7 +56,10 @@ void main() {
     expect(find.text('Crear'), findsOneWidget);
     expect(find.text('Inicio'), findsOneWidget);
 
-    await tester.scrollUntilVisible(find.text('15 proyectos participando'), 300);
+    await tester.scrollUntilVisible(
+      find.text('15 proyectos participando'),
+      300,
+    );
     await tester.scrollUntilVisible(
       find.widgetWithText(AppSectionHeader, 'Mis Proyectos'),
       300,

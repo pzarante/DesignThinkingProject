@@ -2,8 +2,8 @@ class Project {
   const Project({
     required this.id,
     required this.name,
-    this.tags = const [],
-    this.stage,
+    this.tags = const [], // temática
+    this.stage, // etapa del proyecto
     this.memberCount = 0,
     this.isPinned = false,
     this.lastVisitedAt,

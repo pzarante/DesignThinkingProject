@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_icon_badge.dart';
+import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
-import '../../../auth/ui/viewmodels/authentication_controller.dart';
-import '../../domain/models/home_feed.dart';
 import '../viewmodels/home_controller.dart';
 import '../widgets/feed_entry_tile.dart';
 import '../widgets/project_card.dart';
@@ -18,7 +18,6 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final HomeController homeController = Get.find();
-    final AuthenticationController authenticationController = Get.find();
 
     return Scaffold(
       appBar: AppBar(
@@ -40,15 +39,7 @@ class HomePage extends StatelessWidget {
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
                 onRefresh: homeController.getFeed,
-                child: _FeedList(
-                  feed: homeController.feed,
-                  greeting: Obx(
-                    () => Text(
-                      'Hola, ${authenticationController.loggedEmail}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                  ),
-                ),
+                child: _FeedList(controller: homeController),
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -81,50 +72,78 @@ class HomePage extends StatelessWidget {
 }
 
 class _FeedList extends StatelessWidget {
-  const _FeedList({required this.feed, required this.greeting});
+  const _FeedList({required this.controller});
 
-  final HomeFeed feed;
-  final Widget greeting;
+  final HomeController controller;
+
+  static const _typeLabels = {
+    HomeEntryType.todos: 'Todos',
+    HomeEntryType.proyectos: 'Proyectos',
+    HomeEntryType.comunidades: 'Comunidades',
+  };
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.scrollBottomInset,
-      ),
-      children: [
-        greeting,
-        const AppSectionHeader(title: 'Recomendado para ti'),
-        for (final project in feed.recommendedProjects)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: ProjectCard(project: project),
+    return Obx(() {
+      final feed = controller.feed;
+      final categoryOptions = ['Todos', ...controller.availableTags];
+      final selectedCategory = controller.selectedTag.value ?? 'Todos';
+
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.sm,
+          AppSpacing.md,
+          AppSpacing.scrollBottomInset,
+        ),
+        children: [
+          AppSearchBar(
+            hintText: 'Buscar proyectos, comunidades...',
+            onChanged: controller.setSearchQuery,
           ),
-        const AppSectionHeader(title: 'Comunidades que sigues'),
-        for (final community in feed.followedCommunities)
-          FeedEntryTile(
-            icon: Icons.groups_outlined,
-            title: community.name,
-            subtitle: community.lastActivity,
+          const SizedBox(height: AppSpacing.sm),
+          AppChoiceChipRow<HomeEntryType>(
+            options: HomeEntryType.values,
+            labelBuilder: (type) => _typeLabels[type]!,
+            selected: controller.selectedType.value,
+            onSelected: controller.setType,
           ),
-        const AppSectionHeader(title: 'Mis Proyectos'),
-        for (final project in feed.myProjectsSummary)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: ProjectCard(project: project),
+          const SizedBox(height: AppSpacing.xs),
+          AppChoiceChipRow<String>(
+            options: categoryOptions,
+            labelBuilder: (tag) => tag == 'Todos' ? tag : '#$tag',
+            selected: selectedCategory,
+            onSelected: (tag) => controller.setTag(tag == 'Todos' ? null : tag),
           ),
-        const AppSectionHeader(title: 'Ferias y oportunidades'),
-        for (final opportunity in feed.opportunities)
-          FeedEntryTile(
-            icon: Icons.calendar_today_outlined,
-            title: opportunity.name,
-            subtitle:
-                '${opportunity.participatingProjects} proyectos participando',
-          ),
-      ],
-    );
+          const AppSectionHeader(title: 'Recomendado para ti'),
+          for (final project in controller.filteredRecommendedProjects)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: ProjectCard(project: project),
+            ),
+          const AppSectionHeader(title: 'Comunidades que sigues'),
+          for (final community in controller.filteredCommunities)
+            FeedEntryTile(
+              icon: Icons.groups_outlined,
+              title: community.name,
+              subtitle: community.lastActivity,
+            ),
+          const AppSectionHeader(title: 'Mis Proyectos'),
+          for (final project in controller.filteredMyProjectsSummary)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: ProjectCard(project: project),
+            ),
+          const AppSectionHeader(title: 'Ferias y oportunidades'),
+          for (final opportunity in feed.opportunities)
+            FeedEntryTile(
+              icon: Icons.calendar_today_outlined,
+              title: opportunity.name,
+              subtitle:
+                  '${opportunity.participatingProjects} proyectos participando',
+            ),
+        ],
+      );
+    });
   }
 }
