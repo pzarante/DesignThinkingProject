@@ -20,6 +20,8 @@ The objective of this project is to develop a Flutter mobile application that en
 The application should encourage collaboration, innovation, and continuous improvement throughout the lifecycle of a project.
 
 The application supports the complete lifecycle of a collaborative university project. A student begins by publishing an idea describing the problem to solve and the skills required. Other students can discover the proposal, apply to join the team, and collaborate on its development. Throughout the project, the team shares progress updates, validates decisions through community polls, and publishes prototypes for feedback from other students. Based on this feedback, the team iterates on the solution until the project is completed and showcased on the platform.
+### Figma
+https://www.figma.com/design/TNSqcY87HO8JV2opLYShfy/Movil-PANA?node-id=31-1983&t=WaemksDvpMJyd02b-0
 ## Functional Requirements
 ### Authentication
 - Login using institutional credentials. 
