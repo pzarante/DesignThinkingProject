@@ -5,7 +5,6 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
-import '../../../../core/widgets/app_icon_badge.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../viewmodels/home_controller.dart';
@@ -24,7 +23,7 @@ class HomePage extends StatelessWidget {
         leadingWidth: 56,
         leading: const Padding(
           padding: EdgeInsets.only(left: AppSpacing.md),
-          child: AppIconBadge(icon: Icons.lightbulb_outline, size: 32),
+          child: _AppLogo(),
         ),
         title: const Text('Innovation Hub'),
         actions: [
@@ -68,6 +67,23 @@ class HomePage extends StatelessWidget {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(const SnackBar(content: Text('Sección aún no disponible.')));
+  }
+}
+
+class _AppLogo extends StatelessWidget {
+  const _AppLogo();
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Image.asset(
+        'assets/launcher_icon/icon.png',
+        width: 32,
+        height: 32,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 }
 
