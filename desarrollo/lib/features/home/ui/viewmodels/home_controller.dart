@@ -91,4 +91,22 @@ class HomeController extends GetxController with UiLoggy {
     if (tag == null) return true;
     return tags.contains(tag);
   }
+
+  /// Toggles the [Project.isPinned] flag for the project with [projectId].
+  ///
+  /// Updates both the `myProjects` list inside [_feed] and triggers a
+  /// reactive rebuild of any widget observing the feed.
+  void togglePin(String projectId) {
+    final updated = feed.myProjects.map((p) {
+      if (p.id != projectId) return p;
+      return p.copyWith(isPinned: !p.isPinned);
+    }).toList();
+
+    _feed.value = HomeFeed(
+      followedCommunities: feed.followedCommunities,
+      recommendedProjects: feed.recommendedProjects,
+      opportunities: feed.opportunities,
+      myProjects: updated,
+    );
+  }
 }
