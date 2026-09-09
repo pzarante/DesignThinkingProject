@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../domain/models/project.dart';
@@ -17,7 +19,11 @@ class ProjectCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap,
+        onTap: onTap ??
+            () => Get.toNamed(
+                  AppRoutes.projectDetail,
+                  arguments: project,
+                ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

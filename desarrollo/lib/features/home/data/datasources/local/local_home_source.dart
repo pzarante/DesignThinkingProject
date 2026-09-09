@@ -32,6 +32,10 @@ class LocalHomeSource implements IHomeSource {
         stage: 'Investigación',
         imageUrl: 'https://picsum.photos/seed/r1/400/225',
         createdAt: DateTime.now().subtract(const Duration(days: 2)),
+        description:
+            'Aplicación móvil que utiliza la cámara para leer y decodificar '
+            'códigos QR y de barras en tiempo real, con historial de escaneos '
+            'y exportación de datos.',
       ),
       Project(
         id: 'r2',
@@ -39,6 +43,10 @@ class LocalHomeSource implements IHomeSource {
         tags: const ['Sostenibilidad'],
         stage: 'Prototipo',
         imageUrl: 'https://picsum.photos/seed/r2/400/225',
+        description:
+            'Plataforma de seguimiento de la huella de carbono universitaria. '
+            'Permite a estudiantes registrar hábitos sostenibles y visualizar '
+            'el impacto colectivo del campus.',
       ),
     ],
     opportunities: const [
@@ -57,6 +65,10 @@ class LocalHomeSource implements IHomeSource {
         memberCount: 3,
         isPinned: true,
         imageUrl: 'https://picsum.photos/seed/p1/400/225',
+        description:
+            'Herramienta de animación colaborativa en línea. Permite a equipos '
+            'crear y editar animaciones frame a frame con control de versiones '
+            'integrado y exportación a múltiples formatos.',
       ),
       Project(
         id: 'p2',
@@ -66,6 +78,10 @@ class LocalHomeSource implements IHomeSource {
         memberCount: 2,
         lastVisitedAt: DateTime.now().subtract(const Duration(hours: 2)),
         imageUrl: 'https://picsum.photos/seed/p2/400/225',
+        description:
+            'Lector y comunidad de cómics independientes latinoamericanos. '
+            'Los autores pueden publicar sus obras y recibir retroalimentación '
+            'directa de los lectores.',
       ),
       Project(
         id: 'p3',
@@ -75,6 +91,10 @@ class LocalHomeSource implements IHomeSource {
         memberCount: 4,
         lastVisitedAt: DateTime.now().subtract(const Duration(days: 3)),
         imageUrl: 'https://picsum.photos/seed/p3/400/225',
+        description:
+            'Asistente de diseño arquitectónico basado en IA. Genera planos '
+            'preliminares a partir de requisitos de espacio y presupuesto, '
+            'facilitando la fase inicial del diseño.',
       ),
     ],
   );

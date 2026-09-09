@@ -9,6 +9,7 @@ class Project {
     this.lastVisitedAt,
     this.imageUrl,
     this.createdAt,
+    this.description,
   });
 
   final String id;
@@ -33,11 +34,40 @@ class Project {
   /// this field (treated as not-new).
   final DateTime? createdAt;
 
+  /// Short description shown in the project detail screen.
+  final String? description;
+
   /// Whether to show the "NUEVO" badge on the card.
   // TODO: validar con usuarios — la ventana de 7 días es un supuesto de UX
   // no especificado en PROJECT_SPEC.md, no un dato validado en investigación.
   bool get isNew {
     if (createdAt == null) return false;
     return DateTime.now().difference(createdAt!).inDays <= 7;
+  }
+
+  Project copyWith({
+    String? id,
+    String? name,
+    List<String>? tags,
+    String? stage,
+    int? memberCount,
+    bool? isPinned,
+    DateTime? lastVisitedAt,
+    String? imageUrl,
+    DateTime? createdAt,
+    String? description,
+  }) {
+    return Project(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      tags: tags ?? this.tags,
+      stage: stage ?? this.stage,
+      memberCount: memberCount ?? this.memberCount,
+      isPinned: isPinned ?? this.isPinned,
+      lastVisitedAt: lastVisitedAt ?? this.lastVisitedAt,
+      imageUrl: imageUrl ?? this.imageUrl,
+      createdAt: createdAt ?? this.createdAt,
+      description: description ?? this.description,
+    );
   }
 }
