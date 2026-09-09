@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import 'features/home/ui/views/explore_page.dart';
 import 'features/home/ui/views/home_page.dart';
 import 'features/home/ui/views/project_detail_page.dart';
 
@@ -24,6 +25,7 @@ abstract final class AppRoutes {
 
   static final List<GetPage> pages = [
     GetPage(name: home, page: () => const HomePage()),
+    GetPage(name: explore, page: () => const ExplorePage()),
     GetPage(name: projectDetail, page: () => const ProjectDetailPage()),
   ];
 
