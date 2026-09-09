@@ -13,5 +13,5 @@ import 'ui/viewmodels/home_controller.dart';
 void registerHome() {
   Get.put<IHomeSource>(LocalHomeSource());
   Get.put<IHomeRepository>(HomeRepository(Get.find()));
-  Get.lazyPut(() => HomeController(Get.find()));
+  Get.put(HomeController(Get.find()), permanent: true);
 }
