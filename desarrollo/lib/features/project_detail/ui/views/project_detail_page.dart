@@ -10,6 +10,7 @@ import '../../../home/domain/models/project.dart';
 import '../../domain/models/project_detail.dart';
 import '../viewmodels/project_detail_controller.dart';
 import '../viewmodels/project_settings_controller.dart';
+import '../widgets/application_form_sheet.dart';
 import '../widgets/details_tab.dart';
 import '../widgets/posts_tab.dart';
 import '../widgets/project_detail_actions.dart';
@@ -45,6 +46,21 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// Postularse usa el flujo que ya existe en la feature home; aquí solo se
+  /// abre desde la pantalla nueva.
+  Future<void> _apply(ProjectDetail detail) async {
+    final applicant = controller.currentUser.value;
+
+    final submitted = await showApplicationForm(
+      context,
+      projectId: detail.projectId,
+      applicantName: applicant?.name ?? 'Sin nombre',
+      applicantEmail: applicant?.email ?? '',
+    );
+
+    if (submitted && mounted) _notifyPending('Postulación enviada.');
   }
 
   Future<void> _openSettings(ProjectDetail detail) async {
@@ -139,8 +155,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               onConfigure: () => _openSettings(detail),
               onCreatePost: () =>
                   _notifyPending('Crear publicación llegará en otra entrega.'),
-              onApply: () =>
-                  _notifyPending('La postulación llegará en otra entrega.'),
+              onApply: () => _apply(detail),
               onSave: () => _notifyPending('Guardar llegará en otra entrega.'),
               onFollow: () => _notifyPending('Seguir llegará en otra entrega.'),
             ),

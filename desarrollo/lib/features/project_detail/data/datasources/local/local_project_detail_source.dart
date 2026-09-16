@@ -17,6 +17,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     name: 'María García',
     roleLabel: 'LÍDER',
     subtitle: 'Líder · 5to año',
+    email: 'maria@uni.edu',
     isCreator: true,
   );
 

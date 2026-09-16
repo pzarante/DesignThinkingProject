@@ -55,6 +55,8 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     coverUrl.value = detail.coverUrl;
   }
 
+  String get projectId => _original.projectId;
+
   String get coverName {
     final slug = _original.projectId;
     return coverUrl.value == null ? 'Sin portada' : 'cover_$slug.jpg';

@@ -7,17 +7,32 @@ import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../home/ui/viewmodels/project_application_controller.dart';
 import '../../domain/models/project_member.dart';
 import '../viewmodels/project_settings_controller.dart';
+import '../widgets/applications_list.dart';
 import '../widgets/project_member_tile.dart';
 
 /// Configuración del proyecto, disponible solo para quien lo creó.
-class ProjectSettingsPage extends StatelessWidget {
+class ProjectSettingsPage extends StatefulWidget {
   const ProjectSettingsPage({super.key});
 
   @override
+  State<ProjectSettingsPage> createState() => _ProjectSettingsPageState();
+}
+
+class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
+  final ProjectSettingsController controller = Get.find();
+  final ProjectApplicationController applicationController = Get.find();
+
+  @override
+  void initState() {
+    super.initState();
+    applicationController.loadForProject(controller.projectId);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ProjectSettingsController controller = Get.find();
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -80,7 +95,7 @@ class ProjectSettingsPage extends StatelessWidget {
                         IconButton(
                           tooltip: 'Editar rol',
                           icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _editRole(context, controller, member),
+                          onPressed: () => _editRole(context, member),
                         ),
                         IconButton(
                           tooltip: controller.canRemove(member)
@@ -88,7 +103,7 @@ class ProjectSettingsPage extends StatelessWidget {
                               : 'No se puede quitar a quien creó el proyecto',
                           icon: const Icon(Icons.delete_outline),
                           onPressed: controller.canRemove(member)
-                              ? () => _confirmRemove(context, controller, member)
+                              ? () => _confirmRemove(context, member)
                               : null,
                         ),
                       ],
@@ -166,7 +181,7 @@ class ProjectSettingsPage extends StatelessWidget {
                 ),
                 subtitle: const Text('Co-líder del proyecto'),
                 trailing: TextButton(
-                  onPressed: () => _changeCoLeader(context, controller),
+                  onPressed: () => _changeCoLeader(context),
                   child: const Text('Cambiar'),
                 ),
               ),
@@ -179,6 +194,9 @@ class ProjectSettingsPage extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+
+          const AppSectionHeader(title: 'Postulaciones recibidas'),
+          ApplicationsList(controller: applicationController),
 
           const AppSectionHeader(title: 'Comunidad asociada'),
           Obx(() {
@@ -223,11 +241,7 @@ class ProjectSettingsPage extends StatelessWidget {
     );
   }
 
-  Future<void> _editRole(
-    BuildContext context,
-    ProjectSettingsController controller,
-    ProjectMember member,
-  ) async {
+  Future<void> _editRole(BuildContext context, ProjectMember member) async {
     final field = TextEditingController(text: member.roleLabel ?? '');
 
     final role = await showDialog<String>(
@@ -260,7 +274,6 @@ class ProjectSettingsPage extends StatelessWidget {
 
   Future<void> _confirmRemove(
     BuildContext context,
-    ProjectSettingsController controller,
     ProjectMember member,
   ) async {
     final confirmed = await showDialog<bool>(
@@ -287,10 +300,7 @@ class ProjectSettingsPage extends StatelessWidget {
     if (confirmed ?? false) controller.removeMember(member.id);
   }
 
-  Future<void> _changeCoLeader(
-    BuildContext context,
-    ProjectSettingsController controller,
-  ) async {
+  Future<void> _changeCoLeader(BuildContext context) async {
     final candidates = controller.members
         .where((member) => !member.isCreator)
         .toList();

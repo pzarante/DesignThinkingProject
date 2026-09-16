@@ -5,6 +5,7 @@ class ProjectMember {
     required this.name,
     this.roleLabel,
     this.subtitle,
+    this.email,
     this.avatarUrl,
     this.isCreator = false,
     this.isCoLeader = false,
@@ -18,6 +19,9 @@ class ProjectMember {
 
   /// Línea secundaria del diseño: "Motion Designer · 3er año".
   final String? subtitle;
+
+  /// Correo institucional, usado al postularse a un proyecto.
+  final String? email;
   final String? avatarUrl;
 
   /// Quien creó el proyecto; no se puede quitar del equipo.
@@ -34,6 +38,7 @@ class ProjectMember {
       name: name,
       roleLabel: roleLabel ?? this.roleLabel,
       subtitle: subtitle ?? this.subtitle,
+      email: email,
       avatarUrl: avatarUrl,
       isCreator: isCreator,
       isCoLeader: isCoLeader ?? this.isCoLeader,

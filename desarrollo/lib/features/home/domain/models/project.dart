@@ -10,6 +10,7 @@ class Project {
     this.imageUrl,
     this.createdAt,
     this.description,
+    this.requiredRoles = const [],
   });
 
   final String id;
@@ -36,6 +37,7 @@ class Project {
 
   /// Short description shown in the project detail screen.
   final String? description;
+  final List<String> requiredRoles;
 
   /// Whether to show the "NUEVO" badge on the card.
   // TODO: validar con usuarios — la ventana de 7 días es un supuesto de UX
@@ -56,6 +58,7 @@ class Project {
     String? imageUrl,
     DateTime? createdAt,
     String? description,
+    List<String>? requiredRoles,
   }) {
     return Project(
       id: id ?? this.id,
@@ -68,6 +71,7 @@ class Project {
       imageUrl: imageUrl ?? this.imageUrl,
       createdAt: createdAt ?? this.createdAt,
       description: description ?? this.description,
+      requiredRoles: requiredRoles ?? this.requiredRoles,
     );
   }
 }

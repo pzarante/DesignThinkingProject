@@ -7,6 +7,7 @@ import 'package:f_clean_template/core/app_theme.dart';
 import 'package:f_clean_template/features/home/data/datasources/local/local_home_source.dart';
 import 'package:f_clean_template/features/home/domain/models/project.dart';
 import 'package:f_clean_template/features/home/home_dependencies.dart';
+import 'package:f_clean_template/features/home/ui/viewmodels/project_application_controller.dart';
 import 'package:f_clean_template/features/project_detail/project_detail_dependencies.dart';
 
 import 'support/fake_network_images.dart';
@@ -88,6 +89,31 @@ void main() {
     await _scrollTo(tester, find.text('Descripción'));
     expect(find.text('Crear publicación'), findsNothing);
     expect(find.byTooltip('Configurar proyecto'), findsNothing);
+  });
+
+  testWidgets('a visitor can apply through the existing application flow', (
+    tester,
+  ) async {
+    await _openDetail(tester, await _projectById('r1'));
+
+    await tester.tap(find.text('Postularme'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Motivación'),
+      'Quiero aportar en la parte de visión por computador.',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Disponibilidad'),
+      '6 horas por semana',
+    );
+    await tester.tap(find.text('Enviar postulación'));
+    await tester.pumpAndSettle();
+
+    final ProjectApplicationController applications = Get.find();
+    expect(applications.applications, hasLength(1));
+    expect(applications.applications.first.applicantName, 'María García');
+    expect(applications.applications.first.projectId, 'r1');
   });
 
   testWidgets('the posts tab stays empty on purpose', (tester) async {

@@ -3,6 +3,7 @@ import 'package:loggy/loggy.dart';
 
 import '../../../home/domain/models/project.dart';
 import '../../domain/models/project_detail.dart';
+import '../../domain/models/project_member.dart';
 import '../../domain/models/viewer_role.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
@@ -14,6 +15,9 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   final Rxn<ProjectDetail> _detail = Rxn<ProjectDetail>();
   final RxBool isLoading = false.obs;
+
+  /// Quien está en sesión; se necesita al postularse a un proyecto ajeno.
+  final Rxn<ProjectMember> currentUser = Rxn<ProjectMember>();
 
   ProjectDetail? get detail => _detail.value;
 
@@ -27,6 +31,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     isLoading.value = true;
     final stored = await _repository.getDetail(project.id);
     _detail.value = stored ?? _fromFeedProject(project);
+    currentUser.value = await _repository.getCurrentUser();
     isLoading.value = false;
   }
 

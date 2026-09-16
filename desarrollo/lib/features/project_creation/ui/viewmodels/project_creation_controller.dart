@@ -267,6 +267,9 @@ class ProjectCreationController extends GetxController with UiLoggy {
       stage: stage.value,
       // El creador más el co-líder, si se asignó uno en el paso de equipo.
       memberCount: coLeader.value == null ? 1 : 2,
+      // Los roles del paso de equipo también viajan en la entidad del feed:
+      // es lo que lee el flujo de postulación.
+      requiredRoles: List.unmodifiable(roles),
       imageUrl: coverUrl.value,
       createdAt: DateTime.now(),
       description: description.value.trim(),
