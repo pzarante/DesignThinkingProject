@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../home/domain/models/project.dart';
+import '../../../project_applications/ui/viewmodels/apply_controller.dart';
 import '../../domain/models/project_detail.dart';
 import '../viewmodels/project_detail_controller.dart';
 import '../viewmodels/project_settings_controller.dart';
@@ -40,7 +41,16 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   @override
   void initState() {
     super.initState();
-    controller.load(Get.arguments as Project);
+    controller.load(Get.arguments as Project).then((_) {
+      final detail = controller.detail;
+      final applicant = controller.currentUser.value;
+      if (detail == null || applicant == null) return;
+      if (detail.viewerRole.belongsToProject) return;
+      Get.find<ApplyController>().checkHasApplied(
+        projectId: detail.projectId,
+        applicantId: applicant.id,
+      );
+    });
   }
 
   void _notifyPending(String message) {
@@ -208,6 +218,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               },
               isSaved: controller.isSaved.value,
               isFollowing: controller.isFollowing.value,
+              hasApplied: Get.find<ApplyController>().alreadyApplied.value,
             ),
             AppBottomNavBar(
               currentIndex: 0,

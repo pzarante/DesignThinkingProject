@@ -14,6 +14,21 @@ class ApplyController extends GetxController with UiLoggy {
   final RxBool isSubmitting = false.obs;
   final RxnString errorMessage = RxnString();
 
+  /// True si este usuario ya tiene una postulación (de cualquier estado)
+  /// para el proyecto que se está mirando. Se usa para no dejar postularse
+  /// dos veces y para que el botón lo muestre antes de intentar enviar.
+  final RxBool alreadyApplied = false.obs;
+
+  Future<void> checkHasApplied({
+    required String projectId,
+    required String applicantId,
+  }) async {
+    alreadyApplied.value = await repository.hasApplied(
+      projectId: projectId,
+      applicantId: applicantId,
+    );
+  }
+
   bool get isValid =>
       motivation.value.trim().isNotEmpty &&
       availability.value.trim().isNotEmpty;
@@ -54,6 +69,8 @@ class ApplyController extends GetxController with UiLoggy {
         createdAt: DateTime.now(),
       ),
     );
+
+    alreadyApplied.value = true;
 
     loggy.debug('ApplyController: postulación enviada a $projectId');
     isSubmitting.value = false;

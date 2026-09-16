@@ -18,6 +18,7 @@ class ProjectDetailActions extends StatelessWidget {
     required this.onFollow,
     required this.isSaved,
     required this.isFollowing,
+    required this.hasApplied,
   });
 
   final ViewerRole viewerRole;
@@ -28,6 +29,7 @@ class ProjectDetailActions extends StatelessWidget {
   final VoidCallback onFollow;
   final bool isSaved;
   final bool isFollowing;
+  final bool hasApplied;
 
   @override
   Widget build(BuildContext context) {
@@ -62,19 +64,19 @@ class ProjectDetailActions extends StatelessWidget {
               IconButton.outlined(
                 tooltip: isSaved ? 'Quitar de guardados' : 'Guardar proyecto',
                 onPressed: onSave,
-                icon: Icon(
-                  isSaved ? Icons.bookmark : Icons.bookmark_border,
-                ),
+                icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],
             Expanded(
               child: FilledButton(
-                onPressed: viewerRole.belongsToProject ? onCreatePost : onApply,
+                onPressed: viewerRole.belongsToProject
+                    ? onCreatePost
+                    : (hasApplied ? null : onApply),
                 child: Text(
                   viewerRole.belongsToProject
                       ? 'Crear publicación'
-                      : 'Postularme',
+                      : (hasApplied ? 'Postulación pendiente' : 'Postularme'),
                 ),
               ),
             ),

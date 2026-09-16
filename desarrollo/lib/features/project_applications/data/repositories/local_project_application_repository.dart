@@ -16,6 +16,16 @@ class LocalProjectApplicationRepository
           availability: '6 horas por semana',
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
         ),
+        ProjectApplication(
+          id: 'application-2',
+          projectId: 'r1',
+          applicantId: 'me',
+          applicantName: 'María García',
+          applicantEmail: 'maria@uni.edu',
+          motivation: 'Ya envié esta para probar el estado pendiente.',
+          availability: '4 horas por semana',
+          createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+        ),
       ];
 
   final List<ProjectApplication> _applications;
