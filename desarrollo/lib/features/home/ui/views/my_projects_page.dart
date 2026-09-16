@@ -121,7 +121,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                         AppSpacing.scrollBottomInset,
                       ),
                       itemCount: projects.length,
-                      separatorBuilder: (_, __) =>
+                      separatorBuilder: (_, _) =>
                           const SizedBox(height: AppSpacing.xs),
                       itemBuilder: (context, index) =>
                           _ProjectListTile(project: projects[index], ctrl: ctrl),
@@ -174,7 +174,7 @@ class _ProjectListTile extends StatelessWidget {
                   width: 56,
                   height: 56,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _placeholder(colors),
+                  errorBuilder: (_, _, _) => _placeholder(colors),
                 )
               : _placeholder(colors),
         ),
