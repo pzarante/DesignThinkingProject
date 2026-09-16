@@ -2,57 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
-import '../../../home/domain/models/project_application.dart';
-import '../../../home/ui/viewmodels/project_application_controller.dart';
+import '../../../project_applications/ui/viewmodels/apply_controller.dart';
 
-/// Abre el formulario de postulación y entrega la postulación al controller
-/// que ya existe en la feature home.
+/// Abre el formulario de postulación y lo envía a través del
+/// [ApplyController] de la feature project_applications.
 ///
-/// La lógica de postulación (modelo, repositorio y controller) es de esa
+/// La lógica de postulación (modelo, repositorio y validación) es de esa
 /// feature; aquí solo se ofrece la entrada desde el detalle del proyecto.
 Future<bool> showApplicationForm(
   BuildContext context, {
   required String projectId,
+  required String applicantId,
   required String applicantName,
   required String applicantEmail,
 }) async {
-  final answers = await showModalBottomSheet<_ApplicationAnswers>(
+  final applyController = Get.find<ApplyController>();
+
+  final submitted = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (context) => const _ApplicationForm(),
-  );
-
-  if (answers == null) return false;
-
-  await Get.find<ProjectApplicationController>().submit(
-    ProjectApplication(
-      id: 'application-${DateTime.now().millisecondsSinceEpoch}',
+    builder: (context) => _ApplicationForm(
+      controller: applyController,
       projectId: projectId,
+      applicantId: applicantId,
       applicantName: applicantName,
       applicantEmail: applicantEmail,
-      motivation: answers.motivation,
-      availability: answers.availability,
     ),
   );
-  return true;
+
+  return submitted ?? false;
 }
 
-/// Lo que responde quien se postula.
-class _ApplicationAnswers {
-  const _ApplicationAnswers({
-    required this.motivation,
-    required this.availability,
+class _ApplicationForm extends StatefulWidget {
+  const _ApplicationForm({
+    required this.controller,
+    required this.projectId,
+    required this.applicantId,
+    required this.applicantName,
+    required this.applicantEmail,
   });
 
-  final String motivation;
-  final String availability;
-}
-
-/// La hoja posee sus campos para liberarlos cuando el widget se desmonta,
-/// no al devolver el resultado: la animación de cierre todavía los usa.
-class _ApplicationForm extends StatefulWidget {
-  const _ApplicationForm();
+  final ApplyController controller;
+  final String projectId;
+  final String applicantId;
+  final String applicantName;
+  final String applicantEmail;
 
   @override
   State<_ApplicationForm> createState() => _ApplicationFormState();
@@ -70,15 +65,34 @@ class _ApplicationFormState extends State<_ApplicationForm> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.pop(
-      context,
-      _ApplicationAnswers(
-        motivation: _motivationField.text.trim(),
-        availability: _availabilityField.text.trim(),
-      ),
+
+    widget.controller.motivation.value = _motivationField.text.trim();
+    widget.controller.availability.value = _availabilityField.text.trim();
+
+    final ok = await widget.controller.submit(
+      projectId: widget.projectId,
+      applicantId: widget.applicantId,
+      applicantName: widget.applicantName,
+      applicantEmail: widget.applicantEmail,
     );
+
+    if (!ok) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.controller.errorMessage.value ??
+                  'No se pudo enviar la postulación.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) Navigator.pop(context, true);
   }
 
   @override

@@ -7,7 +7,7 @@ import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../core/widgets/app_text_field.dart';
-import '../../../home/ui/viewmodels/project_application_controller.dart';
+import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 import '../../domain/models/project_member.dart';
 import '../viewmodels/project_settings_controller.dart';
 import '../widgets/applications_list.dart';
@@ -23,12 +23,12 @@ class ProjectSettingsPage extends StatefulWidget {
 
 class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
   final ProjectSettingsController controller = Get.find();
-  final ProjectApplicationController applicationController = Get.find();
+  final ApplicantsController applicationController = Get.find();
 
   @override
   void initState() {
     super.initState();
-    applicationController.loadForProject(controller.projectId);
+    applicationController.load(controller.projectId);
   }
 
   @override
@@ -331,9 +331,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                 subtitle: member.subtitle == null
                     ? null
                     : Text(member.subtitle!),
-                trailing: member.isCoLeader
-                    ? const Icon(Icons.check)
-                    : null,
+                trailing: member.isCoLeader ? const Icon(Icons.check) : null,
                 onTap: () => Navigator.of(context).pop(member),
               ),
           ],

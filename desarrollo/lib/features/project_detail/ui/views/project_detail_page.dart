@@ -64,6 +64,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final submitted = await showApplicationForm(
       context,
       projectId: detail.projectId,
+      applicantId: applicant?.id ?? 'unknown',
       applicantName: applicant?.name ?? 'Sin nombre',
       applicantEmail: applicant?.email ?? '',
     );
@@ -110,9 +111,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       final detail = controller.detail;
 
       if (controller.isLoading.value) {
-        return const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        );
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
 
       if (controller.errorMessage.value != null || detail == null) {
@@ -174,8 +173,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                   AppSegmentedTabBar(
                     labels: _tabs,
                     selectedIndex: _selectedTab,
-                    onSelected: (index) =>
-                        setState(() => _selectedTab = index),
+                    onSelected: (index) => setState(() => _selectedTab = index),
                   ),
                   _tabBody(detail),
                 ],

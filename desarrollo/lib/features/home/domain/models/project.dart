@@ -40,7 +40,7 @@ class Project {
   final List<String> requiredRoles;
 
   /// Whether to show the "NUEVO" badge on the card.
-  // TODO: validar con usuarios — la ventana de 7 días es un supuesto de UX
+  //
   // no especificado en PROJECT_SPEC.md, no un dato validado en investigación.
   bool get isNew {
     if (createdAt == null) return false;

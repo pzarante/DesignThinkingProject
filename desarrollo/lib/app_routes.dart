@@ -11,6 +11,8 @@ import 'features/project_detail/ui/views/project_settings_page.dart';
 import 'features/project_creation/ui/views/project_created_page.dart';
 import 'features/project_creation/ui/views/project_review_page.dart';
 import 'features/project_creation/ui/views/project_wizard_page.dart';
+import 'features/project_applications/ui/views/apply_page.dart';
+import 'features/project_applications/ui/views/applicants_page.dart';
 
 /// Named-route map for the top-level destinations of the app.
 ///
@@ -22,6 +24,8 @@ abstract final class AppRoutes {
   static const String myProjects = '/my-projects';
   static const String profile = '/profile';
   static const String projectDetail = '/project-detail';
+  static const String applyToProject = '/apply';
+  static const String projectApplicants = '/project-detail/applicants';
 
   /// Configuración del proyecto; solo la abre quien lo creó.
   static const String projectSettings = '/project-detail/settings';
@@ -57,6 +61,8 @@ abstract final class AppRoutes {
       name: createCommunitySuccess,
       page: () => const CommunityCreatedPage(),
     ),
+    GetPage(name: applyToProject, page: () => const ApplyPage()),
+    GetPage(name: projectApplicants, page: () => const ApplicantsPage()),
   ];
 
   static bool isRegistered(String route) =>
