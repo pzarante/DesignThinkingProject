@@ -4,6 +4,7 @@ import 'features/home/ui/views/explore_page.dart';
 import 'features/home/ui/views/home_page.dart';
 import 'features/home/ui/views/my_projects_page.dart';
 import 'features/home/ui/views/project_detail_page.dart';
+import 'features/home/ui/views/create_project_page.dart';
 
 /// Named-route map for the top-level destinations of the app.
 ///
@@ -15,6 +16,7 @@ abstract final class AppRoutes {
   static const String myProjects = '/my-projects';
   static const String profile = '/profile';
   static const String projectDetail = '/project-detail';
+  static const String createProject = '/create-project';
 
   /// Destination order shown by the bottom navigation bar.
   static const List<String> mainDestinations = [
@@ -29,6 +31,7 @@ abstract final class AppRoutes {
     GetPage(name: explore, page: () => const ExplorePage()),
     GetPage(name: myProjects, page: () => const MyProjectsPage()),
     GetPage(name: projectDetail, page: () => const ProjectDetailPage()),
+    GetPage(name: createProject, page: () => const CreateProjectPage()),
   ];
 
   static bool isRegistered(String route) =>
