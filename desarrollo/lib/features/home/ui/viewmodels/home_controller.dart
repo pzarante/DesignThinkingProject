@@ -109,13 +109,4 @@ class HomeController extends GetxController with UiLoggy {
       myProjects: updated,
     );
   }
-
-  void addProject(Project project) {
-    _feed.value = HomeFeed(
-      followedCommunities: feed.followedCommunities,
-      recommendedProjects: feed.recommendedProjects,
-      opportunities: feed.opportunities,
-      myProjects: [project, ...feed.myProjects],
-    );
-  }
 }

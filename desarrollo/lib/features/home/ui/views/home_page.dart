@@ -42,7 +42,7 @@ class HomePage extends StatelessWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Get.toNamed(AppRoutes.createProject),
+        onPressed: () => Get.toNamed(AppRoutes.create),
         icon: const Icon(Icons.add),
         label: const Text('Crear'),
       ),
