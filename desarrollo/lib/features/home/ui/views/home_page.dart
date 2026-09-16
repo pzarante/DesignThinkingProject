@@ -20,14 +20,21 @@ class HomePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leadingWidth: 56,
+        leadingWidth: 48,
+        titleSpacing: AppSpacing.xs,
         leading: const Padding(
-          padding: EdgeInsets.only(left: AppSpacing.md),
+          padding: EdgeInsets.only(left: AppSpacing.sm),
           child: _AppLogo(),
         ),
-        title: const Text('Innovation Hub'),
+        title: const Text(
+          'Innovation Hub',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
         actions: [
           IconButton(
+            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+            padding: EdgeInsets.zero,
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () => _notifyPending(context),
           ),

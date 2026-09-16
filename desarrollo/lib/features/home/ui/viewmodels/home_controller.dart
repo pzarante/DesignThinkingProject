@@ -15,6 +15,7 @@ class HomeController extends GetxController with UiLoggy {
   final IHomeRepository repository;
   final Rx<HomeFeed> _feed = const HomeFeed.empty().obs;
   final RxBool isLoading = false.obs;
+  final RxnString errorMessage = RxnString();
 
   /// Free-text query typed in the Home search bar. Empty = sin filtro.
   final RxString searchQuery = ''.obs;
@@ -36,8 +37,15 @@ class HomeController extends GetxController with UiLoggy {
   Future<void> getFeed() async {
     loggy.debug('HomeController: Getting home feed');
     isLoading.value = true;
-    _feed.value = await repository.getFeed();
-    isLoading.value = false;
+    errorMessage.value = null;
+    try {
+      _feed.value = await repository.getFeed();
+    } catch (exception) {
+      loggy.error('HomeController: error getting feed', exception);
+      errorMessage.value = 'No se pudieron cargar tus proyectos.';
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   void setSearchQuery(String value) => searchQuery.value = value;

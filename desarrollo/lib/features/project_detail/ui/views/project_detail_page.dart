@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
@@ -46,6 +47,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  Future<void> _shareProject(ProjectDetail detail) async {
+    await Clipboard.setData(
+      ClipboardData(text: 'innovation-hub://project/${detail.projectId}'),
+    );
+    if (mounted) _notifyPending('Enlace del proyecto copiado.');
   }
 
   /// Postularse usa el flujo que ya existe en la feature home; aquí solo se
@@ -101,9 +109,38 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     return Obx(() {
       final detail = controller.detail;
 
-      if (controller.isLoading.value || detail == null) {
+      if (controller.isLoading.value) {
         return const Scaffold(
           body: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      if (controller.errorMessage.value != null || detail == null) {
+        return Scaffold(
+          appBar: AppBar(),
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 48),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    controller.errorMessage.value ??
+                        'No se encontró el proyecto.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  FilledButton.icon(
+                    onPressed: () => controller.load(Get.arguments as Project),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            ),
+          ),
         );
       }
 
@@ -121,8 +158,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               IconButton(
                 tooltip: 'Compartir',
                 icon: const Icon(Icons.share_outlined),
-                onPressed: () =>
-                    _notifyPending('Compartir llegará en otra entrega.'),
+                onPressed: () => _shareProject(detail),
               ),
           ],
         ),
@@ -156,8 +192,24 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               onCreatePost: () =>
                   _notifyPending('Crear publicación llegará en otra entrega.'),
               onApply: () => _apply(detail),
-              onSave: () => _notifyPending('Guardar llegará en otra entrega.'),
-              onFollow: () => _notifyPending('Seguir llegará en otra entrega.'),
+              onSave: () {
+                controller.toggleSaved();
+                _notifyPending(
+                  controller.isSaved.value
+                      ? 'Proyecto guardado.'
+                      : 'Proyecto quitado de guardados.',
+                );
+              },
+              onFollow: () {
+                controller.toggleFollowing();
+                _notifyPending(
+                  controller.isFollowing.value
+                      ? 'Ahora sigues este proyecto.'
+                      : 'Dejaste de seguir este proyecto.',
+                );
+              },
+              isSaved: controller.isSaved.value,
+              isFollowing: controller.isFollowing.value,
             ),
             AppBottomNavBar(
               currentIndex: 0,

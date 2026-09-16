@@ -21,7 +21,7 @@ class ProjectMemberTile extends StatelessWidget {
     return Card(
       color: theme.colorScheme.surfaceContainerHighest,
       child: ListTile(
-        leading: AppAvatar(name: member.name),
+        leading: AppAvatar(name: member.name, avatarUrl: member.avatarUrl),
         title: Row(
           children: [
             Flexible(

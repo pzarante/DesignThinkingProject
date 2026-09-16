@@ -58,7 +58,7 @@ class ProjectDetailHeader extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
-                    AppAvatar(name: creator.name),
+                    AppAvatar(name: creator.name, avatarUrl: creator.avatarUrl),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(

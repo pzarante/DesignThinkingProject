@@ -16,6 +16,8 @@ class ProjectDetailActions extends StatelessWidget {
     required this.onApply,
     required this.onSave,
     required this.onFollow,
+    required this.isSaved,
+    required this.isFollowing,
   });
 
   final ViewerRole viewerRole;
@@ -24,6 +26,8 @@ class ProjectDetailActions extends StatelessWidget {
   final VoidCallback onApply;
   final VoidCallback onSave;
   final VoidCallback onFollow;
+  final bool isSaved;
+  final bool isFollowing;
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +52,19 @@ class ProjectDetailActions extends StatelessWidget {
             ],
             if (!viewerRole.belongsToProject) ...[
               IconButton.outlined(
-                tooltip: 'Seguir proyecto',
+                tooltip: isFollowing ? 'Dejar de seguir' : 'Seguir proyecto',
                 onPressed: onFollow,
-                icon: const Icon(Icons.favorite_border),
+                icon: Icon(
+                  isFollowing ? Icons.favorite : Icons.favorite_border,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               IconButton.outlined(
-                tooltip: 'Guardar proyecto',
+                tooltip: isSaved ? 'Quitar de guardados' : 'Guardar proyecto',
                 onPressed: onSave,
-                icon: const Icon(Icons.bookmark_border),
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],

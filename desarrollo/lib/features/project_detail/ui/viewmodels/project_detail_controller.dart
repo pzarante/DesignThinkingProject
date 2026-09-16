@@ -15,6 +15,9 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   final Rxn<ProjectDetail> _detail = Rxn<ProjectDetail>();
   final RxBool isLoading = false.obs;
+  final RxnString errorMessage = RxnString();
+  final RxBool isFollowing = false.obs;
+  final RxBool isSaved = false.obs;
 
   /// Quien está en sesión; se necesita al postularse a un proyecto ajeno.
   final Rxn<ProjectMember> currentUser = Rxn<ProjectMember>();
@@ -29,10 +32,21 @@ class ProjectDetailController extends GetxController with UiLoggy {
   Future<void> load(Project project) async {
     loggy.debug('ProjectDetailController: loading ${project.id}');
     isLoading.value = true;
-    final stored = await _repository.getDetail(project.id);
-    _detail.value = stored ?? _fromFeedProject(project);
-    currentUser.value = await _repository.getCurrentUser();
-    isLoading.value = false;
+    errorMessage.value = null;
+    isFollowing.value = false;
+    isSaved.value = false;
+    try {
+      final stored = await _repository.getDetail(project.id);
+      _detail.value = stored ?? _fromFeedProject(project);
+      currentUser.value = await _repository.getCurrentUser();
+    } catch (exception) {
+      loggy.error('ProjectDetailController: error loading ${project.id}',
+          exception);
+      _detail.value = null;
+      errorMessage.value = 'No se pudo cargar la información del proyecto.';
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   ProjectDetail _fromFeedProject(Project project) => ProjectDetail(
@@ -47,4 +61,8 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   /// Refleja en pantalla lo que se acaba de guardar en la configuración.
   void applyUpdate(ProjectDetail updated) => _detail.value = updated;
+
+  void toggleFollowing() => isFollowing.toggle();
+
+  void toggleSaved() => isSaved.toggle();
 }

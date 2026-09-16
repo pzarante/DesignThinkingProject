@@ -6,13 +6,21 @@ import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../app_routes.dart';
+import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../domain/models/project.dart';
 import '../viewmodels/home_controller.dart';
 
 /// My Projects screen — shows the complete list of the user's projects with
 /// the ability to pin / unpin each one. Pinned projects appear at the top.
-class MyProjectsPage extends StatelessWidget {
+class MyProjectsPage extends StatefulWidget {
   const MyProjectsPage({super.key});
+
+  @override
+  State<MyProjectsPage> createState() => _MyProjectsPageState();
+}
+
+class _MyProjectsPageState extends State<MyProjectsPage> {
+  String _selectedStage = 'Todos';
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +36,38 @@ class MyProjectsPage extends StatelessWidget {
           return const Center(child: CircularProgressIndicator());
         }
 
+        if (ctrl.errorMessage.value != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.error_outline, size: 48),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    ctrl.errorMessage.value!,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  FilledButton.icon(
+                    onPressed: ctrl.getFeed,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
         final query = ctrl.searchQuery.value.trim().toLowerCase();
         final projects = ctrl.feed.myProjects.where((p) {
-          return query.isEmpty || p.name.toLowerCase().contains(query);
+          final matchesQuery =
+              query.isEmpty || p.name.toLowerCase().contains(query);
+          final matchesStage =
+              _selectedStage == 'Todos' || p.stage == _selectedStage;
+          return matchesQuery && matchesStage;
         }).toList()
           ..sort((a, b) {
             if (a.isPinned == b.isPinned) return 0;
@@ -51,10 +88,31 @@ class MyProjectsPage extends StatelessWidget {
                 onChanged: ctrl.setSearchQuery,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.xs,
+                AppSpacing.md,
+                0,
+              ),
+              child: AppChoiceChipRow<String>(
+                options: const ['Todos', 'Investigación', 'Equipo', 'Prototipo'],
+                labelBuilder: (stage) => stage,
+                selected: _selectedStage,
+                onSelected: (stage) =>
+                    setState(() => _selectedStage = stage),
+              ),
+            ),
             const SizedBox(height: AppSpacing.xs),
             Expanded(
               child: projects.isEmpty
-                  ? const Center(child: Text('No tienes proyectos aún.'))
+                  ? Center(
+                      child: Text(
+                        ctrl.feed.myProjects.isEmpty
+                            ? 'No tienes proyectos aún.'
+                            : 'No hay proyectos con este filtro.',
+                      ),
+                    )
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -100,6 +158,10 @@ class _ProjectListTile extends StatelessWidget {
 
     return Card(
       child: ListTile(
+        splashColor: Colors.transparent,
+        hoverColor: Colors.transparent,
+        focusColor: Colors.transparent,
+        tileColor: Colors.transparent,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.xs,
@@ -135,10 +197,10 @@ class _ProjectListTile extends StatelessWidget {
           ),
           onPressed: () => ctrl.togglePin(project.id),
         ),
-        onTap: () => Get.toNamed(
-          AppRoutes.projectDetail,
-          arguments: project,
-        ),
+        onTap: () {
+          FocusManager.instance.primaryFocus?.unfocus();
+          Get.toNamed(AppRoutes.projectDetail, arguments: project);
+        },
       ),
     );
   }

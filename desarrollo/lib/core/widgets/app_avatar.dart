@@ -5,9 +5,15 @@ import 'package:flutter/material.dart';
 /// Used to represent users (creators, team members) — distinct from
 /// [AppIconBadge], which represents system icons (bulb, calendar, etc.).
 class AppAvatar extends StatelessWidget {
-  const AppAvatar({super.key, required this.name, this.size = 40});
+  const AppAvatar({
+    super.key,
+    required this.name,
+    this.avatarUrl,
+    this.size = 40,
+  });
 
   final String name;
+  final String? avatarUrl;
   final double size;
 
   @override
@@ -16,16 +22,28 @@ class AppAvatar extends StatelessWidget {
     return CircleAvatar(
       radius: size / 2,
       backgroundColor: colors.primaryContainer,
-      child: Text(
-        _initial,
-        style: TextStyle(
-          color: colors.onPrimaryContainer,
-          fontWeight: FontWeight.bold,
-          fontSize: size * 0.4,
-        ),
-      ),
+      child: avatarUrl == null
+          ? _initialText(colors)
+          : ClipOval(
+              child: Image.network(
+                avatarUrl!,
+                width: size,
+                height: size,
+                fit: BoxFit.cover,
+                errorBuilder: (_, error, stackTrace) => _initialText(colors),
+              ),
+            )
     );
   }
+
+  Widget _initialText(ColorScheme colors) => Text(
+    _initial,
+    style: TextStyle(
+      color: colors.onPrimaryContainer,
+      fontWeight: FontWeight.bold,
+      fontSize: size * 0.4,
+    ),
+  );
 
   String get _initial {
     final trimmed = name.trim();

@@ -31,6 +31,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       creator: ProjectMember(
         id: 'u10',
         name: 'Ana Martínez',
+        avatarUrl: 'https://i.pravatar.cc/120?img=47',
         roleLabel: 'LÍDER',
         subtitle: 'Líder · 3er año',
         isCreator: true,
@@ -73,6 +74,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         ProjectMember(
           id: 'u10',
           name: 'Ana Martínez',
+          avatarUrl: 'https://i.pravatar.cc/120?img=47',
           roleLabel: 'LÍDER',
           subtitle: 'Motion Designer · 3er año',
           isCreator: true,
@@ -80,6 +82,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         ProjectMember(
           id: 'u11',
           name: 'Carlos López',
+          avatarUrl: 'https://i.pravatar.cc/120?img=12',
           roleLabel: 'CO-LÍDER',
           subtitle: 'Diseñador de Sonido · 4to año',
           isCoLeader: true,
