@@ -10,8 +10,11 @@ import 'core/local_preferences_secured.dart';
 import 'core/local_preferences_shared.dart';
 
 import 'features/auth/auth_dependencies.dart';
+import 'features/community_creation/community_creation_dependencies.dart';
 import 'features/home/home_dependencies.dart';
 import 'features/product/product_dependencies.dart';
+import 'features/project_creation/project_creation_dependencies.dart';
+import 'features/project_detail/project_detail_dependencies.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +27,9 @@ void main() async {
 
   registerAuth();
   registerHome();
+  registerProjectDetail();
+  registerProjectCreation();
+  registerCommunityCreation();
   registerProduct();
   runApp(const MyApp());
 }
