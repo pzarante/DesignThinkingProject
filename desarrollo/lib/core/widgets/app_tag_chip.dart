@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_spacing.dart';
 
-/// Compact label used to mark a project category or stage.
 class AppTagChip extends StatelessWidget {
   const AppTagChip({super.key, required this.label});
 
@@ -11,6 +10,7 @@ class AppTagChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
@@ -22,6 +22,8 @@ class AppTagChip extends StatelessWidget {
       ),
       child: Text(
         label.toUpperCase(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: theme.textTheme.labelSmall?.copyWith(
           color: theme.colorScheme.onSecondaryContainer,
           fontWeight: FontWeight.bold,
