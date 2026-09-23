@@ -106,4 +106,31 @@ class ProjectDetailController extends GetxController with UiLoggy {
       comments: [...publication.comments, comment],
     );
   }
+
+  Future<void> onApplicationAccepted({
+    required String applicantName,
+    required String roleTitle,
+  }) async {
+    final project = detail;
+    if (project == null) return;
+
+    await Get.find<NotificationsController>().push(
+      type: NotificationType.applicationAccepted,
+      title: 'Postulación aceptada',
+      message: '$applicantName fue aceptado como $roleTitle en ${project.name}.',
+      projectId: project.projectId,
+    );
+  }
+
+  Future<void> onApplicationRejected({required String applicantName}) async {
+    final project = detail;
+    if (project == null) return;
+
+    await Get.find<NotificationsController>().push(
+      type: NotificationType.applicationRejected,
+      title: 'Postulación rechazada',
+      message: 'La postulación de $applicantName fue rechazada en ${project.name}.',
+      projectId: project.projectId,
+    );
+  }
 }

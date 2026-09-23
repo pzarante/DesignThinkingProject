@@ -12,9 +12,6 @@ enum ViewerRole {
   /// Forma parte del equipo: publica, pero no configura ni gestiona roles.
   member,
 
-  /// Co-líder: puede publicar, pero no configurar el proyecto.
-  coLeader,
-
   /// No pertenece al proyecto: guarda, sigue y se postula.
   visitor;
 
