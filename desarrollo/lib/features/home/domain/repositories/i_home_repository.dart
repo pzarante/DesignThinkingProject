@@ -16,6 +16,8 @@ abstract class IHomeRepository {
     String? scope,
     required int maxMembers,
     required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
   });
 
   Future<void> addCommunity(Community community);

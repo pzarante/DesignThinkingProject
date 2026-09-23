@@ -27,6 +27,8 @@ class RobleHomeSource implements IHomeSource {
   static const _tableCommunities = 'communities';
   static const _tableCommunityMembers = 'community_members';
   static const _tableProjectCommunities = 'project_communities';
+  static const _tableProjectRoles = 'project_roles';
+  static const _tableProjectLinks = 'project_links';
 
   @override
   Future<HomeFeed> getFeed() async {
@@ -99,6 +101,8 @@ class RobleHomeSource implements IHomeSource {
     String? scope,
     required int maxMembers,
     required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
   }) async {
     final userId = (await _authRepository.getLoggedUser())?.id;
     if (userId == null) {
@@ -142,16 +146,23 @@ class RobleHomeSource implements IHomeSource {
       });
     }
 
-    // Los roles buscados (project_roles) y su detalle completo se conectan
-    // junto con project_detail; publicar no debe perderlos mientras tanto,
-    // pero tampoco hay todavía quien los lea de vuelta en el feed.
+    // Los roles buscados (project_roles): no traen detalle de habilidades
+    // todavía (project_role_skills), pero publicar no debe perderlos.
     for (final roleName in project.requiredRoles) {
-      await _db.create('project_roles', {
+      await _db.create(_tableProjectRoles, {
         'project_id': projectId,
         'name': roleName,
         'status': 'open',
         'created_at': now,
         'updated_at': now,
+      });
+    }
+
+    for (final url in links) {
+      await _db.create(_tableProjectLinks, {
+        'project_id': projectId,
+        'url': url,
+        'created_at': now,
       });
     }
 
@@ -164,7 +175,24 @@ class RobleHomeSource implements IHomeSource {
       'joined_at': now,
     });
 
-    return project.copyWith(id: projectId, memberCount: 1);
+    // El co-líder es opcional, y su selección venía del paso de equipo sin
+    // llegar nunca a ninguna tabla: sin esto, el equipo publicado quedaba
+    // siempre en uno solo, sin importar lo elegido en el asistente.
+    if (coLeaderId != null) {
+      await _db.create(_tableProjectMembers, {
+        'project_id': projectId,
+        'user_id': coLeaderId,
+        'is_creator': false,
+        'is_co_leader': true,
+        'status': 'active',
+        'joined_at': now,
+      });
+    }
+
+    return project.copyWith(
+      id: projectId,
+      memberCount: coLeaderId == null ? 1 : 2,
+    );
   }
 
   @override

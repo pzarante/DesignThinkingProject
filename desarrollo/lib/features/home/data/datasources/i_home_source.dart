@@ -14,6 +14,8 @@ abstract class IHomeSource {
     String? scope,
     required int maxMembers,
     required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
   });
 
   /// Añade una comunidad recién creada a las comunidades que sigue el usuario.

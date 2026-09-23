@@ -20,6 +20,8 @@ class HomeRepository implements IHomeRepository {
     String? scope,
     required int maxMembers,
     required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
   }) async => await homeSource.addProject(
     project,
     problem: problem,
@@ -27,6 +29,8 @@ class HomeRepository implements IHomeRepository {
     scope: scope,
     maxMembers: maxMembers,
     availability: availability,
+    coLeaderId: coLeaderId,
+    links: links,
   );
 
   @override

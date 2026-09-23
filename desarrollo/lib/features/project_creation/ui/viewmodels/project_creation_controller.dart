@@ -109,6 +109,9 @@ class ProjectCreationController extends GetxController with UiLoggy {
   /// Deja el asistente en blanco. Se llama al entrar al flujo, no al volver
   /// desde la pantalla de revisión.
   void startDraft({bool fromCommunity = false}) {
+    // El controller es permanente: sin esto, el catálogo (etapas, tags)
+    // quedaría congelado en lo que había al abrir la app la primera vez.
+    _loadOptions();
     currentStep.value = 1;
     startedFromCommunity.value = fromCommunity;
     stage.value = null;
@@ -284,6 +287,8 @@ class ProjectCreationController extends GetxController with UiLoggy {
       scope: scope.value.trim().isEmpty ? null : scope.value.trim(),
       maxMembers: maxMembers.value,
       availability: availability.value,
+      coLeaderId: coLeader.value?.id,
+      links: List.unmodifiable(links),
     );
     await _detailRepository.saveDetail(await _buildDetail(project));
     // El feed del home es permanente y no se reconstruye solo al volver.
