@@ -92,6 +92,43 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     if (submitted && mounted) _notifyPending('Postulación enviada.');
   }
 
+  /// Abre la postulación propia y pendiente para editarla o retirarla —
+  /// se llama desde el mismo botón que dice "Postulación pendiente".
+  Future<void> _reviewApplication(ProjectDetail detail) async {
+    final applicant = controller.currentUser.value;
+    if (applicant == null) return;
+
+    final applyController = Get.find<ApplyController>();
+    await applyController.loadOwn(
+      projectId: detail.projectId,
+      applicantId: applicant.id,
+    );
+
+    final existing = applyController.existing.value;
+    if (existing == null) {
+      // Ya no está pendiente (raro, pero por seguridad recarga el estado).
+      await applyController.checkHasApplied(
+        projectId: detail.projectId,
+        applicantId: applicant.id,
+      );
+      return;
+    }
+
+    if (!mounted) return;
+
+    final changed = await showApplicationForm(
+      context,
+      projectId: detail.projectId,
+      applicantId: applicant.id,
+      applicantName: applicant.name,
+      applicantEmail: applicant.email ?? '',
+      openRoles: detail.openRoles,
+      existingApplication: existing,
+    );
+
+    if (changed && mounted) _notifyPending('Postulación actualizada.');
+  }
+
   Future<void> _openSettings(ProjectDetail detail) async {
     final settingsController = Get.find<ProjectSettingsController>();
     settingsController.start(detail);
@@ -151,7 +188,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           controller: commentController,
           autofocus: true,
           maxLines: 4,
-          decoration: const InputDecoration(hintText: 'Escribe un comentario...'),
+          decoration: const InputDecoration(
+            hintText: 'Escribe un comentario...',
+          ),
         ),
         actions: [
           TextButton(
@@ -159,9 +198,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
-            onPressed: () => Navigator.of(context).pop(
-              commentController.text.trim().isNotEmpty,
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).pop(commentController.text.trim().isNotEmpty),
             child: const Text('Publicar'),
           ),
         ],
@@ -194,7 +233,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             onEdit: _editPublication,
             onDelete: _deletePublication,
             onReact: (publication) =>
-              controller.togglePublicationReaction(publication.id),
+                controller.togglePublicationReaction(publication.id),
             onComment: _commentPublication,
           ),
         );
@@ -302,7 +341,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             ProjectDetailActions(
               viewerRole: detail.viewerRole,
               onConfigure: () => _openSettings(detail),
-                onCreatePost: () => _createPublication(detail),
+              onCreatePost: () => _createPublication(detail),
               onApply: () => _apply(detail),
               onSave: () {
                 controller.toggleSaved();
@@ -323,7 +362,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               isSaved: controller.isSaved.value,
               isFollowing: controller.isFollowing.value,
               hasApplied: Get.find<ApplyController>().alreadyApplied.value,
-              hasOpenRoles: detail.openRoles.isNotEmpty,
+              hasOpenRoles: detail.openRoles.any((role) => role.isOpen),
+              onReviewApplication: () => _reviewApplication(detail),
             ),
             AppBottomNavBar(
               currentIndex: 0,

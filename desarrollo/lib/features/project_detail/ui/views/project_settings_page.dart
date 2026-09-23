@@ -369,6 +369,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
   Future<void> _editVacancy(BuildContext context, int? index) async {
     final existing = index == null ? null : controller.openRoles[index];
     final titleField = TextEditingController(text: existing?.title ?? '');
+    final descriptionField = TextEditingController(
+      text: existing?.description ?? '',
+    );
     final skillsField = TextEditingController(
       text: existing?.skills.join(', ') ?? '',
     );
@@ -389,6 +392,16 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                   controller: titleField,
                   autofocus: true,
                   decoration: const InputDecoration(labelText: 'Rol buscado'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: descriptionField,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Qué haría en el proyecto',
+                    hintText: 'Breve descripción de las responsabilidades',
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 TextField(
@@ -447,6 +460,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                 Navigator.of(context).pop(
                   ProjectRole(
                     title: title,
+                    description: descriptionField.text.trim().isEmpty
+                        ? null
+                        : descriptionField.text.trim(),
                     skills: skills,
                     totalSlots: totalSlots,
                     filledSlots: minSlots,
@@ -460,8 +476,11 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       ),
     );
 
-    titleField.dispose();
-    skillsField.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      titleField.dispose();
+      descriptionField.dispose();
+      skillsField.dispose();
+    });
 
     if (result == null) return;
     if (index == null) {

@@ -52,6 +52,27 @@ class LocalHomeSource implements IHomeSource {
           'Permite a estudiantes registrar hábitos sostenibles y visualizar '
           'el impacto colectivo del campus.',
     ),
+    Project(
+      id: 'r3',
+      name: 'Huella Digital',
+      tags: const ['Tecnología', 'Comunicación'],
+      stage: 'Investigación',
+      imageUrl: 'https://picsum.photos/seed/r3/400/225',
+      description:
+          'Podcast y newsletter estudiantil sobre cultura digital, hecho '
+          'por y para estudiantes de la universidad.',
+    ),
+    Project(
+      id: 'r4',
+      name: 'Radio Campus',
+      tags: const ['Comunicación'],
+      stage: 'Equipo',
+      memberCount: 2,
+      imageUrl: 'https://picsum.photos/seed/r4/400/225',
+      description:
+          'Radio estudiantil en línea con programación en vivo desde el '
+          'campus.',
+    ),
   ];
 
   final List<Opportunity> _opportunities = [

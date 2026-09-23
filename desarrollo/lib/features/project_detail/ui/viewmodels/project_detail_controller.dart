@@ -6,6 +6,7 @@ import '../../../notifications/domain/models/app_notification.dart';
 import '../../../notifications/ui/viewmodels/notifications_controller.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
+import '../../domain/models/project_role.dart';
 import '../../domain/models/publication.dart';
 import '../../domain/models/viewer_role.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
@@ -74,7 +75,8 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   void toggleSaved() => isSaved.toggle();
 
-  void addPublication(Publication publication) => publications.insert(0, publication);
+  void addPublication(Publication publication) =>
+      publications.insert(0, publication);
 
   void updatePublication(Publication publication) {
     final index = publications.indexWhere((item) => item.id == publication.id);
@@ -92,8 +94,8 @@ class ProjectDetailController extends GetxController with UiLoggy {
     final publication = publications[index];
     publications[index] = publication.copyWith(
       viewerReacted: !publication.viewerReacted,
-      reactionCount: publication.reactionCount +
-          (publication.viewerReacted ? -1 : 1),
+      reactionCount:
+          publication.reactionCount + (publication.viewerReacted ? -1 : 1),
     );
   }
 
@@ -107,30 +109,83 @@ class ProjectDetailController extends GetxController with UiLoggy {
     );
   }
 
+  /// Se llama al aceptar una postulación desde la sección de Postulaciones:
+  /// ocupa un cupo del rol correspondiente, agrega a quien se postuló como
+  /// miembro real del equipo, y notifica. Si el rol ya no existe en
+  /// `openRoles` (se editó/borró mientras la postulación esperaba
+  /// respuesta), sigue agregando al miembro pero sin descontar cupos.
   Future<void> onApplicationAccepted({
+    required String applicantId,
     required String applicantName,
+    String? applicantEmail,
     required String roleTitle,
   }) async {
-    final project = detail;
-    if (project == null) return;
+    final current = detail;
+    if (current == null) return;
+
+    var updatedRoles = current.openRoles;
+    final roleIndex = current.openRoles.indexWhere(
+      (role) => role.title == roleTitle,
+    );
+
+    if (roleIndex != -1) {
+      final role = current.openRoles[roleIndex];
+      updatedRoles = List<ProjectRole>.of(current.openRoles);
+      updatedRoles[roleIndex] = role.copyWith(
+        filledSlots: role.filledSlots + 1,
+      );
+    }
+
+    // Si ya era miembro (caso raro, pero evita duplicados), no se agrega
+    // de nuevo — solo se actualiza su rol.
+    final alreadyMember = current.members.any((m) => m.id == applicantId);
+    final updatedMembers = alreadyMember
+        ? [
+            for (final member in current.members)
+              member.id == applicantId
+                  ? member.copyWith(roleLabel: roleTitle.toUpperCase())
+                  : member,
+          ]
+        : [
+            ...current.members,
+            ProjectMember(
+              id: applicantId,
+              name: applicantName,
+              email: applicantEmail,
+              roleLabel: roleTitle.toUpperCase(),
+              subtitle: roleTitle,
+            ),
+          ];
+
+    final updatedDetail = current.copyWith(
+      openRoles: updatedRoles,
+      members: updatedMembers,
+    );
+    await _repository.saveDetail(updatedDetail);
+    _detail.value = updatedDetail;
 
     await Get.find<NotificationsController>().push(
       type: NotificationType.applicationAccepted,
       title: 'Postulación aceptada',
-      message: '$applicantName fue aceptado como $roleTitle en ${project.name}.',
-      projectId: project.projectId,
+      message:
+          '$applicantName ahora es parte de $roleTitle en '
+          '${current.name}.',
+      projectId: current.projectId,
     );
   }
 
+  /// Se llama al rechazar una postulación.
   Future<void> onApplicationRejected({required String applicantName}) async {
-    final project = detail;
-    if (project == null) return;
+    final current = detail;
+    if (current == null) return;
 
     await Get.find<NotificationsController>().push(
       type: NotificationType.applicationRejected,
       title: 'Postulación rechazada',
-      message: 'La postulación de $applicantName fue rechazada en ${project.name}.',
-      projectId: project.projectId,
+      message:
+          'La postulación de $applicantName a ${current.name} fue '
+          'rechazada.',
+      projectId: current.projectId,
     );
   }
 }

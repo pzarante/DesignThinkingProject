@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../project_applications/domain/models/project_application.dart';
 import '../../../project_applications/ui/viewmodels/apply_controller.dart';
 import '../../domain/models/project_role.dart';
 
@@ -11,11 +12,12 @@ const List<String> _availabilityOptions = [
   'Flexible',
 ];
 
-/// Abre el formulario de postulación y lo envía a través del
+/// Abre el formulario de postulación (crear o editar) a través del
 /// [ApplyController] de la feature project_applications.
 ///
-/// La lógica de postulación (modelo, repositorio y validación) es de esa
-/// feature; aquí solo se ofrece la entrada desde el detalle del proyecto.
+/// Si [existingApplication] no es null, abre en modo edición: prellena los
+/// campos y ofrece "Guardar cambios" y "Retirar postulación" en vez de
+/// "Enviar postulación".
 Future<bool> showApplicationForm(
   BuildContext context, {
   required String projectId,
@@ -23,8 +25,17 @@ Future<bool> showApplicationForm(
   required String applicantName,
   required String applicantEmail,
   required List<ProjectRole> openRoles,
+  ProjectApplication? existingApplication,
 }) async {
   final applyController = Get.find<ApplyController>();
+
+  // El rol al que ya se postuló debe seguir siendo elegible en el
+  // dropdown aunque ya no tenga cupos libres — es su propia postulación.
+  final selectableRoles = openRoles
+      .where(
+        (role) => role.isOpen || role.title == existingApplication?.roleTitle,
+      )
+      .toList();
 
   final submitted = await showModalBottomSheet<bool>(
     context: context,
@@ -36,7 +47,8 @@ Future<bool> showApplicationForm(
       applicantId: applicantId,
       applicantName: applicantName,
       applicantEmail: applicantEmail,
-      openRoles: openRoles.where((role) => role.isOpen).toList(),
+      openRoles: selectableRoles,
+      existingApplication: existingApplication,
     ),
   );
 
@@ -51,6 +63,7 @@ class _ApplicationForm extends StatefulWidget {
     required this.applicantName,
     required this.applicantEmail,
     required this.openRoles,
+    this.existingApplication,
   });
 
   final ApplyController controller;
@@ -59,20 +72,32 @@ class _ApplicationForm extends StatefulWidget {
   final String applicantName;
   final String applicantEmail;
   final List<ProjectRole> openRoles;
+  final ProjectApplication? existingApplication;
+
+  bool get isEditing => existingApplication != null;
 
   @override
   State<_ApplicationForm> createState() => _ApplicationFormState();
 }
 
 class _ApplicationFormState extends State<_ApplicationForm> {
-  final TextEditingController _motivationField = TextEditingController();
+  late final TextEditingController _motivationField;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
     super.initState();
-    widget.controller.desiredRole.value = null;
-    widget.controller.availability.value = '';
+
+    if (widget.isEditing) {
+      final existing = widget.existingApplication!;
+      _motivationField = TextEditingController(text: existing.motivation);
+      widget.controller.desiredRole.value = existing.roleTitle;
+      widget.controller.availability.value = existing.availability;
+    } else {
+      _motivationField = TextEditingController();
+      widget.controller.desiredRole.value = null;
+      widget.controller.availability.value = '';
+    }
   }
 
   @override
@@ -98,12 +123,14 @@ class _ApplicationFormState extends State<_ApplicationForm> {
 
     widget.controller.motivation.value = _motivationField.text.trim();
 
-    final ok = await widget.controller.submit(
-      projectId: widget.projectId,
-      applicantId: widget.applicantId,
-      applicantName: widget.applicantName,
-      applicantEmail: widget.applicantEmail,
-    );
+    final ok = widget.isEditing
+        ? await widget.controller.saveEdits()
+        : await widget.controller.submit(
+            projectId: widget.projectId,
+            applicantId: widget.applicantId,
+            applicantName: widget.applicantName,
+            applicantEmail: widget.applicantEmail,
+          );
 
     if (!ok) {
       if (mounted) {
@@ -111,7 +138,7 @@ class _ApplicationFormState extends State<_ApplicationForm> {
           SnackBar(
             content: Text(
               widget.controller.errorMessage.value ??
-                  'No se pudo enviar la postulación.',
+                  'No se pudo guardar la postulación.',
             ),
           ),
         );
@@ -120,6 +147,34 @@ class _ApplicationFormState extends State<_ApplicationForm> {
     }
 
     if (mounted) Navigator.pop(context, true);
+  }
+
+  Future<void> _confirmWithdraw() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Retirar tu postulación?'),
+        content: const Text(
+          'El equipo ya no la verá. Puedes volver a postularte más '
+          'adelante si sigue habiendo vacante.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Retirar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed ?? false) {
+      await widget.controller.withdraw();
+      if (mounted) Navigator.pop(context, true);
+    }
   }
 
   @override
@@ -137,7 +192,10 @@ class _ApplicationFormState extends State<_ApplicationForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Postularme', style: Theme.of(context).textTheme.titleLarge),
+            Text(
+              widget.isEditing ? 'Tu postulación' : 'Postularme',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
             const SizedBox(height: AppSpacing.md),
 
             Text(
@@ -198,10 +256,24 @@ class _ApplicationFormState extends State<_ApplicationForm> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            FilledButton(
-              onPressed: _submit,
-              child: const Text('Enviar postulación'),
+            Obx(
+              () => FilledButton(
+                onPressed: widget.controller.isSubmitting.value
+                    ? null
+                    : _submit,
+                child: Text(
+                  widget.isEditing ? 'Guardar cambios' : 'Enviar postulación',
+                ),
+              ),
             ),
+
+            if (widget.isEditing) ...[
+              const SizedBox(height: AppSpacing.sm),
+              TextButton(
+                onPressed: _confirmWithdraw,
+                child: const Text('Retirar postulación'),
+              ),
+            ],
           ],
         ),
       ),

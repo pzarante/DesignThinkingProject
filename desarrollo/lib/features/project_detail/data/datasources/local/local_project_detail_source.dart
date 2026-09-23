@@ -87,6 +87,12 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           subtitle: 'Diseñador de Sonido · 4to año',
           isCoLeader: true,
         ),
+        ProjectMember(
+          id: 'u16',
+          name: 'Sara Gómez',
+          roleLabel: 'GUIONISTA',
+          subtitle: 'Guionista · 2do año',
+        ),
       ],
       maxMembers: 6,
       openRoles: [
@@ -94,10 +100,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           title: 'Desarrollador Frontend',
           skills: ['React', 'TypeScript', 'Git'],
         ),
-        ProjectRole(
-          title: 'Diseñador UX',
-          skills: ['Figma', 'User Research'],
-        ),
+        ProjectRole(title: 'Diseñador UX', skills: ['Figma', 'User Research']),
         ProjectRole(title: 'Analista de datos', skills: ['Python', 'SQL']),
       ],
       availability: 'Part-time',
@@ -124,9 +127,21 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           roleLabel: 'ILUSTRADOR',
           subtitle: 'Ilustrador · 2do año',
         ),
+        ProjectMember(
+          id: 'u17',
+          name: 'Camila Vidal',
+          roleLabel: 'GUIONISTA',
+          subtitle: 'Guionista · 3er año',
+        ),
       ],
       maxMembers: 5,
-      openRoles: [ProjectRole(title: 'Desarrollador Flutter')],
+      openRoles: [
+        ProjectRole(
+          title: 'Desarrollador Flutter',
+          description: 'Desarrollo del lector y la comunidad de la app.',
+          skills: ['Flutter', 'Dart'],
+        ),
+      ],
       availability: 'Flexible',
       viewerRole: ViewerRole.creator,
     ),
@@ -140,8 +155,23 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       description:
           'Asistente de diseño arquitectónico basado en IA. Genera planos '
           'preliminares a partir de requisitos de espacio y presupuesto.',
-      members: [_currentUser],
+      members: [
+        _currentUser,
+        ProjectMember(
+          id: 'u18',
+          name: 'Tomás Rivas',
+          roleLabel: 'INGENIERO ESTRUCTURAL',
+          subtitle: 'Ingeniería Civil · 4to año',
+        ),
+      ],
       maxMembers: 4,
+      openRoles: [
+        ProjectRole(
+          title: 'Ilustrador 3D',
+          description: 'Renders y visualizaciones de las propuestas de diseño.',
+          skills: ['Blender', 'Lumion'],
+        ),
+      ],
       viewerRole: ViewerRole.creator,
     ),
     'r1': const ProjectDetail(
@@ -202,6 +232,86 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         ),
       ],
       maxMembers: 8,
+      viewerRole: ViewerRole.visitor,
+    ),
+    'r3': const ProjectDetail(
+      projectId: 'r3',
+      name: 'Huella Digital',
+      coverUrl: 'https://picsum.photos/seed/r3/400/225',
+      stage: 'Investigación',
+      tags: ['Tecnología', 'Comunicación'],
+      creator: ProjectMember(
+        id: 'u22',
+        name: 'Valentina Rojas',
+        roleLabel: 'LÍDER',
+        subtitle: 'Líder · 3er año',
+        isCreator: true,
+      ),
+      description:
+          'Podcast y newsletter estudiantil sobre cultura digital, hecho '
+          'por y para estudiantes de la universidad.',
+      progressPercent: 20,
+      members: [
+        ProjectMember(
+          id: 'u22',
+          name: 'Valentina Rojas',
+          roleLabel: 'LÍDER',
+          subtitle: 'Líder · 3er año',
+          isCreator: true,
+        ),
+      ],
+      maxMembers: 6,
+      openRoles: [
+        ProjectRole(
+          title: 'Editor de Audio',
+          description:
+              'Edición y mezcla de los episodios semanales del podcast.',
+          skills: ['Audacity', 'Adobe Audition'],
+          totalSlots: 2,
+        ),
+        ProjectRole(
+          title: 'Redactor',
+          description: 'Escribir la newsletter quincenal.',
+          skills: ['Redacción', 'SEO'],
+        ),
+      ],
+      availability: 'Flexible',
+      viewerRole: ViewerRole.visitor,
+    ),
+    'r4': const ProjectDetail(
+      projectId: 'r4',
+      name: 'Radio Campus',
+      coverUrl: 'https://picsum.photos/seed/r4/400/225',
+      stage: 'Equipo',
+      tags: ['Comunicación'],
+      creator: ProjectMember(
+        id: 'u23',
+        name: 'Andrés Peña',
+        roleLabel: 'LÍDER',
+        subtitle: 'Líder · 4to año',
+        isCreator: true,
+      ),
+      description:
+          'Radio estudiantil en línea con programación en vivo desde el '
+          'campus.',
+      progressPercent: 80,
+      members: [
+        ProjectMember(
+          id: 'u23',
+          name: 'Andrés Peña',
+          roleLabel: 'LÍDER',
+          subtitle: 'Líder · 4to año',
+          isCreator: true,
+        ),
+        ProjectMember(
+          id: 'u24',
+          name: 'Camila Torres',
+          roleLabel: 'LOCUTORA',
+          subtitle: 'Comunicación Social · 3er año',
+        ),
+      ],
+      maxMembers: 3,
+      openRoles: [],
       viewerRole: ViewerRole.visitor,
     ),
   };

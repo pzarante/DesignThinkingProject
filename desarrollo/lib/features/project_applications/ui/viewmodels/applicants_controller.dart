@@ -28,7 +28,9 @@ class ApplicantsController extends GetxController {
     );
 
     await Get.find<ProjectDetailController>().onApplicationAccepted(
+      applicantId: application.applicantId,
       applicantName: application.applicantName,
+      applicantEmail: application.applicantEmail,
       roleTitle: application.roleTitle ?? 'Rol no especificado',
     );
 
