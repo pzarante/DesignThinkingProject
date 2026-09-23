@@ -308,7 +308,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 ),
               ),
               IconButton(
-                tooltip: 'Configurar proyecto',
+                tooltip: 'Editar proyecto',
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () => _openSettings(detail),
               ),

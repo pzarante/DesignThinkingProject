@@ -55,9 +55,9 @@ class ProjectDetailActions extends StatelessWidget {
           children: [
             if (viewerRole.canConfigure) ...[
               IconButton.outlined(
-                tooltip: 'Configurar proyecto',
+                tooltip: 'Editar proyecto',
                 onPressed: onConfigure,
-                icon: const Icon(Icons.settings_outlined),
+                icon: const Icon(Icons.edit_outlined),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],

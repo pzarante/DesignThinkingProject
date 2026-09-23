@@ -24,35 +24,38 @@ class AppEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      children: [
-        AppIconBadge(
-          icon: icon,
-          size: 56,
-          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          iconColor: theme.colorScheme.onSurfaceVariant,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          title,
-          style: theme.textTheme.titleLarge,
-          textAlign: TextAlign.center,
-        ),
-        if (message != null) ...[
-          const SizedBox(height: AppSpacing.xs),
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppIconBadge(
+            icon: icon,
+            size: 56,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
+            iconColor: theme.colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: AppSpacing.md),
           Text(
-            message!,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
+            title,
+            style: theme.textTheme.titleLarge,
             textAlign: TextAlign.center,
           ),
+          if (message != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              message!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+          if (action != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            action!,
+          ],
         ],
-        if (action != null) ...[
-          const SizedBox(height: AppSpacing.md),
-          action!,
-        ],
-      ],
+      ),
     );
   }
 }

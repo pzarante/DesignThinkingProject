@@ -40,8 +40,8 @@ class HomeController extends GetxController with UiLoggy {
     errorMessage.value = null;
     try {
       _feed.value = await repository.getFeed();
-    } catch (exception) {
-      loggy.error('HomeController: error getting feed', exception);
+    } catch (exception, stackTrace) {
+      loggy.error('HomeController: error getting feed', exception, stackTrace);
       errorMessage.value = 'No se pudieron cargar tus proyectos.';
     } finally {
       isLoading.value = false;

@@ -38,7 +38,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Configurar proyecto')),
+      appBar: AppBar(title: const Text('Editar proyecto')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
