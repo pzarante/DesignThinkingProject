@@ -7,7 +7,7 @@ import 'package:f_clean_template/core/app_theme.dart';
 import 'package:f_clean_template/features/home/data/datasources/local/local_home_source.dart';
 import 'package:f_clean_template/features/home/domain/models/project.dart';
 import 'package:f_clean_template/features/home/home_dependencies.dart';
-import 'package:f_clean_template/features/home/ui/viewmodels/project_application_controller.dart';
+import 'package:f_clean_template/features/project_applications/ui/viewmodels/applicants_controller.dart';
 import 'package:f_clean_template/features/project_detail/project_detail_dependencies.dart';
 
 import 'support/fake_network_images.dart';
@@ -110,10 +110,11 @@ void main() {
     await tester.tap(find.text('Enviar postulación'));
     await tester.pumpAndSettle();
 
-    final ProjectApplicationController applications = Get.find();
-    expect(applications.applications, hasLength(1));
-    expect(applications.applications.first.applicantName, 'María García');
-    expect(applications.applications.first.projectId, 'r1');
+    final ApplicantsController applicants = Get.find();
+    await applicants.load('r1');
+    expect(applicants.applications, hasLength(1));
+    expect(applicants.applications.first.applicantName, 'María García');
+    expect(applicants.applications.first.projectId, 'r1');
   });
 
   testWidgets('the posts tab stays empty on purpose', (tester) async {

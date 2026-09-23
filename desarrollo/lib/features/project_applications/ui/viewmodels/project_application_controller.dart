@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 
-import '../../domain/models/project_application.dart';
+import '../../../project_applications/domain/models/project_application.dart';
 import '../../domain/repositories/i_project_application_repository.dart';
 
 class ProjectApplicationController extends GetxController {

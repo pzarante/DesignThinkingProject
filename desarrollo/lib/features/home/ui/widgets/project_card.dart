@@ -19,11 +19,9 @@ class ProjectCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap ??
-            () => Get.toNamed(
-                  AppRoutes.projectDetail,
-                  arguments: project,
-                ),
+        onTap:
+            onTap ??
+            () => Get.toNamed(AppRoutes.projectDetail, arguments: project),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,12 +32,21 @@ class ProjectCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       if (project.tags.isNotEmpty)
-                        AppTagChip(label: project.tags.first),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: AppTagChip(label: project.tags.first),
+                          ),
+                        ),
                       if (project.stage != null)
-                        AppTagChip(label: project.stage!),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: AppTagChip(label: project.stage!),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),

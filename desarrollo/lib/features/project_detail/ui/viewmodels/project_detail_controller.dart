@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
 import '../../../home/domain/models/project.dart';
+import '../../../notifications/domain/models/app_notification.dart';
+import '../../../notifications/ui/viewmodels/notifications_controller.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/publication.dart';
@@ -43,8 +45,10 @@ class ProjectDetailController extends GetxController with UiLoggy {
       _detail.value = stored ?? _fromFeedProject(project);
       currentUser.value = await _repository.getCurrentUser();
     } catch (exception) {
-      loggy.error('ProjectDetailController: error loading ${project.id}',
-          exception);
+      loggy.error(
+        'ProjectDetailController: error loading ${project.id}',
+        exception,
+      );
       _detail.value = null;
       errorMessage.value = 'No se pudo cargar la información del proyecto.';
     } finally {
@@ -59,6 +63,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     stage: project.stage,
     tags: project.tags,
     description: project.description,
+    openRoles: const [],
     viewerRole: ViewerRole.visitor,
   );
 

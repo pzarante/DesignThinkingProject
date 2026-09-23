@@ -67,8 +67,7 @@ class ExplorePage extends StatelessWidget {
                     options: categoryOptions,
                     labelBuilder: (t) => t == 'Todos' ? t : '#$t',
                     selected: selectedCategory,
-                    onSelected: (t) =>
-                        ctrl.setTag(t == 'Todos' ? null : t),
+                    onSelected: (t) => ctrl.setTag(t == 'Todos' ? null : t),
                   ),
                 ],
               ),
@@ -86,11 +85,11 @@ class ExplorePage extends StatelessWidget {
                       ),
                       gridDelegate:
                           const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        crossAxisSpacing: AppSpacing.sm,
-                        mainAxisSpacing: AppSpacing.sm,
-                        childAspectRatio: 0.72,
-                      ),
+                            crossAxisCount: 2,
+                            crossAxisSpacing: AppSpacing.sm,
+                            mainAxisSpacing: AppSpacing.sm,
+                            childAspectRatio: 0.72,
+                          ),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) =>
                           _CompactProjectCard(project: filtered[index]),
@@ -101,8 +100,7 @@ class ExplorePage extends StatelessWidget {
       }),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 1,
-        onDestinationSelected: (index) =>
-            _openDestination(context, index),
+        onDestinationSelected: (index) => _openDestination(context, index),
       ),
     );
   }
@@ -123,9 +121,6 @@ class _CompactProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return ProjectCard(project: project);
   }
 }

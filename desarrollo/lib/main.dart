@@ -12,9 +12,11 @@ import 'core/local_preferences_shared.dart';
 import 'features/auth/auth_dependencies.dart';
 import 'features/community_creation/community_creation_dependencies.dart';
 import 'features/home/home_dependencies.dart';
+import 'features/notifications/notifications_dependencies.dart';
 import 'features/product/product_dependencies.dart';
 import 'features/project_creation/project_creation_dependencies.dart';
 import 'features/project_detail/project_detail_dependencies.dart';
+import 'features/project_applications/project_applications_dependencies.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,10 +28,12 @@ void main() async {
   Get.put<ILocalPreferences>(preferences, permanent: true);
 
   registerAuth();
+  registerNotifications();
   registerHome();
   registerProjectDetail();
   registerProjectCreation();
   registerCommunityCreation();
+  registerProjectApplications();
   registerProduct();
   runApp(const MyApp());
 }

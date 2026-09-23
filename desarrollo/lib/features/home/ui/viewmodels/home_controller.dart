@@ -56,7 +56,6 @@ class HomeController extends GetxController with UiLoggy {
 
   /// Todos los tags presentes en el feed actual, para armar los chips de
   /// categoría dinámicamente en vez de hardcodear una lista fija.
-  // TODO: validar con usuarios — el orden alfabético es un supuesto propio,
   // el spec no define cómo deben ordenarse las categorías dinámicas.
   List<String> get availableTags {
     final tags = <String>{

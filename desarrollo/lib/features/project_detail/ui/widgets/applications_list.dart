@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../home/domain/models/project_application.dart';
-import '../../../home/ui/viewmodels/project_application_controller.dart';
+import '../../../project_applications/domain/models/project_application.dart';
+import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 
 /// Postulaciones recibidas por el proyecto, con su resolución.
 ///
@@ -11,7 +11,7 @@ import '../../../home/ui/viewmodels/project_application_controller.dart';
 class ApplicationsList extends StatelessWidget {
   const ApplicationsList({super.key, required this.controller});
 
-  final ProjectApplicationController controller;
+  final ApplicantsController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +43,9 @@ class ApplicationsList extends StatelessWidget {
                     ? PopupMenuButton<ProjectApplicationStatus>(
                         tooltip: 'Resolver postulación',
                         onSelected: (status) =>
-                            controller.updateStatus(application.id, status),
+                            status == ProjectApplicationStatus.accepted
+                            ? controller.accept(application)
+                            : controller.reject(application),
                         itemBuilder: (context) => const [
                           PopupMenuItem(
                             value: ProjectApplicationStatus.accepted,

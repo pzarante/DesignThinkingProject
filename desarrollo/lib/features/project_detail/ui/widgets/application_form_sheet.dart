@@ -2,57 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
-import '../../../home/domain/models/project_application.dart';
-import '../../../home/ui/viewmodels/project_application_controller.dart';
+import '../../../project_applications/ui/viewmodels/apply_controller.dart';
+import '../../domain/models/project_role.dart';
 
-/// Abre el formulario de postulación y entrega la postulación al controller
-/// que ya existe en la feature home.
+const List<String> _availabilityOptions = [
+  'Full-time',
+  'Part-time',
+  'Flexible',
+];
+
+/// Abre el formulario de postulación y lo envía a través del
+/// [ApplyController] de la feature project_applications.
 ///
-/// La lógica de postulación (modelo, repositorio y controller) es de esa
+/// La lógica de postulación (modelo, repositorio y validación) es de esa
 /// feature; aquí solo se ofrece la entrada desde el detalle del proyecto.
 Future<bool> showApplicationForm(
   BuildContext context, {
   required String projectId,
+  required String applicantId,
   required String applicantName,
   required String applicantEmail,
+  required List<ProjectRole> openRoles,
 }) async {
-  final answers = await showModalBottomSheet<_ApplicationAnswers>(
+  final applyController = Get.find<ApplyController>();
+
+  final submitted = await showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (context) => const _ApplicationForm(),
-  );
-
-  if (answers == null) return false;
-
-  await Get.find<ProjectApplicationController>().submit(
-    ProjectApplication(
-      id: 'application-${DateTime.now().millisecondsSinceEpoch}',
+    builder: (context) => _ApplicationForm(
+      controller: applyController,
       projectId: projectId,
+      applicantId: applicantId,
       applicantName: applicantName,
       applicantEmail: applicantEmail,
-      motivation: answers.motivation,
-      availability: answers.availability,
+      openRoles: openRoles.where((role) => role.isOpen).toList(),
     ),
   );
-  return true;
+
+  return submitted ?? false;
 }
 
-/// Lo que responde quien se postula.
-class _ApplicationAnswers {
-  const _ApplicationAnswers({
-    required this.motivation,
-    required this.availability,
+class _ApplicationForm extends StatefulWidget {
+  const _ApplicationForm({
+    required this.controller,
+    required this.projectId,
+    required this.applicantId,
+    required this.applicantName,
+    required this.applicantEmail,
+    required this.openRoles,
   });
 
-  final String motivation;
-  final String availability;
-}
-
-/// La hoja posee sus campos para liberarlos cuando el widget se desmonta,
-/// no al devolver el resultado: la animación de cierre todavía los usa.
-class _ApplicationForm extends StatefulWidget {
-  const _ApplicationForm();
+  final ApplyController controller;
+  final String projectId;
+  final String applicantId;
+  final String applicantName;
+  final String applicantEmail;
+  final List<ProjectRole> openRoles;
 
   @override
   State<_ApplicationForm> createState() => _ApplicationFormState();
@@ -60,25 +66,60 @@ class _ApplicationForm extends StatefulWidget {
 
 class _ApplicationFormState extends State<_ApplicationForm> {
   final TextEditingController _motivationField = TextEditingController();
-  final TextEditingController _availabilityField = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.desiredRole.value = null;
+    widget.controller.availability.value = '';
+  }
 
   @override
   void dispose() {
     _motivationField.dispose();
-    _availabilityField.dispose();
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    Navigator.pop(
-      context,
-      _ApplicationAnswers(
-        motivation: _motivationField.text.trim(),
-        availability: _availabilityField.text.trim(),
-      ),
+    if (widget.controller.desiredRole.value == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Elige el rol al que quieres aplicar.')),
+      );
+      return;
+    }
+    if (widget.controller.availability.value.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Elige tu disponibilidad.')));
+      return;
+    }
+
+    widget.controller.motivation.value = _motivationField.text.trim();
+
+    final ok = await widget.controller.submit(
+      projectId: widget.projectId,
+      applicantId: widget.applicantId,
+      applicantName: widget.applicantName,
+      applicantEmail: widget.applicantEmail,
     );
+
+    if (!ok) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              widget.controller.errorMessage.value ??
+                  'No se pudo enviar la postulación.',
+            ),
+          ),
+        );
+      }
+      return;
+    }
+
+    if (mounted) Navigator.pop(context, true);
   }
 
   @override
@@ -98,27 +139,65 @@ class _ApplicationFormState extends State<_ApplicationForm> {
           children: [
             Text('Postularme', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.md),
+
+            Text(
+              'Rol al que aplicas',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Obx(
+              () => DropdownButtonFormField<String>(
+                initialValue: widget.controller.desiredRole.value,
+                items: [
+                  for (final role in widget.openRoles)
+                    DropdownMenuItem(
+                      value: role.title,
+                      child: Text(role.title),
+                    ),
+                ],
+                onChanged: (value) =>
+                    widget.controller.desiredRole.value = value,
+                decoration: const InputDecoration(),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            Text(
+              'Disponibilidad',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Obx(
+              () => SegmentedButton<String>(
+                segments: [
+                  for (final option in _availabilityOptions)
+                    ButtonSegment(value: option, label: Text(option)),
+                ],
+                selected: widget.controller.availability.value.isEmpty
+                    ? const {}
+                    : {widget.controller.availability.value},
+                emptySelectionAllowed: true,
+                onSelectionChanged: (selection) =>
+                    widget.controller.availability.value = selection.isEmpty
+                    ? ''
+                    : selection.first,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            Text('Motivación', style: Theme.of(context).textTheme.labelLarge),
+            const SizedBox(height: AppSpacing.xs),
             TextFormField(
               controller: _motivationField,
               minLines: 2,
               maxLines: 4,
-              decoration: const InputDecoration(labelText: 'Motivación'),
+              decoration: const InputDecoration(),
               validator: (value) => value == null || value.trim().isEmpty
                   ? 'Cuéntale al equipo cómo puedes aportar'
                   : null,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            TextFormField(
-              controller: _availabilityField,
-              decoration: const InputDecoration(
-                labelText: 'Disponibilidad',
-                hintText: '6 horas por semana',
-              ),
-              validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Indica tu disponibilidad'
-                  : null,
-            ),
             const SizedBox(height: AppSpacing.md),
+
             FilledButton(
               onPressed: _submit,
               child: const Text('Enviar postulación'),

@@ -18,6 +18,8 @@ class ProjectDetailActions extends StatelessWidget {
     required this.onFollow,
     required this.isSaved,
     required this.isFollowing,
+    required this.hasApplied,
+    required this.hasOpenRoles,
   });
 
   final ViewerRole viewerRole;
@@ -28,6 +30,11 @@ class ProjectDetailActions extends StatelessWidget {
   final VoidCallback onFollow;
   final bool isSaved;
   final bool isFollowing;
+  final bool hasApplied;
+
+  /// Falso si ninguno de los roles buscados del proyecto tiene cupos
+  /// disponibles — sin vacantes abiertas no se puede postular.
+  final bool hasOpenRoles;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +69,7 @@ class ProjectDetailActions extends StatelessWidget {
               IconButton.outlined(
                 tooltip: isSaved ? 'Quitar de guardados' : 'Guardar proyecto',
                 onPressed: onSave,
-                icon: Icon(
-                  isSaved ? Icons.bookmark : Icons.bookmark_border,
-                ),
+                icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],

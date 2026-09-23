@@ -10,6 +10,7 @@ import '../../../../core/widgets/app_section_header.dart';
 import '../viewmodels/home_controller.dart';
 import '../widgets/feed_entry_tile.dart';
 import '../widgets/project_card.dart';
+import '../../../notifications/ui/viewmodels/notifications_controller.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -32,12 +33,19 @@ class HomePage extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
         actions: [
-          IconButton(
-            constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-            padding: EdgeInsets.zero,
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => _notifyPending(context),
-          ),
+          Obx(() {
+            final unread =
+                Get.find<NotificationsController>().unreadCount.value;
+            return IconButton(
+              icon: unread > 0
+                  ? Badge(
+                      label: Text('$unread'),
+                      child: const Icon(Icons.notifications_outlined),
+                    )
+                  : const Icon(Icons.notifications_outlined),
+              onPressed: () => Get.toNamed(AppRoutes.notifications),
+            );
+          }),
         ],
       ),
       body: Obx(
