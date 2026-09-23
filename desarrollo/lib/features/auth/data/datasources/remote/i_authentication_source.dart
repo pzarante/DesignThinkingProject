@@ -24,4 +24,12 @@ abstract class IAuthenticationSource {
   );
 
   Future<bool> verifyToken();
+
+  /// True si quien tiene la sesión es un invitado, no una cuenta con correo.
+  bool get isAnonymous;
+
+  /// Abre una sesión de invitado si no hay ninguna, y la devuelve. Un
+  /// invitado es un usuario real -tiene id, lo que escriba queda a su
+  /// nombre- solo que sin correo ni clave.
+  Future<AuthenticationUser> ensureGuestSession();
 }

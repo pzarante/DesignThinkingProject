@@ -48,7 +48,7 @@ class AuthenticationSourceService
 
     users.add(
       AuthenticationUser(
-        id: DateTime.now().microsecondsSinceEpoch,
+        id: DateTime.now().microsecondsSinceEpoch.toString(),
         email: email,
         name: user.name.trim().isEmpty ? email : user.name.trim(),
         password: user.password,
@@ -121,6 +121,18 @@ class AuthenticationSourceService
   Future<bool> verifyToken() async {
     loggy.debug('Attempting token verification');
     return Future.value(true);
+  }
+
+  @override
+  bool get isAnonymous => false;
+
+  @override
+  Future<AuthenticationUser> ensureGuestSession() async {
+    final existing = await getLoggedUser();
+    if (existing != null) return existing;
+    // Esta fuente compara correo y clave: no hay forma de simular aqui una
+    // sesion de invitado de verdad, sin correo ni clave.
+    throw StateError('Esta fuente local no admite sesion de invitado.');
   }
 
   Future<List<AuthenticationUser>> _getUsers() async {

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_labeled_progress.dart';
 import '../../../../core/widgets/app_section_header.dart';
+import '../../domain/models/project_comment.dart';
 import '../../domain/models/project_detail.dart';
+import 'comments_section.dart';
 import 'project_timeline.dart';
 
 /// Pestaña "Detalles": la propuesta completa del proyecto.
@@ -11,9 +13,18 @@ import 'project_timeline.dart';
 /// Las secciones que el proyecto todavía no ha llenado (cronograma, hitos,
 /// enlaces) simplemente no se dibujan, en vez de mostrarse vacías.
 class DetailsTab extends StatelessWidget {
-  const DetailsTab({super.key, required this.detail});
+  const DetailsTab({
+    super.key,
+    required this.detail,
+    required this.comments,
+    required this.isSendingComment,
+    required this.onSubmitComment,
+  });
 
   final ProjectDetail detail;
+  final List<ProjectComment> comments;
+  final bool isSendingComment;
+  final ValueChanged<String> onSubmitComment;
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +95,12 @@ class DetailsTab extends StatelessWidget {
             ],
           ),
         ],
+        const SizedBox(height: AppSpacing.md),
+        CommentsSection(
+          comments: comments,
+          isSending: isSendingComment,
+          onSubmit: onSubmitComment,
+        ),
       ],
     );
   }

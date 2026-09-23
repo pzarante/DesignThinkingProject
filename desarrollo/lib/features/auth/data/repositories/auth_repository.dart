@@ -37,4 +37,11 @@ class AuthRepository implements IAuthRepository {
   @override
   Future<void> forgotPassword(String email) async =>
       await authenticationSource.forgotPassword(email);
+
+  @override
+  bool get isAnonymous => authenticationSource.isAnonymous;
+
+  @override
+  Future<AuthenticationUser> ensureGuestSession() async =>
+      await authenticationSource.ensureGuestSession();
 }

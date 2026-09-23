@@ -240,7 +240,12 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       case 2:
         return TeamTab(detail: detail);
       default:
-        return DetailsTab(detail: detail);
+        return DetailsTab(
+          detail: detail,
+          comments: controller.comments,
+          isSendingComment: controller.isSendingComment.value,
+          onSubmitComment: controller.submitComment,
+        );
     }
   }
 
@@ -318,7 +323,12 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         body: ListView(
           padding: const EdgeInsets.only(bottom: AppSpacing.lg),
           children: [
-            ProjectDetailHeader(detail: detail),
+            ProjectDetailHeader(
+              detail: detail,
+              likeCount: controller.likeCount.value,
+              likedByMe: controller.likedByMe.value,
+              onToggleLike: controller.toggleLike,
+            ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Column(

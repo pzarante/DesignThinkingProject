@@ -109,6 +109,9 @@ class ProjectCreationController extends GetxController with UiLoggy {
   /// Deja el asistente en blanco. Se llama al entrar al flujo, no al volver
   /// desde la pantalla de revisión.
   void startDraft({bool fromCommunity = false}) {
+    // El controller es permanente: sin esto, el catálogo (etapas, tags)
+    // quedaría congelado en lo que había al abrir la app la primera vez.
+    _loadOptions();
     currentStep.value = 1;
     startedFromCommunity.value = fromCommunity;
     stage.value = null;
@@ -260,8 +263,10 @@ class ProjectCreationController extends GetxController with UiLoggy {
     loggy.debug('ProjectCreationController: publishing ${name.value}');
     isPublishing.value = true;
 
-    final project = Project(
-      id: 'p${DateTime.now().millisecondsSinceEpoch}',
+    // El id es de relleno: ROBLE asigna el real al crear la fila, y
+    // `addProject` devuelve el proyecto ya con ese id.
+    final draftProject = Project(
+      id: '',
       name: name.value.trim(),
       tags: List.unmodifiable(tags),
       stage: stage.value,
@@ -275,7 +280,16 @@ class ProjectCreationController extends GetxController with UiLoggy {
       description: description.value.trim(),
     );
 
-    await _homeRepository.addProject(project);
+    final project = await _homeRepository.addProject(
+      draftProject,
+      problem: problem.value.trim(),
+      objective: objective.value.trim(),
+      scope: scope.value.trim().isEmpty ? null : scope.value.trim(),
+      maxMembers: maxMembers.value,
+      availability: availability.value,
+      coLeaderId: coLeader.value?.id,
+      links: List.unmodifiable(links),
+    );
     await _detailRepository.saveDetail(await _buildDetail(project));
     // El feed del home es permanente y no se reconstruye solo al volver.
     await Get.find<HomeController>().getFeed();

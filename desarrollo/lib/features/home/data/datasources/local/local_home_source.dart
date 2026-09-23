@@ -134,8 +134,19 @@ class LocalHomeSource implements IHomeSource {
   );
 
   @override
-  Future<void> addProject(Project project) async =>
-      _myProjects.insert(0, project);
+  Future<Project> addProject(
+    Project project, {
+    required String problem,
+    required String objective,
+    String? scope,
+    required int maxMembers,
+    required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
+  }) async {
+    _myProjects.insert(0, project);
+    return project;
+  }
 
   @override
   Future<void> addCommunity(Community community) async =>

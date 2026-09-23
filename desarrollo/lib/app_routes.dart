@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import 'features/auth/ui/views/login_page.dart';
+import 'features/auth/ui/views/signup_page.dart';
 import 'features/community_creation/ui/views/community_created_page.dart';
 import 'features/community_creation/ui/views/community_form_page.dart';
 import 'features/creation/ui/views/create_entry_page.dart';
@@ -40,6 +42,10 @@ abstract final class AppRoutes {
   static const String createCommunity = '/create/community';
   static const String createCommunitySuccess = '/create/community/success';
 
+  /// Inicio de sesión y registro; se llega aquí al intentar crear sin cuenta.
+  static const String login = '/login';
+  static const String signup = '/signup';
+
   /// Destination order shown by the bottom navigation bar.
   static const List<String> mainDestinations = [
     home,
@@ -66,6 +72,8 @@ abstract final class AppRoutes {
     ),
     GetPage(name: applyToProject, page: () => const ApplyPage()),
     GetPage(name: projectApplicants, page: () => const ApplicantsPage()),
+    GetPage(name: login, page: () => const LoginPage()),
+    GetPage(name: signup, page: () => const SignUpPage()),
   ];
 
   static bool isRegistered(String route) =>

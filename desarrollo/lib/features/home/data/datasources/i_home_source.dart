@@ -5,8 +5,18 @@ import '../../domain/models/project.dart';
 abstract class IHomeSource {
   Future<HomeFeed> getFeed();
 
-  /// Añade un proyecto recién publicado a "Mis Proyectos".
-  Future<void> addProject(Project project);
+  /// Añade un proyecto recién publicado a "Mis Proyectos". Ver
+  /// [IHomeRepository.addProject] para por qué lleva parámetros aparte.
+  Future<Project> addProject(
+    Project project, {
+    required String problem,
+    required String objective,
+    String? scope,
+    required int maxMembers,
+    required String availability,
+    String? coLeaderId,
+    List<String> links = const [],
+  });
 
   /// Añade una comunidad recién creada a las comunidades que sigue el usuario.
   Future<void> addCommunity(Community community);

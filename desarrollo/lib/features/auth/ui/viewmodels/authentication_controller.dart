@@ -19,6 +19,12 @@ class AuthenticationController extends GetxController with UiLoggy {
 
   bool get isLoading => _isLoading.value;
   bool get isLogged => _logged.value;
+
+  /// Invitado (sesion sin correo ni clave) en vez de una cuenta real.
+  bool get isAnonymous => isLogged && repoAuthentication.isAnonymous;
+
+  /// Sesion con cuenta real: lo que exige crear un proyecto o comunidad.
+  bool get hasAccount => isLogged && !repoAuthentication.isAnonymous;
   String get loggedEmail => _loggedUser.value?.email ?? '';
 
   @override
@@ -48,7 +54,8 @@ class AuthenticationController extends GetxController with UiLoggy {
     if (!_validate(email, password)) {
       loggy.warning('AuthenticationController: Invalid email or password');
       error.value =
-          'Enter a valid email and a password with at least 7 characters.';
+          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
+          '(mayúscula, minúscula, número y símbolo).';
       return false;
     }
     _isLoading.value = true;
@@ -60,7 +67,7 @@ class AuthenticationController extends GetxController with UiLoggy {
       _loggedUser.value = loggedIn
           ? await repoAuthentication.getLoggedUser()
           : null;
-      if (!loggedIn) error.value = 'Unable to sign in. Check your credentials.';
+      if (!loggedIn) error.value = 'No se pudo iniciar sesión. Revisa tus credenciales.';
       return loggedIn;
     } catch (exception) {
       loggy.error('AuthenticationController: Login error $exception');
@@ -71,22 +78,49 @@ class AuthenticationController extends GetxController with UiLoggy {
     }
   }
 
-  Future<bool> signUp(String email, String password) async {
+  Future<bool> signUp(
+    String email,
+    String password, {
+    String? name,
+    String? firstName,
+    String? lastName,
+    String? career,
+    int? academicYear,
+    String? bio,
+  }) async {
     loggy.debug('AuthenticationController: Sign Up $email');
     error.value = '';
     if (!_validate(email, password)) {
       loggy.warning('AuthenticationController: Invalid email or password');
       error.value =
-          'Enter a valid email and a password with at least 7 characters.';
+          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
+          '(mayúscula, minúscula, número y símbolo).';
       return false;
     }
     _isLoading.value = true;
     try {
       final created = await repoAuthentication.signUp(
-        AuthenticationUser(email: email, name: email, password: password),
+        AuthenticationUser(
+          email: email,
+          name: (name == null || name.trim().isEmpty) ? email : name.trim(),
+          password: password,
+          firstName: _orNull(firstName),
+          lastName: _orNull(lastName),
+          career: _orNull(career),
+          academicYear: academicYear,
+          bio: _orNull(bio),
+        ),
       );
-      if (!created) {
-        error.value = 'Unable to create the account. Please try again.';
+      if (created) {
+        // La fuente de ROBLE deja sesión abierta al registrar, para poder
+        // crear el perfil de la app; se refleja aquí solo si de verdad quedó
+        // una sesión (el intento interno puede fallar sin que la cuenta deje
+        // de existir).
+        final loggedInUser = await repoAuthentication.getLoggedUser();
+        _loggedUser.value = loggedInUser;
+        _logged.value = loggedInUser != null;
+      } else {
+        error.value = 'No se pudo crear la cuenta. Inténtalo de nuevo.';
       }
       return created;
     } catch (exception) {
@@ -98,6 +132,9 @@ class AuthenticationController extends GetxController with UiLoggy {
     }
   }
 
+  String? _orNull(String? value) =>
+      (value == null || value.trim().isEmpty) ? null : value.trim();
+
   Future<bool> logOut() async {
     loggy.debug('AuthenticationController: Log Out');
     error.value = '';
@@ -105,7 +142,7 @@ class AuthenticationController extends GetxController with UiLoggy {
       final loggedOut = await repoAuthentication.logOut();
       _logged.value = false;
       _loggedUser.value = null;
-      if (!loggedOut) error.value = 'Unable to sign out. Please try again.';
+      if (!loggedOut) error.value = 'No se pudo cerrar sesión. Inténtalo de nuevo.';
       return loggedOut;
     } catch (exception) {
       loggy.error('AuthenticationController: Logout error $exception');
@@ -119,5 +156,5 @@ class AuthenticationController extends GetxController with UiLoggy {
   }
 
   bool _validate(String email, String password) =>
-      email.isNotEmpty && password.length > 6;
+      email.isNotEmpty && password.length >= 8;
 }

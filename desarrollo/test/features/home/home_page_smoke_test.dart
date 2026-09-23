@@ -35,6 +35,13 @@ class _StubAuthRepository implements IAuthRepository {
 
   @override
   Future<void> forgotPassword(String email) async {}
+
+  @override
+  bool get isAnonymous => false;
+
+  @override
+  Future<AuthenticationUser> ensureGuestSession() async =>
+      AuthenticationUser(email: 'maria@uni.edu', name: 'María');
 }
 
 void main() {

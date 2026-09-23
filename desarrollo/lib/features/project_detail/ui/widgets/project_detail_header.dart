@@ -8,9 +8,18 @@ import '../../domain/models/project_detail.dart';
 /// Portada, título, etiquetas y autoría: la parte del detalle que se ve
 /// igual en las tres pestañas.
 class ProjectDetailHeader extends StatelessWidget {
-  const ProjectDetailHeader({super.key, required this.detail});
+  const ProjectDetailHeader({
+    super.key,
+    required this.detail,
+    required this.likeCount,
+    required this.likedByMe,
+    required this.onToggleLike,
+  });
 
   final ProjectDetail detail;
+  final int likeCount;
+  final bool likedByMe;
+  final VoidCallback onToggleLike;
 
   @override
   Widget build(BuildContext context) {
@@ -81,6 +90,20 @@ class ProjectDetailHeader extends StatelessWidget {
                   ],
                 ),
               ],
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  IconButton(
+                    onPressed: onToggleLike,
+                    tooltip: likedByMe ? 'Quitar me gusta' : 'Me gusta',
+                    icon: Icon(
+                      likedByMe ? Icons.thumb_up : Icons.thumb_up_outlined,
+                      color: likedByMe ? colors.primary : null,
+                    ),
+                  ),
+                  Text('$likeCount', style: theme.textTheme.titleSmall),
+                ],
+              ),
               const Divider(height: AppSpacing.xl),
             ],
           ),

@@ -4,6 +4,7 @@ import 'package:loggy/loggy.dart';
 import '../../../home/domain/models/project.dart';
 import '../../../notifications/domain/models/app_notification.dart';
 import '../../../notifications/ui/viewmodels/notifications_controller.dart';
+import '../../domain/models/project_comment.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
@@ -23,6 +24,11 @@ class ProjectDetailController extends GetxController with UiLoggy {
   final RxBool isFollowing = false.obs;
   final RxBool isSaved = false.obs;
   final RxList<Publication> publications = <Publication>[].obs;
+
+  final RxInt likeCount = 0.obs;
+  final RxBool likedByMe = false.obs;
+  final RxList<ProjectComment> comments = <ProjectComment>[].obs;
+  final RxBool isSendingComment = false.obs;
 
   /// Quien está en sesión; se necesita al postularse a un proyecto ajeno.
   final Rxn<ProjectMember> currentUser = Rxn<ProjectMember>();
@@ -45,6 +51,11 @@ class ProjectDetailController extends GetxController with UiLoggy {
       final stored = await _repository.getDetail(project.id);
       _detail.value = stored ?? _fromFeedProject(project);
       currentUser.value = await _repository.getCurrentUser();
+
+      final likeStatus = await _repository.getLikeStatus(project.id);
+      likeCount.value = likeStatus.count;
+      likedByMe.value = likeStatus.likedByMe;
+      comments.value = await _repository.getComments(project.id);
     } catch (exception) {
       loggy.error(
         'ProjectDetailController: error loading ${project.id}',
@@ -74,6 +85,39 @@ class ProjectDetailController extends GetxController with UiLoggy {
   void toggleFollowing() => isFollowing.toggle();
 
   void toggleSaved() => isSaved.toggle();
+
+  /// Alterna el "me gusta" del proyecto abierto, optimista y con reversa si
+  /// el servidor lo rechaza.
+  Future<void> toggleLike() async {
+    final projectId = detail?.projectId;
+    if (projectId == null) return;
+
+    final wasLiked = likedByMe.value;
+    likedByMe.value = !wasLiked;
+    likeCount.value += wasLiked ? -1 : 1;
+    try {
+      likeCount.value = await _repository.toggleLike(projectId);
+    } catch (exception) {
+      loggy.error('ProjectDetailController: error toggling like', exception);
+      likedByMe.value = wasLiked;
+      likeCount.value += wasLiked ? 1 : -1;
+    }
+  }
+
+  Future<void> submitComment(String content) async {
+    final projectId = detail?.projectId;
+    final text = content.trim();
+    if (projectId == null || text.isEmpty) return;
+
+    isSendingComment.value = true;
+    try {
+      comments.add(await _repository.addComment(projectId, text));
+    } catch (exception) {
+      loggy.error('ProjectDetailController: error posting comment', exception);
+    } finally {
+      isSendingComment.value = false;
+    }
+  }
 
   void addPublication(Publication publication) =>
       publications.insert(0, publication);

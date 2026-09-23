@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_icon_badge.dart';
 import '../../../../core/widgets/app_option_card.dart';
+import '../../../auth/ui/viewmodels/authentication_controller.dart';
 
 /// Qué se está creando. Es la bifurcación entre el asistente de proyecto y
 /// el formulario de comunidad, así que no necesita estado compartido: solo
@@ -41,6 +42,12 @@ class _CreateEntryPageState extends State<CreateEntryPage> {
   };
 
   void _continue() {
+    // Crear exige una cuenta real: la de invitado sirve para ver, seguir,
+    // gustar y comentar, pero no deja quién responda por lo que publica.
+    if (!Get.find<AuthenticationController>().hasAccount) {
+      Get.toNamed(AppRoutes.login);
+      return;
+    }
     switch (_selected) {
       case CreationKind.proyecto:
         Get.toNamed(AppRoutes.createProject);

@@ -16,4 +16,10 @@ abstract class IAuthRepository {
   Future<bool> validateToken();
 
   Future<void> forgotPassword(String email);
+
+  /// True si quien tiene la sesión es un invitado, no una cuenta con correo.
+  bool get isAnonymous;
+
+  /// Abre una sesión de invitado si no hay ninguna, y la devuelve.
+  Future<AuthenticationUser> ensureGuestSession();
 }

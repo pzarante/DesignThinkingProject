@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+.env
+
+# Configuracion del MCP de Roble: lleva un token dentro.
+.roble.mcp.env
