@@ -8,10 +8,15 @@ enum ViewerRole {
   /// Forma parte del equipo: publica, pero no configura.
   member,
 
+  /// Co-líder: puede publicar, pero no configurar el proyecto.
+  coLeader,
+
   /// No pertenece al proyecto: guarda, sigue y se postula.
   visitor;
 
   bool get belongsToProject => this != ViewerRole.visitor;
 
   bool get canConfigure => this == ViewerRole.creator;
+
+  bool get canPublish => this == ViewerRole.creator || this == ViewerRole.coLeader;
 }

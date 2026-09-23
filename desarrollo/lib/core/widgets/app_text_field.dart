@@ -19,6 +19,7 @@ class AppTextField extends StatelessWidget {
     this.minLines,
     this.maxLines = 1,
     this.onChanged,
+    this.validator,
   });
 
   /// Null deja el campo sin etiqueta encima (pasos que ya la llevan en el
@@ -37,6 +38,7 @@ class AppTextField extends StatelessWidget {
   final int? minLines;
   final int maxLines;
   final ValueChanged<String>? onChanged;
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +71,10 @@ class AppTextField extends StatelessWidget {
           ),
         if (label != null || maxLength != null)
           const SizedBox(height: AppSpacing.xs),
-        TextField(
+        TextFormField(
           controller: controller,
           onChanged: onChanged,
+          validator: validator,
           minLines: minLines,
           maxLines: maxLines,
           decoration: InputDecoration(

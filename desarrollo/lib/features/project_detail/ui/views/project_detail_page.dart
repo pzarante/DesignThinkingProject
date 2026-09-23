@@ -9,9 +9,11 @@ import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../home/domain/models/project.dart';
 import '../../domain/models/project_detail.dart';
+import '../../domain/models/publication.dart';
 import '../viewmodels/project_detail_controller.dart';
 import '../viewmodels/project_settings_controller.dart';
 import '../widgets/application_form_sheet.dart';
+import '../widgets/create_publication_sheet.dart';
 import '../widgets/details_tab.dart';
 import '../widgets/posts_tab.dart';
 import '../widgets/project_detail_actions.dart';
@@ -80,6 +82,79 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     if (saved != null) controller.applyUpdate(saved);
   }
 
+  Future<void> _createPublication(ProjectDetail detail) async {
+    if (!detail.viewerRole.canPublish) return;
+
+    final publication = await showCreatePublicationSheet(
+      context,
+      projectId: detail.projectId,
+      authorName: controller.currentUser.value?.name ?? 'Equipo del proyecto',
+    );
+    if (publication != null) controller.addPublication(publication);
+  }
+
+  Future<void> _editPublication(Publication publication) async {
+    final updated = await showEditPublicationSheet(
+      context,
+      publication: publication,
+    );
+    if (updated != null) controller.updatePublication(updated);
+  }
+
+  Future<void> _deletePublication(Publication publication) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar publicación?'),
+        content: const Text('Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed ?? false) controller.deletePublication(publication.id);
+  }
+
+  Future<void> _commentPublication(Publication publication) async {
+    final commentController = TextEditingController();
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Comentar publicación'),
+        content: TextField(
+          controller: commentController,
+          autofocus: true,
+          maxLines: 4,
+          decoration: const InputDecoration(hintText: 'Escribe un comentario...'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(
+              commentController.text.trim().isNotEmpty,
+            ),
+            child: const Text('Publicar'),
+          ),
+        ],
+      ),
+    );
+    final comment = commentController.text.trim();
+    commentController.dispose();
+    if (submitted ?? false) {
+      controller.addPublicationComment(publication.id, comment);
+    }
+  }
+
   void _openDestination(int index) {
     final route = AppRoutes.mainDestinations[index];
     if (!AppRoutes.isRegistered(route)) {
@@ -92,10 +167,17 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   Widget _tabBody(ProjectDetail detail) {
     switch (_selectedTab) {
       case 0:
-        return PostsTab(
-          canPublish: detail.viewerRole.belongsToProject,
-          onCreate: () =>
-              _notifyPending('Crear publicación llegará en otra entrega.'),
+        return Obx(
+          () => PostsTab(
+            canPublish: detail.viewerRole.canPublish,
+            publications: controller.publications.toList(),
+            onCreate: () => _createPublication(detail),
+            onEdit: _editPublication,
+            onDelete: _deletePublication,
+            onReact: (publication) =>
+              controller.togglePublicationReaction(publication.id),
+            onComment: _commentPublication,
+          ),
         );
       case 2:
         return TeamTab(detail: detail);
@@ -189,8 +271,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             ProjectDetailActions(
               viewerRole: detail.viewerRole,
               onConfigure: () => _openSettings(detail),
-              onCreatePost: () =>
-                  _notifyPending('Crear publicación llegará en otra entrega.'),
+                onCreatePost: () => _createPublication(detail),
               onApply: () => _apply(detail),
               onSave: () {
                 controller.toggleSaved();

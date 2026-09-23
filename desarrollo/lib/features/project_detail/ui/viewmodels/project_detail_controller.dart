@@ -4,6 +4,7 @@ import 'package:loggy/loggy.dart';
 import '../../../home/domain/models/project.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
+import '../../domain/models/publication.dart';
 import '../../domain/models/viewer_role.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
@@ -18,6 +19,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
   final RxnString errorMessage = RxnString();
   final RxBool isFollowing = false.obs;
   final RxBool isSaved = false.obs;
+  final RxList<Publication> publications = <Publication>[].obs;
 
   /// Quien está en sesión; se necesita al postularse a un proyecto ajeno.
   final Rxn<ProjectMember> currentUser = Rxn<ProjectMember>();
@@ -35,6 +37,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     errorMessage.value = null;
     isFollowing.value = false;
     isSaved.value = false;
+    publications.clear();
     try {
       final stored = await _repository.getDetail(project.id);
       _detail.value = stored ?? _fromFeedProject(project);
@@ -65,4 +68,37 @@ class ProjectDetailController extends GetxController with UiLoggy {
   void toggleFollowing() => isFollowing.toggle();
 
   void toggleSaved() => isSaved.toggle();
+
+  void addPublication(Publication publication) => publications.insert(0, publication);
+
+  void updatePublication(Publication publication) {
+    final index = publications.indexWhere((item) => item.id == publication.id);
+    if (index == -1) return;
+    publications[index] = publication;
+  }
+
+  void deletePublication(String publicationId) {
+    publications.removeWhere((item) => item.id == publicationId);
+  }
+
+  void togglePublicationReaction(String publicationId) {
+    final index = publications.indexWhere((item) => item.id == publicationId);
+    if (index == -1) return;
+    final publication = publications[index];
+    publications[index] = publication.copyWith(
+      viewerReacted: !publication.viewerReacted,
+      reactionCount: publication.reactionCount +
+          (publication.viewerReacted ? -1 : 1),
+    );
+  }
+
+  void addPublicationComment(String publicationId, String comment) {
+    final index = publications.indexWhere((item) => item.id == publicationId);
+    if (index == -1) return;
+    final publication = publications[index];
+    publications[index] = publication.copyWith(
+      commentCount: publication.commentCount + 1,
+      comments: [...publication.comments, comment],
+    );
+  }
 }

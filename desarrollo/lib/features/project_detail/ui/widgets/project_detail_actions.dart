@@ -70,11 +70,17 @@ class ProjectDetailActions extends StatelessWidget {
             ],
             Expanded(
               child: FilledButton(
-                onPressed: viewerRole.belongsToProject ? onCreatePost : onApply,
+                onPressed: viewerRole.canPublish
+                    ? onCreatePost
+                    : viewerRole == ViewerRole.visitor
+                        ? onApply
+                        : null,
                 child: Text(
-                  viewerRole.belongsToProject
+                  viewerRole.canPublish
                       ? 'Crear publicación'
-                      : 'Postularme',
+                      : viewerRole == ViewerRole.visitor
+                          ? 'Postularme'
+                          : 'Sin acciones disponibles',
                 ),
               ),
             ),
