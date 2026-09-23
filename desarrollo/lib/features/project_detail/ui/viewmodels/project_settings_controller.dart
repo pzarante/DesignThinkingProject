@@ -6,6 +6,7 @@ import '../../../home/domain/repositories/i_home_repository.dart';
 import '../../../home/ui/viewmodels/home_controller.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
+import '../../domain/models/project_role.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
 /// Estado de la configuración de un proyecto: edita una copia de trabajo y
@@ -25,6 +26,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
 
   final RxString name = ''.obs;
   final RxList<ProjectMember> members = <ProjectMember>[].obs;
+  final RxList<ProjectRole> openRoles = <ProjectRole>[].obs;
   final RxnString communityName = RxnString();
   final RxnString coverUrl = RxnString();
   final RxBool isSaving = false.obs;
@@ -51,6 +53,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     categoryField.text = detail.tags.isEmpty ? '' : detail.tags.first;
     name.value = detail.name;
     members.value = List.of(detail.members);
+    openRoles.value = List.of(detail.openRoles);
     communityName.value = detail.communityName;
     coverUrl.value = detail.coverUrl;
   }
@@ -72,8 +75,21 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   void updateMemberRole(String memberId, String roleLabel) {
     members.value = [
       for (final member in members)
-        member.id == memberId ? member.copyWith(roleLabel: roleLabel) : member,
+        member.copyWith(isCoLeader: member.id == memberId),
     ];
+  }
+
+  void addRole(ProjectRole role) => openRoles.add(role);
+
+  void updateRole(int index, ProjectRole role) {
+    final updated = List.of(openRoles);
+    updated[index] = role;
+    openRoles.value = updated;
+  }
+
+  void removeRole(int index) {
+    final updated = List.of(openRoles)..removeAt(index);
+    openRoles.value = updated;
   }
 
   /// Quien creó el proyecto no se puede quitar del equipo.
@@ -107,6 +123,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
       description: description,
       tags: tags,
       members: List.of(members),
+      openRoles: List.of(openRoles),
       coverUrl: coverUrl.value,
       communityName: communityName.value,
       clearCommunity: communityName.value == null,

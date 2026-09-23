@@ -11,6 +11,7 @@ class ApplyController extends GetxController with UiLoggy {
 
   final RxString motivation = ''.obs;
   final RxString availability = ''.obs;
+  final RxnString desiredRole = RxnString();
   final RxBool isSubmitting = false.obs;
   final RxnString errorMessage = RxnString();
 
@@ -31,7 +32,8 @@ class ApplyController extends GetxController with UiLoggy {
 
   bool get isValid =>
       motivation.value.trim().isNotEmpty &&
-      availability.value.trim().isNotEmpty;
+      availability.value.trim().isNotEmpty &&
+      desiredRole.value != null;
 
   Future<bool> submit({
     required String projectId,
@@ -40,7 +42,7 @@ class ApplyController extends GetxController with UiLoggy {
     required String applicantEmail,
   }) async {
     if (!isValid) {
-      errorMessage.value = 'Completa tu motivación y disponibilidad.';
+      errorMessage.value = 'Elige un rol, tu disponibilidad y tu motivación.';
       return false;
     }
 
@@ -66,6 +68,7 @@ class ApplyController extends GetxController with UiLoggy {
         applicantEmail: applicantEmail,
         motivation: motivation.value.trim(),
         availability: availability.value.trim(),
+        roleTitle: desiredRole.value,
         createdAt: DateTime.now(),
       ),
     );

@@ -9,21 +9,24 @@ class ProjectApplication {
     required this.applicantEmail,
     required this.motivation,
     required this.availability,
+    this.roleTitle,
     this.status = ProjectApplicationStatus.pending,
     required this.createdAt,
   });
 
   final String id;
   final String projectId;
-
-  /// Id del usuario que postula. Necesario para evitar postulaciones
-  /// duplicadas y para que "Mis aplicaciones" pueda filtrar por usuario.
   final String applicantId;
-
   final String applicantName;
   final String applicantEmail;
   final String motivation;
   final String availability;
+
+  /// Rol al que aplica, entre los que el proyecto tiene abiertos. Nullable
+  /// solo para no romper datos previos a este campo; toda postulación nueva
+  /// debe traerlo.
+  final String? roleTitle;
+
   final ProjectApplicationStatus status;
   final DateTime createdAt;
 
@@ -36,6 +39,7 @@ class ProjectApplication {
       applicantEmail: applicantEmail,
       motivation: motivation,
       availability: availability,
+      roleTitle: roleTitle,
       status: status ?? this.status,
       createdAt: createdAt,
     );

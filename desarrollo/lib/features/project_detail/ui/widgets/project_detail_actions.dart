@@ -19,6 +19,7 @@ class ProjectDetailActions extends StatelessWidget {
     required this.isSaved,
     required this.isFollowing,
     required this.hasApplied,
+    required this.hasOpenRoles,
   });
 
   final ViewerRole viewerRole;
@@ -30,6 +31,10 @@ class ProjectDetailActions extends StatelessWidget {
   final bool isSaved;
   final bool isFollowing;
   final bool hasApplied;
+
+  /// Falso si ninguno de los roles buscados del proyecto tiene cupos
+  /// disponibles — sin vacantes abiertas no se puede postular.
+  final bool hasOpenRoles;
 
   @override
   Widget build(BuildContext context) {
@@ -72,11 +77,15 @@ class ProjectDetailActions extends StatelessWidget {
               child: FilledButton(
                 onPressed: viewerRole.belongsToProject
                     ? onCreatePost
-                    : (hasApplied ? null : onApply),
+                    : ((!hasOpenRoles || hasApplied) ? null : onApply),
                 child: Text(
                   viewerRole.belongsToProject
                       ? 'Crear publicación'
-                      : (hasApplied ? 'Postulación pendiente' : 'Postularme'),
+                      : (hasApplied
+                            ? 'Postulación pendiente'
+                            : (hasOpenRoles
+                                  ? 'Postularme'
+                                  : 'Sin vacantes disponibles')),
                 ),
               ),
             ),
