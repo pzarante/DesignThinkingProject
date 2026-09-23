@@ -260,8 +260,10 @@ class ProjectCreationController extends GetxController with UiLoggy {
     loggy.debug('ProjectCreationController: publishing ${name.value}');
     isPublishing.value = true;
 
-    final project = Project(
-      id: 'p${DateTime.now().millisecondsSinceEpoch}',
+    // El id es de relleno: ROBLE asigna el real al crear la fila, y
+    // `addProject` devuelve el proyecto ya con ese id.
+    final draftProject = Project(
+      id: '',
       name: name.value.trim(),
       tags: List.unmodifiable(tags),
       stage: stage.value,
@@ -275,7 +277,14 @@ class ProjectCreationController extends GetxController with UiLoggy {
       description: description.value.trim(),
     );
 
-    await _homeRepository.addProject(project);
+    final project = await _homeRepository.addProject(
+      draftProject,
+      problem: problem.value.trim(),
+      objective: objective.value.trim(),
+      scope: scope.value.trim().isEmpty ? null : scope.value.trim(),
+      maxMembers: maxMembers.value,
+      availability: availability.value,
+    );
     await _detailRepository.saveDetail(await _buildDetail(project));
     // El feed del home es permanente y no se reconstruye solo al volver.
     await Get.find<HomeController>().getFeed();

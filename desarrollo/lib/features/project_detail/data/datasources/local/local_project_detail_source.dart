@@ -1,3 +1,5 @@
+import '../../../../auth/domain/repositories/i_auth_repository.dart';
+import '../../../domain/models/project_comment.dart';
 import '../../../domain/models/project_detail.dart';
 import '../../../domain/models/project_member.dart';
 import '../../../domain/models/project_milestone.dart';
@@ -10,8 +12,15 @@ import '../i_project_detail_source.dart';
 /// Guarda también lo que publica el asistente de creación, así que un
 /// proyecto recién creado abre su detalle con todo lo que se escribió.
 class LocalProjectDetailSource implements IProjectDetailSource {
-  /// Usuario en sesión. Provisional: sale del propio diseño ("Hola, María",
-  /// "1 Creador (María García)") hasta que se conecte la autenticación.
+  LocalProjectDetailSource(this._authRepository);
+
+  final IAuthRepository _authRepository;
+
+  final Map<String, Set<String>> _likedBy = {};
+  final Map<String, List<ProjectComment>> _comments = {};
+
+  /// Identidad de respaldo de los proyectos sembrados (ComicVerse, ArquiSmart)
+  /// y de `getCurrentUser()` si por alguna razón no hay sesión iniciada.
   static const ProjectMember _currentUser = ProjectMember(
     id: 'me',
     name: 'María García',
@@ -215,5 +224,42 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       _details[detail.projectId] = detail;
 
   @override
-  Future<ProjectMember> getCurrentUser() async => _currentUser;
+  Future<ProjectMember> getCurrentUser() async {
+    final user = await _authRepository.getLoggedUser();
+    if (user == null) return _currentUser;
+    return ProjectMember(id: user.id ?? _currentUser.id, name: user.name, email: user.email);
+  }
+
+  @override
+  Future<({int count, bool likedByMe})> getLikeStatus(String projectId) async {
+    final me = (await getCurrentUser()).id;
+    final likes = _likedBy[projectId] ?? const {};
+    return (count: likes.length, likedByMe: likes.contains(me));
+  }
+
+  @override
+  Future<int> toggleLike(String projectId) async {
+    final me = (await getCurrentUser()).id;
+    final likes = _likedBy.putIfAbsent(projectId, () => {});
+    if (!likes.remove(me)) likes.add(me);
+    return likes.length;
+  }
+
+  @override
+  Future<List<ProjectComment>> getComments(String projectId) async =>
+      List.unmodifiable(_comments[projectId] ?? const []);
+
+  @override
+  Future<ProjectComment> addComment(String projectId, String content) async {
+    final me = await getCurrentUser();
+    final comment = ProjectComment(
+      id: 'comment${DateTime.now().microsecondsSinceEpoch}',
+      authorId: me.id,
+      authorName: me.name,
+      content: content,
+      createdAt: DateTime.now(),
+    );
+    (_comments[projectId] ??= []).add(comment);
+    return comment;
+  }
 }

@@ -13,8 +13,21 @@ class HomeRepository implements IHomeRepository {
   Future<HomeFeed> getFeed() async => await homeSource.getFeed();
 
   @override
-  Future<void> addProject(Project project) async =>
-      await homeSource.addProject(project);
+  Future<Project> addProject(
+    Project project, {
+    required String problem,
+    required String objective,
+    String? scope,
+    required int maxMembers,
+    required String availability,
+  }) async => await homeSource.addProject(
+    project,
+    problem: problem,
+    objective: objective,
+    scope: scope,
+    maxMembers: maxMembers,
+    availability: availability,
+  );
 
   @override
   Future<void> addCommunity(Community community) async =>

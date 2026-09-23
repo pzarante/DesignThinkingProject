@@ -9,6 +9,8 @@ import 'package:f_clean_template/features/home/home_dependencies.dart';
 import 'package:f_clean_template/features/project_creation/project_creation_dependencies.dart';
 import 'package:f_clean_template/features/project_detail/project_detail_dependencies.dart';
 
+import 'support/fake_auth_repository.dart';
+
 Widget _app(String initialRoute) => GetMaterialApp(
   theme: AppTheme.light,
   initialRoute: initialRoute,
@@ -18,9 +20,10 @@ Widget _app(String initialRoute) => GetMaterialApp(
 void main() {
   setUp(() {
     Get.testMode = true;
-    registerHome();
-    registerProjectDetail();
-    registerProjectCreation();
+    registerFakeAuth();
+    registerHome(remote: false);
+    registerProjectDetail(remote: false);
+    registerProjectCreation(remote: false);
     registerCommunityCreation();
   });
 

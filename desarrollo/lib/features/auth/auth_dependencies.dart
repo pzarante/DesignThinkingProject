@@ -1,7 +1,8 @@
 import 'package:get/get.dart';
+import 'package:roble/roble.dart';
 
-import 'data/datasources/remote/authentication_source_service.dart';
 import 'data/datasources/remote/i_authentication_source.dart';
+import 'data/datasources/remote/roble_authentication_source.dart';
 import 'data/repositories/auth_repository.dart';
 import 'domain/repositories/i_auth_repository.dart';
 import 'ui/viewmodels/authentication_controller.dart';
@@ -12,7 +13,7 @@ import 'ui/viewmodels/authentication_controller.dart';
 /// the source, repository, and controller are created eagerly.
 void registerAuth() {
   Get.put<IAuthenticationSource>(
-    AuthenticationSourceService(Get.find()),
+    RobleAuthenticationSource(Get.find<RobleApiDataBase>()),
     permanent: true,
   );
   Get.put<IAuthRepository>(AuthRepository(Get.find()));

@@ -10,6 +10,7 @@ import 'package:f_clean_template/features/home/home_dependencies.dart';
 import 'package:f_clean_template/features/project_applications/ui/viewmodels/applicants_controller.dart';
 import 'package:f_clean_template/features/project_detail/project_detail_dependencies.dart';
 
+import 'support/fake_auth_repository.dart';
 import 'support/fake_network_images.dart';
 
 Future<Project> _projectById(String id) async {
@@ -47,8 +48,9 @@ void main() {
   setUp(() {
     useFakeNetworkImages();
     Get.testMode = true;
-    registerHome();
-    registerProjectDetail();
+    registerFakeAuth();
+    registerHome(remote: false);
+    registerProjectDetail(remote: false);
   });
 
   tearDown(Get.reset);
