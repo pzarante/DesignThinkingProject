@@ -44,3 +44,23 @@ Dependency Injection (DI) is handled centrally in `main.dart` or via specific **
 // Example of the DI flow in main.dart or Bindings
 Get.lazyPut<IUserRepository>(() => UserRepositoryImpl(Get.find()));
 Get.lazyPut(() => UserController(Get.find()));
+```
+
+## ROBLE
+
+La autenticacion usa el SDK oficial de ROBLE cuando se proporcionan la URL del
+backend y el identificador del contrato mediante defines de compilacion. La
+sesion y los tokens son administrados por el SDK y no se guardan en el codigo.
+
+```bash
+flutter pub get
+flutter run \
+	--dart-define=ROBLE_BASE_URL=https://roble-api.openlab.uninorte.edu.co \
+	--dart-define=ROBLE_CONTRACT_ID=pana_09cad906f1
+```
+
+Ambos valores se obtienen de la consola de ROBLE. Si no se proporcionan, la
+aplicacion conserva la fuente local de demostracion existente. Para probar la
+conexion real, crea una cuenta en la pantalla de registro y luego inicia sesion
+con esas credenciales; los errores de red o autenticacion se muestran en el
+flujo actual de login.

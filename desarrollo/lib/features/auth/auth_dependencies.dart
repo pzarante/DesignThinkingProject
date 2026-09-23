@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 
 import 'data/datasources/remote/authentication_source_service.dart';
 import 'data/datasources/remote/i_authentication_source.dart';
+import 'data/datasources/remote/roble_authentication_source.dart';
+import 'data/roble_config.dart';
 import 'data/repositories/auth_repository.dart';
 import 'domain/repositories/i_auth_repository.dart';
 import 'ui/viewmodels/authentication_controller.dart';
@@ -11,8 +13,11 @@ import 'ui/viewmodels/authentication_controller.dart';
 /// Authentication is needed by [Central] as soon as the application starts, so
 /// the source, repository, and controller are created eagerly.
 void registerAuth() {
+  final robleConfig = RobleConfig.fromEnvironment;
   Get.put<IAuthenticationSource>(
-    AuthenticationSourceService(Get.find()),
+    robleConfig.isConfigured
+        ? RobleAuthenticationSource(robleConfig.createClient())
+        : AuthenticationSourceService(Get.find()),
     permanent: true,
   );
   Get.put<IAuthRepository>(AuthRepository(Get.find()));

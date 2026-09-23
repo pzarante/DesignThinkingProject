@@ -33,6 +33,7 @@ dependencies:
   get: ^4.7.3
   loggy: ^2.0.3
   http: ^1.6.0
+  roble: ^1.12.0
   shared_preferences: ^2.5.5
   flutter_secure_storage: ^10.0.0
   flex_color_scheme: ^8.4.0
