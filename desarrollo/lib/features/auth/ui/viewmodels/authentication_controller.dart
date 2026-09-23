@@ -54,7 +54,8 @@ class AuthenticationController extends GetxController with UiLoggy {
     if (!_validate(email, password)) {
       loggy.warning('AuthenticationController: Invalid email or password');
       error.value =
-          'Ingresa un correo válido y una contraseña de al menos 7 caracteres.';
+          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
+          '(mayúscula, minúscula, número y símbolo).';
       return false;
     }
     _isLoading.value = true;
@@ -77,13 +78,23 @@ class AuthenticationController extends GetxController with UiLoggy {
     }
   }
 
-  Future<bool> signUp(String email, String password, {String? name}) async {
+  Future<bool> signUp(
+    String email,
+    String password, {
+    String? name,
+    String? firstName,
+    String? lastName,
+    String? career,
+    int? academicYear,
+    String? bio,
+  }) async {
     loggy.debug('AuthenticationController: Sign Up $email');
     error.value = '';
     if (!_validate(email, password)) {
       loggy.warning('AuthenticationController: Invalid email or password');
       error.value =
-          'Ingresa un correo válido y una contraseña de al menos 7 caracteres.';
+          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
+          '(mayúscula, minúscula, número y símbolo).';
       return false;
     }
     _isLoading.value = true;
@@ -93,14 +104,21 @@ class AuthenticationController extends GetxController with UiLoggy {
           email: email,
           name: (name == null || name.trim().isEmpty) ? email : name.trim(),
           password: password,
+          firstName: _orNull(firstName),
+          lastName: _orNull(lastName),
+          career: _orNull(career),
+          academicYear: academicYear,
+          bio: _orNull(bio),
         ),
       );
       if (created) {
         // La fuente de ROBLE deja sesión abierta al registrar, para poder
-        // crear el perfil de la app; se refleja aquí para no mostrar
-        // "sin sesión" con una sesión real ya abierta.
-        _logged.value = true;
-        _loggedUser.value = await repoAuthentication.getLoggedUser();
+        // crear el perfil de la app; se refleja aquí solo si de verdad quedó
+        // una sesión (el intento interno puede fallar sin que la cuenta deje
+        // de existir).
+        final loggedInUser = await repoAuthentication.getLoggedUser();
+        _loggedUser.value = loggedInUser;
+        _logged.value = loggedInUser != null;
       } else {
         error.value = 'No se pudo crear la cuenta. Inténtalo de nuevo.';
       }
@@ -113,6 +131,9 @@ class AuthenticationController extends GetxController with UiLoggy {
       _isLoading.value = false;
     }
   }
+
+  String? _orNull(String? value) =>
+      (value == null || value.trim().isEmpty) ? null : value.trim();
 
   Future<bool> logOut() async {
     loggy.debug('AuthenticationController: Log Out');
@@ -135,5 +156,5 @@ class AuthenticationController extends GetxController with UiLoggy {
   }
 
   bool _validate(String email, String password) =>
-      email.isNotEmpty && password.length > 6;
+      email.isNotEmpty && password.length >= 8;
 }

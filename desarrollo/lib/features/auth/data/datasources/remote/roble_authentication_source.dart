@@ -1,3 +1,4 @@
+import 'package:loggy/loggy.dart';
 import 'package:roble/roble.dart';
 
 import '../../../domain/models/authentication_user.dart';
@@ -6,7 +7,7 @@ import 'i_authentication_source.dart';
 /// Habla con ROBLE sobre cuentas. No decide nada: convertir el mapa que
 /// devuelve el servidor y traducir los fallos es del repositorio y de
 /// `errorMessage`.
-class RobleAuthenticationSource implements IAuthenticationSource {
+class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
   RobleAuthenticationSource(this._db);
 
   final RobleApiDataBase _db;
@@ -23,10 +24,14 @@ class RobleAuthenticationSource implements IAuthenticationSource {
 
   /// `users` es el perfil de la app, aparte de la cuenta de ROBLE: otras
   /// features (candidatos a co-líder, creador de un proyecto) lo leen por
-  /// `user_id`. Se crea la primera vez que se ve ese `userId`, no en
-  /// `signUp`, porque registrar una cuenta no deja sesión abierta para poder
-  /// escribir la tabla todavía.
-  Future<void> _ensureUserRow(Map<String, dynamic> profile) async {
+  /// `user_id`. Se crea la primera vez que se ve ese `userId`: al hacer
+  /// login (cualquier cuenta, incluida una creada antes de que existiera
+  /// esta lógica) y, mejor aún, justo después de registrarse con los datos
+  /// que trajo el formulario ([signupData]).
+  Future<void> _ensureUserRow(
+    Map<String, dynamic> profile, {
+    AuthenticationUser? signupData,
+  }) async {
     final userId = profile['userId'] as String;
     final existing = await _db.read('users', filters: {'user_id': userId});
     if (existing.isNotEmpty) return;
@@ -35,6 +40,12 @@ class RobleAuthenticationSource implements IAuthenticationSource {
       'user_id': userId,
       'user_name': (profile['name'] as String?) ?? (profile['email'] as String),
       'email': profile['email'],
+      if (signupData?.firstName != null) 'first_name': signupData!.firstName,
+      if (signupData?.lastName != null) 'last_name': signupData!.lastName,
+      if (signupData?.career != null) 'career': signupData!.career,
+      if (signupData?.academicYear != null)
+        'academic_year': signupData!.academicYear,
+      if (signupData?.bio != null) 'bio': signupData!.bio,
       'created_at': now,
       'updated_at': now,
     });
@@ -56,27 +67,25 @@ class RobleAuthenticationSource implements IAuthenticationSource {
       password: user.password ?? '',
       name: user.name,
     );
-    // `register` no deja sesión abierta ni siempre devuelve el userId; se
-    // entra un momento para poder crear el perfil de la app en `users`, la
-    // tabla propia que las demás tablas referencian (ver ESQUEMA_BD_ROBLE.md).
-    await _db.login(email: user.email, password: user.password ?? '');
-    await _ensureUserProfile(user.name);
+    // La cuenta ya existe aunque lo de abajo falle: entrar ahora es para
+    // dejar listo el perfil en `users`, no lo que garantiza este método. Si
+    // falla (red, servidor lento), la persona entra por su cuenta después y
+    // `login()` deja el perfil listo en ese momento.
+    try {
+      final profile = await _db.login(
+        email: user.email,
+        password: user.password ?? '',
+      );
+      await _ensureUserRow(profile, signupData: user);
+    } catch (exception) {
+      // P. ej. "nombre de usuario" repetido (es único): la cuenta de ROBLE
+      // ya existe, así que no se reporta como fallo, pero queda en el log
+      // para poder diagnosticarlo en vez de perderse en silencio.
+      loggy.warning(
+        'RobleAuthenticationSource: no se pudo crear el perfil en users: $exception',
+      );
+    }
     return true;
-  }
-
-  Future<void> _ensureUserProfile(String name) async {
-    final profile = await _db.currentUser();
-    final userId = profile['userId'] as String?;
-    if (userId == null) return;
-
-    final existing = await _db.read('users', filters: {'user_id': userId});
-    if (existing.isNotEmpty) return;
-
-    await _db.create('users', {
-      'user_id': userId,
-      'user_name': name,
-      'email': (profile['email'] as String?) ?? '',
-    });
   }
 
   @override

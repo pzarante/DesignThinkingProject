@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
           AppTextField(
             label: 'Contraseña',
             controller: _passwordField,
-            hintText: 'Mínimo 7 caracteres',
+            hintText: 'Tu contraseña',
             obscureText: true,
           ),
           const SizedBox(height: AppSpacing.lg),
