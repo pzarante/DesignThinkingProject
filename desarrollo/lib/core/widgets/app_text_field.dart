@@ -21,6 +21,7 @@ class AppTextField extends StatelessWidget {
     this.onChanged,
     this.obscureText = false,
     this.keyboardType,
+    this.validator,
   });
 
   /// Null deja el campo sin etiqueta encima (pasos que ya la llevan en el
@@ -41,6 +42,7 @@ class AppTextField extends StatelessWidget {
   final ValueChanged<String>? onChanged;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final String? Function(String?)? validator;
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +75,10 @@ class AppTextField extends StatelessWidget {
           ),
         if (label != null || maxLength != null)
           const SizedBox(height: AppSpacing.xs),
-        TextField(
+        TextFormField(
           controller: controller,
           onChanged: onChanged,
+          validator: validator,
           minLines: minLines,
           maxLines: maxLines,
           obscureText: obscureText,

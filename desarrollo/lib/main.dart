@@ -14,6 +14,7 @@ import 'core/roble_config.dart';
 import 'features/auth/auth_dependencies.dart';
 import 'features/community_creation/community_creation_dependencies.dart';
 import 'features/home/home_dependencies.dart';
+import 'features/notifications/notifications_dependencies.dart';
 import 'features/product/product_dependencies.dart';
 import 'features/project_creation/project_creation_dependencies.dart';
 import 'features/project_detail/project_detail_dependencies.dart';
@@ -39,6 +40,7 @@ void main() async {
   Get.put<RobleApiDataBase>(robleDb, permanent: true);
 
   registerAuth();
+  registerNotifications();
   registerHome();
   registerProjectDetail();
   registerProjectCreation();

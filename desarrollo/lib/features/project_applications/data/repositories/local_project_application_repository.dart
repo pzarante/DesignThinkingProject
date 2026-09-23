@@ -5,6 +5,8 @@ class LocalProjectApplicationRepository
     implements IProjectApplicationRepository {
   LocalProjectApplicationRepository()
     : _applications = [
+        // Solicitudes pendientes en proyectos PROPIOS (p1, p2, p3), para
+        // probar aceptar/rechazar como líder/colíder.
         ProjectApplication(
           id: 'application-1',
           projectId: 'p1',
@@ -13,19 +15,51 @@ class LocalProjectApplicationRepository
           applicantEmail: 'daniela@uni.edu',
           motivation:
               'Puedo aportar experiencia en investigación y arquitectura.',
-          availability: '6 horas por semana',
+          availability: 'Part-time',
+          roleTitle: 'Analista de datos',
           createdAt: DateTime.now().subtract(const Duration(days: 1)),
         ),
         ProjectApplication(
-          id: 'application-2',
-          projectId: 'r1',
-          applicantId: 'me',
-          applicantName: 'María García',
-          applicantEmail: 'maria@uni.edu',
-          motivation: 'Ya envié esta para probar el estado pendiente.',
-          availability: '4 horas por semana',
-          createdAt: DateTime.now().subtract(const Duration(hours: 3)),
+          id: 'application-3',
+          projectId: 'p1',
+          applicantId: 'u13',
+          applicantName: 'Sofía Ramírez',
+          applicantEmail: 'sofia.ramirez@uni.edu',
+          motivation:
+              'Tengo experiencia en React y me encantaría trabajar en el '
+              'domo digital.',
+          availability: 'Full-time',
+          roleTitle: 'Desarrollador Frontend',
+          createdAt: DateTime.now().subtract(const Duration(hours: 6)),
         ),
+        ProjectApplication(
+          id: 'application-4',
+          projectId: 'p2',
+          applicantId: 'u14',
+          applicantName: 'Julián Restrepo',
+          applicantEmail: 'julian.restrepo@uni.edu',
+          motivation:
+              'Sé Flutter y me interesa mucho el mundo de los cómics '
+              'independientes.',
+          availability: 'Flexible',
+          roleTitle: 'Desarrollador Flutter',
+          createdAt: DateTime.now().subtract(const Duration(minutes: 40)),
+        ),
+        ProjectApplication(
+          id: 'application-6',
+          projectId: 'p3',
+          applicantId: 'u15',
+          applicantName: 'Rodrigo Salas',
+          applicantEmail: 'rodrigo.salas@uni.edu',
+          motivation:
+              'Tengo experiencia en modelado 3D y renders arquitectónicos.',
+          availability: 'Part-time',
+          roleTitle: 'Ilustrador 3D',
+          createdAt: DateTime.now().subtract(const Duration(hours: 12)),
+        ),
+
+        // Sin postulaciones propias pendientes en proyectos AJENOS (r1-r4):
+        // quedan libres para probar el flujo de postularse desde cero.
       ];
 
   final List<ProjectApplication> _applications;
@@ -51,6 +85,21 @@ class LocalProjectApplicationRepository
   }
 
   @override
+  Future<ProjectApplication?> getOwnApplication({
+    required String projectId,
+    required String applicantId,
+  }) async {
+    for (final application in _applications) {
+      if (application.projectId == projectId &&
+          application.applicantId == applicantId &&
+          application.status == ProjectApplicationStatus.pending) {
+        return application;
+      }
+    }
+    return null;
+  }
+
+  @override
   Future<ProjectApplication> submit(ProjectApplication application) async {
     _applications.add(application);
     return application;
@@ -68,5 +117,20 @@ class LocalProjectApplicationRepository
     final updated = _applications[index].copyWith(status: status);
     _applications[index] = updated;
     return updated;
+  }
+
+  @override
+  Future<ProjectApplication> update(ProjectApplication application) async {
+    final index = _applications.indexWhere((a) => a.id == application.id);
+    if (index == -1) {
+      throw StateError('No se encontró la postulación.');
+    }
+    _applications[index] = application;
+    return application;
+  }
+
+  @override
+  Future<void> withdraw(String applicationId) async {
+    _applications.removeWhere((a) => a.id == applicationId);
   }
 }

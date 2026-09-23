@@ -22,18 +22,26 @@ class ProjectMemberTile extends StatelessWidget {
       color: theme.colorScheme.surfaceContainerHighest,
       child: ListTile(
         leading: AppAvatar(name: member.name, avatarUrl: member.avatarUrl),
-        title: Row(
+        title: Text(
+          member.name,
+          style: theme.textTheme.titleSmall,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Flexible(
-              child: Text(member.name, style: theme.textTheme.titleSmall),
-            ),
             if (member.roleLabel != null) ...[
-              const SizedBox(width: AppSpacing.sm),
-              AppTagChip(label: member.roleLabel!),
+              const SizedBox(height: AppSpacing.xs),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: AppTagChip(label: member.roleLabel!),
+              ),
+              const SizedBox(height: AppSpacing.xs),
             ],
+            if (member.subtitle != null) Text(member.subtitle!),
           ],
         ),
-        subtitle: member.subtitle == null ? null : Text(member.subtitle!),
         trailing: trailing,
       ),
     );

@@ -2,10 +2,14 @@
 /// vista del equipo y la vista pública: la información es la misma, las
 /// acciones del pie no.
 enum ViewerRole {
-  /// Creó el proyecto: ve la configuración y publica.
+  /// Creó el proyecto: ve la configuración, publica y gestiona postulaciones.
   creator,
 
-  /// Forma parte del equipo: publica, pero no configura.
+  /// Co-lidera el proyecto: mismos permisos de gestión que el creador,
+  /// excepto quitarlo a él del equipo.
+  coLeader,
+
+  /// Forma parte del equipo: publica, pero no configura ni gestiona roles.
   member,
 
   /// No pertenece al proyecto: guarda, sigue y se postula.
@@ -14,4 +18,6 @@ enum ViewerRole {
   bool get belongsToProject => this != ViewerRole.visitor;
 
   bool get canConfigure => this == ViewerRole.creator;
+
+  bool get canPublish => this == ViewerRole.creator || this == ViewerRole.coLeader;
 }

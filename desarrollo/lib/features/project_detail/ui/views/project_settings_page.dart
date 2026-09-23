@@ -9,9 +9,11 @@ import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 import '../../domain/models/project_member.dart';
+import '../../domain/models/project_role.dart';
 import '../viewmodels/project_settings_controller.dart';
 import '../widgets/applications_list.dart';
 import '../widgets/project_member_tile.dart';
+import '../widgets/role_settings_tile.dart';
 
 /// Configuración del proyecto, disponible solo para quien lo creó.
 class ProjectSettingsPage extends StatefulWidget {
@@ -195,6 +197,28 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
             ),
           ),
 
+          const AppSectionHeader(title: 'Vacantes'),
+          Obx(
+            () => Column(
+              children: [
+                for (var i = 0; i < controller.openRoles.length; i++)
+                  RoleSettingsTile(
+                    role: controller.openRoles[i],
+                    onEdit: () => _editVacancy(context, i),
+                    onDelete: () => controller.removeRole(i),
+                  ),
+              ],
+            ),
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _editVacancy(context, null),
+              icon: const Icon(Icons.add),
+              label: const Text('Agregar vacante'),
+            ),
+          ),
+
           const AppSectionHeader(title: 'Postulaciones recibidas'),
           ApplicationsList(controller: applicationController),
 
@@ -340,5 +364,129 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     );
 
     if (selected != null) controller.setCoLeader(selected.id);
+  }
+
+  Future<void> _editVacancy(BuildContext context, int? index) async {
+    final existing = index == null ? null : controller.openRoles[index];
+    final titleField = TextEditingController(text: existing?.title ?? '');
+    final descriptionField = TextEditingController(
+      text: existing?.description ?? '',
+    );
+    final skillsField = TextEditingController(
+      text: existing?.skills.join(', ') ?? '',
+    );
+    var totalSlots = existing?.totalSlots ?? 1;
+    final minSlots = existing?.filledSlots ?? 0;
+
+    final result = await showDialog<ProjectRole>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(existing == null ? 'Nueva vacante' : 'Editar vacante'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: titleField,
+                  autofocus: true,
+                  decoration: const InputDecoration(labelText: 'Rol buscado'),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: descriptionField,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Qué haría en el proyecto',
+                    hintText: 'Breve descripción de las responsabilidades',
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                TextField(
+                  controller: skillsField,
+                  decoration: const InputDecoration(
+                    labelText: 'Habilidades (separadas por coma)',
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text('Cupos', style: Theme.of(context).textTheme.labelMedium),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: totalSlots > minSlots && totalSlots > 1
+                          ? () => setDialogState(() => totalSlots--)
+                          : null,
+                    ),
+                    Text(
+                      '$totalSlots',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () => setDialogState(() => totalSlots++),
+                    ),
+                  ],
+                ),
+                if (minSlots > 0)
+                  Text(
+                    'Ya hay $minSlots cupo(s) ocupado(s); no puedes bajar de '
+                    'ese número.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final title = titleField.text.trim();
+                if (title.isEmpty) return;
+                final skills = skillsField.text
+                    .split(',')
+                    .map((s) => s.trim())
+                    .where((s) => s.isNotEmpty)
+                    .toList();
+
+                Navigator.of(context).pop(
+                  ProjectRole(
+                    title: title,
+                    description: descriptionField.text.trim().isEmpty
+                        ? null
+                        : descriptionField.text.trim(),
+                    skills: skills,
+                    totalSlots: totalSlots,
+                    filledSlots: minSlots,
+                  ),
+                );
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      titleField.dispose();
+      descriptionField.dispose();
+      skillsField.dispose();
+    });
+
+    if (result == null) return;
+    if (index == null) {
+      controller.addRole(result);
+    } else {
+      controller.updateRole(index, result);
+    }
   }
 }

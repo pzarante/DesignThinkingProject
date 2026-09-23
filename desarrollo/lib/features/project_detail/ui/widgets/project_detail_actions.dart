@@ -19,6 +19,8 @@ class ProjectDetailActions extends StatelessWidget {
     required this.isSaved,
     required this.isFollowing,
     required this.hasApplied,
+    required this.hasOpenRoles,
+    required this.onReviewApplication,
   });
 
   final ViewerRole viewerRole;
@@ -30,6 +32,13 @@ class ProjectDetailActions extends StatelessWidget {
   final bool isSaved;
   final bool isFollowing;
   final bool hasApplied;
+
+  /// Abre la propia postulación (pendiente) para editarla o retirarla.
+  final VoidCallback onReviewApplication;
+
+  /// Falso si ninguno de los roles buscados del proyecto tiene cupos
+  /// disponibles — sin vacantes abiertas no se puede postular.
+  final bool hasOpenRoles;
 
   @override
   Widget build(BuildContext context) {
@@ -70,13 +79,19 @@ class ProjectDetailActions extends StatelessWidget {
             ],
             Expanded(
               child: FilledButton(
-                onPressed: viewerRole.belongsToProject
+                onPressed: viewerRole.canPublish
                     ? onCreatePost
-                    : (hasApplied ? null : onApply),
+                    : (hasApplied
+                          ? onReviewApplication
+                          : (hasOpenRoles ? onApply : null)),
                 child: Text(
-                  viewerRole.belongsToProject
+                  viewerRole.canPublish
                       ? 'Crear publicación'
-                      : (hasApplied ? 'Postulación pendiente' : 'Postularme'),
+                      : (hasApplied
+                            ? 'Postulación pendiente'
+                            : (hasOpenRoles
+                                  ? 'Postularme'
+                                  : 'Sin vacantes disponibles')),
                 ),
               ),
             ),

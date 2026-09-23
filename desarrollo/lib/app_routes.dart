@@ -8,6 +8,7 @@ import 'features/creation/ui/views/create_entry_page.dart';
 import 'features/home/ui/views/explore_page.dart';
 import 'features/home/ui/views/home_page.dart';
 import 'features/home/ui/views/my_projects_page.dart';
+import 'features/notifications/ui/views/notifications_page.dart';
 import 'features/project_detail/ui/views/project_detail_page.dart';
 import 'features/project_detail/ui/views/project_settings_page.dart';
 import 'features/project_creation/ui/views/project_created_page.dart';
@@ -25,6 +26,7 @@ abstract final class AppRoutes {
   static const String explore = '/explore';
   static const String myProjects = '/my-projects';
   static const String profile = '/profile';
+  static const String notifications = '/notifications';
   static const String projectDetail = '/project-detail';
   static const String applyToProject = '/apply';
   static const String projectApplicants = '/project-detail/applicants';
@@ -56,6 +58,7 @@ abstract final class AppRoutes {
     GetPage(name: home, page: () => const HomePage()),
     GetPage(name: explore, page: () => const ExplorePage()),
     GetPage(name: myProjects, page: () => const MyProjectsPage()),
+    GetPage(name: notifications, page: () => const NotificationsPage()),
     GetPage(name: projectDetail, page: () => const ProjectDetailPage()),
     GetPage(name: projectSettings, page: () => const ProjectSettingsPage()),
     GetPage(name: create, page: () => const CreateEntryPage()),

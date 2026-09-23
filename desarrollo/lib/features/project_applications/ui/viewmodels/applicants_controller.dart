@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../../project_detail/ui/viewmodels/project_detail_controller.dart';
 import '../../domain/models/project_application.dart';
 import '../../domain/repositories/i_project_application_repository.dart';
 
@@ -25,6 +26,14 @@ class ApplicantsController extends GetxController {
       application.id,
       ProjectApplicationStatus.accepted,
     );
+
+    await Get.find<ProjectDetailController>().onApplicationAccepted(
+      applicantId: application.applicantId,
+      applicantName: application.applicantName,
+      applicantEmail: application.applicantEmail,
+      roleTitle: application.roleTitle ?? 'Rol no especificado',
+    );
+
     await load(application.projectId);
   }
 
@@ -33,6 +42,11 @@ class ApplicantsController extends GetxController {
       application.id,
       ProjectApplicationStatus.rejected,
     );
+
+    await Get.find<ProjectDetailController>().onApplicationRejected(
+      applicantName: application.applicantName,
+    );
+
     await load(application.projectId);
   }
 }
