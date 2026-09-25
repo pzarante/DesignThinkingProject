@@ -180,7 +180,7 @@ class ProjectReviewPage extends StatelessWidget {
           onPrimary: controller.isPublishing.value
               ? null
               : () async {
-                  final project = await controller.publish();
+                  final project = await controller.publish(); 
                   Get.offNamed(
                     AppRoutes.createProjectSuccess,
                     arguments: project,

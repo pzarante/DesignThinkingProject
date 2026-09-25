@@ -262,7 +262,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
   Future<Project> publish() async {
     loggy.debug('ProjectCreationController: publishing ${name.value}');
     isPublishing.value = true;
-
+ 
     // El id es de relleno: ROBLE asigna el real al crear la fila, y
     // `addProject` devuelve el proyecto ya con ese id.
     final draftProject = Project(

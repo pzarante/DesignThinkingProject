@@ -5,14 +5,20 @@ import 'package:roble/roble.dart';
 /// Sin esto, un visitante sin cuenta vería el catálogo vacío (o un 401) en
 /// vez de lo publicado: `read()` exige sesión, y `publicRead()` es lo único
 /// que un cliente sin iniciar sesión puede pedir. Requiere que la tabla esté
-/// marcada como pública en la consola de ROBLE.
+/// marcada como pública en la consola de ROBLE; si no lo está, el visitante
+/// la ve vacía en vez de que el 403 tumbe la pantalla entera.
 Future<List<Map<String, dynamic>>> readPublicOrPrivate(
   RobleApiDataBase db,
   String table, {
   Map<String, dynamic>? filters,
 }) async {
-  if (!db.isLoggedIn) return db.publicRead(table);
-  return db.read(table, filters: filters);
+  if (db.isLoggedIn) return db.read(table, filters: filters);
+  try {
+    return await db.publicRead(table);
+  } on RobleApiHttpException catch (e) {
+    if (e.statusCode == 403) return const [];
+    rethrow;
+  }
 }
 
 /// Una fila por su `_id`, pública o privada según haya sesión.

@@ -24,7 +24,7 @@ class HomeRepository implements IHomeRepository {
     List<String> links = const [],
   }) async => await homeSource.addProject(
     project,
-    problem: problem,
+    problem: problem, 
     objective: objective,
     scope: scope,
     maxMembers: maxMembers,

@@ -102,7 +102,7 @@ class RobleHomeSource implements IHomeSource {
     required int maxMembers,
     required String availability,
     String? coLeaderId,
-    List<String> links = const [],
+    List<String> links = const [], 
   }) async {
     final userId = (await _authRepository.getLoggedUser())?.id;
     if (userId == null) {
