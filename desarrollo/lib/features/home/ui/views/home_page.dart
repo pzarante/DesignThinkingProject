@@ -158,6 +158,10 @@ class _FeedList extends StatelessWidget {
               icon: Icons.groups_outlined,
               title: community.name,
               subtitle: community.lastActivity,
+              onTap: () => Get.toNamed(
+                AppRoutes.communitySettings,
+                arguments: community,
+              ),
             ),
           const AppSectionHeader(title: 'Mis Proyectos'),
           for (final project in controller.filteredMyProjectsSummary)
