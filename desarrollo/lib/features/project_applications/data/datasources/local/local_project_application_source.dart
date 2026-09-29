@@ -1,15 +1,19 @@
-import '../../domain/models/project_application.dart';
-import '../../domain/repositories/i_project_application_repository.dart';
+import '../../../domain/models/project_application.dart';
+import '../i_project_application_source.dart';
 
-class LocalProjectApplicationRepository
-    implements IProjectApplicationRepository {
-  LocalProjectApplicationRepository()
+/// Postulaciones en memoria, para pruebas sin red ni sesión.
+///
+/// Los roles en memoria no tienen filas propias, así que aquí
+/// `projectRoleId` es el propio título del rol.
+class LocalProjectApplicationSource implements IProjectApplicationSource {
+  LocalProjectApplicationSource()
     : _applications = [
         // Solicitudes pendientes en proyectos PROPIOS (p1, p2, p3), para
         // probar aceptar/rechazar como líder/colíder.
         ProjectApplication(
           id: 'application-1',
           projectId: 'p1',
+          projectRoleId: 'Analista de datos',
           applicantId: 'u9',
           applicantName: 'Daniela Salamanca',
           applicantEmail: 'daniela@uni.edu',
@@ -22,6 +26,7 @@ class LocalProjectApplicationRepository
         ProjectApplication(
           id: 'application-3',
           projectId: 'p1',
+          projectRoleId: 'Desarrollador Frontend',
           applicantId: 'u13',
           applicantName: 'Sofía Ramírez',
           applicantEmail: 'sofia.ramirez@uni.edu',
@@ -35,6 +40,7 @@ class LocalProjectApplicationRepository
         ProjectApplication(
           id: 'application-4',
           projectId: 'p2',
+          projectRoleId: 'Desarrollador Flutter',
           applicantId: 'u14',
           applicantName: 'Julián Restrepo',
           applicantEmail: 'julian.restrepo@uni.edu',
@@ -48,6 +54,7 @@ class LocalProjectApplicationRepository
         ProjectApplication(
           id: 'application-6',
           projectId: 'p3',
+          projectRoleId: 'Ilustrador 3D',
           applicantId: 'u15',
           applicantName: 'Rodrigo Salas',
           applicantEmail: 'rodrigo.salas@uni.edu',
@@ -79,9 +86,11 @@ class LocalProjectApplicationRepository
     required String projectId,
     required String applicantId,
   }) async {
-    return _applications.any(
-      (a) => a.projectId == projectId && a.applicantId == applicantId,
-    );
+    return await getOwnApplication(
+          projectId: projectId,
+          applicantId: applicantId,
+        ) !=
+        null;
   }
 
   @override

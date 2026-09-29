@@ -466,6 +466,11 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                     skills: skills,
                     totalSlots: totalSlots,
                     filledSlots: minSlots,
+                    // Los cupos ya guardados siguen siendo los mismos: sin
+                    // esto, renombrar el rol borraría sus filas y crearía
+                    // otras nuevas.
+                    slotIds: existing?.slotIds ?? const [],
+                    openSlotIds: existing?.openSlotIds ?? const [],
                   ),
                 );
               },

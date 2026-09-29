@@ -17,7 +17,7 @@ import 'ui/viewmodels/project_settings_controller.dart';
 /// Debe registrarse antes que la creación de proyectos: el asistente guarda
 /// aquí el detalle del proyecto que publica.
 void registerProjectDetail({bool remote = true}) {
-  registerProjectApplications();
+  registerProjectApplications(remote: remote);
   Get.put<IProjectDetailSource>(
     remote
         ? RobleProjectDetailSource(Get.find(), Get.find())

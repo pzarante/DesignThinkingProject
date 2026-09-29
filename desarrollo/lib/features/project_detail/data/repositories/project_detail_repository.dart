@@ -21,6 +21,26 @@ class ProjectDetailRepository implements IProjectDetailRepository {
   Future<ProjectMember> getCurrentUser() async => await source.getCurrentUser();
 
   @override
+  Future<void> addMember({
+    required String projectId,
+    required ProjectMember member,
+    required String projectRoleId,
+  }) async => await source.addMember(
+    projectId: projectId,
+    member: member,
+    projectRoleId: projectRoleId,
+  );
+
+  @override
+  Future<void> leaveProject({
+    required String projectId,
+    String? newLeaderId,
+  }) async => await source.leaveProject(
+    projectId: projectId,
+    newLeaderId: newLeaderId,
+  );
+
+  @override
   Future<({int count, bool likedByMe})> getLikeStatus(String projectId) async =>
       await source.getLikeStatus(projectId);
 
