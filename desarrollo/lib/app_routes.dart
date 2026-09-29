@@ -11,6 +11,7 @@ import 'features/home/ui/views/my_projects_page.dart';
 import 'features/notifications/ui/views/notifications_page.dart';
 import 'features/project_detail/ui/views/project_detail_page.dart';
 import 'features/project_detail/ui/views/project_settings_page.dart';
+import 'features/community_settings/ui/views/community_settings_page.dart';
 import 'features/project_creation/ui/views/project_created_page.dart';
 import 'features/project_creation/ui/views/project_review_page.dart';
 import 'features/project_creation/ui/views/project_wizard_page.dart';
@@ -41,6 +42,7 @@ abstract final class AppRoutes {
   static const String createProjectSuccess = '/create/project/success';
   static const String createCommunity = '/create/community';
   static const String createCommunitySuccess = '/create/community/success';
+  static const String communitySettings = '/community/settings';
 
   /// Inicio de sesión y registro; se llega aquí al intentar crear sin cuenta.
   static const String login = '/login';
@@ -70,6 +72,7 @@ abstract final class AppRoutes {
       name: createCommunitySuccess,
       page: () => const CommunityCreatedPage(),
     ),
+    GetPage(name: communitySettings, page: () => const CommunitySettingsPage()),
     GetPage(name: applyToProject, page: () => const ApplyPage()),
     GetPage(name: projectApplicants, page: () => const ApplicantsPage()),
     GetPage(name: login, page: () => const LoginPage()),

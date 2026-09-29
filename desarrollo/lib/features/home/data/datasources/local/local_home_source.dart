@@ -159,4 +159,12 @@ class LocalHomeSource implements IHomeSource {
       if (index != -1) list[index] = project;
     }
   }
+
+  @override
+  Future<void> updateCommunity(Community community) async {
+    final index = _followedCommunities.indexWhere((item) => item.id == community.id);
+    if (index != -1) {
+      _followedCommunities[index] = community;
+    }
+  }
 }

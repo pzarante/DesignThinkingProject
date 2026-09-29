@@ -13,6 +13,7 @@ import 'core/roble_config.dart';
 
 import 'features/auth/auth_dependencies.dart';
 import 'features/community_creation/community_creation_dependencies.dart';
+import 'features/community_settings/community_settings_dependencies.dart';
 import 'features/home/home_dependencies.dart';
 import 'features/notifications/notifications_dependencies.dart';
 import 'features/product/product_dependencies.dart';
@@ -45,6 +46,7 @@ void main() async {
   registerProjectDetail();
   registerProjectCreation();
   registerCommunityCreation();
+  registerCommunitySettings();
   registerProjectApplications();
   registerProduct();
   runApp(const MyApp());

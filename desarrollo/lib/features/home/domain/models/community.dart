@@ -34,4 +34,26 @@ class Community {
 
   /// Proyectos vinculados a la comunidad (ids de [Project]).
   final List<String> projectIds;
+
+  Community copyWith({
+    String? id,
+    String? name,
+    String? lastActivity,
+    List<String>? tags,
+    String? description,
+    String? coverUrl,
+    bool? isPublic,
+    List<String>? projectIds,
+  }) {
+    return Community(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      lastActivity: lastActivity ?? this.lastActivity,
+      tags: tags ?? this.tags,
+      description: description ?? this.description,
+      coverUrl: coverUrl ?? this.coverUrl,
+      isPublic: isPublic ?? this.isPublic,
+      projectIds: projectIds ?? this.projectIds,
+    );
+  }
 }

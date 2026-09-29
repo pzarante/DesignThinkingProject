@@ -24,7 +24,7 @@ class HomeRepository implements IHomeRepository {
     List<String> links = const [],
   }) async => await homeSource.addProject(
     project,
-    problem: problem, 
+    problem: problem,
     objective: objective,
     scope: scope,
     maxMembers: maxMembers,
@@ -40,4 +40,8 @@ class HomeRepository implements IHomeRepository {
   @override
   Future<void> updateProject(Project project) async =>
       await homeSource.updateProject(project);
+
+  @override
+  Future<void> updateCommunity(Community community) async =>
+      await homeSource.updateCommunity(community);
 }

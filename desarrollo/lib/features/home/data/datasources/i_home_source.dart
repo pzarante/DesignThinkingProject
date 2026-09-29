@@ -24,4 +24,7 @@ abstract class IHomeSource {
   /// Reemplaza un proyecto ya existente, p. ej. tras editarlo en su
   /// configuración.
   Future<void> updateProject(Project project);
+
+  /// Reemplaza una comunidad ya existente, p. ej. tras editar su resumen.
+  Future<void> updateCommunity(Community community);
 }

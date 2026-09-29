@@ -257,6 +257,32 @@ class RobleHomeSource implements IHomeSource {
     }
   }
 
+  @override
+  Future<void> updateCommunity(Community community) async {
+    await _db.update(_tableCommunities, community.id, {
+      'name': community.name,
+      'description': community.description,
+      'cover_url': community.coverUrl,
+      'status': community.isPublic ? 'published' : 'private',
+      'updated_at': DateTime.now().toUtc().toIso8601String(),
+    });
+
+    final existingLinks = await _db.read(
+      _tableProjectCommunities,
+      filters: {'community_id': community.id},
+    );
+    for (final link in existingLinks) {
+      await _db.delete(_tableProjectCommunities, link['_id'] as String);
+    }
+    for (final projectId in community.projectIds) {
+      await _db.create(_tableProjectCommunities, {
+        'community_id': community.id,
+        'project_id': projectId,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
+  }
+
   Future<Map<String, String>> _stageNamesById() async {
     final rows = await readPublicOrPrivate(_db, _tableStages);
     return {for (final row in rows) row['_id'] as String: row['name'] as String};

@@ -23,4 +23,6 @@ abstract class IHomeRepository {
   Future<void> addCommunity(Community community);
 
   Future<void> updateProject(Project project);
+
+  Future<void> updateCommunity(Community community);
 }
