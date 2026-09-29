@@ -7,6 +7,7 @@ import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
+import '../../../home/ui/viewmodels/home_controller.dart';
 import '../../domain/models/profile_project.dart';
 import '../../domain/models/user_profile.dart';
 import '../viewmodels/profile_controller.dart';
@@ -51,8 +52,8 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) => AlertDialog(
         title: const Text('¿Cerrar sesión?'),
         content: const Text(
-          'Podrás seguir viendo proyectos, pero no crear ni comentar con tu '
-          'cuenta.',
+          'Seguirás viendo Innovation Hub como invitado: puedes explorar, '
+          'comentar y reaccionar, pero no crear proyectos ni comunidades.',
         ),
         actions: [
           TextButton(
@@ -70,6 +71,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
     await Get.find<AuthenticationController>().logOut();
     await controller.load();
+    // Cerrar sesión es volver a ver la plataforma como cualquier visitante,
+    // no quedarse en un perfil vacío. El feed guardado todavía trae "Mis
+    // proyectos" de la sesión que acaba de cerrarse, así que hay que pedirlo
+    // otra vez antes de volver al inicio.
+    if (Get.isRegistered<HomeController>()) {
+      await Get.find<HomeController>().getFeed();
+    }
+    Get.offAllNamed(AppRoutes.home);
   }
 
   void _openDestination(int index) {
@@ -89,9 +98,17 @@ class _ProfilePageState extends State<ProfilePage> {
       body: Obx(() {
         final profile = controller.profile.value;
 
+        final hasProfile =
+            !controller.isLoading.value &&
+            !controller.needsAccount.value &&
+            profile != null;
+
         return RefreshIndicator(
           onRefresh: controller.refreshProfile,
           child: CustomScrollView(
+            // Los estados cortos no llegan a llenar la pantalla; sin esto no
+            // quedaría nada que arrastrar para recargar.
+            physics: const AlwaysScrollableScrollPhysics(),
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -107,7 +124,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                 ],
               ),
-              SliverToBoxAdapter(child: _body(profile)),
+              if (hasProfile)
+                SliverToBoxAdapter(child: _profileBody(profile))
+              else
+                // Cargando, invitado o error son bloques cortos: ocupando lo
+                // que queda de pantalla quedan centrados a media altura, en
+                // vez de colgando del borde de arriba.
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: _shortState()),
+                ),
             ],
           ),
         );
@@ -119,32 +145,30 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _body(UserProfile? profile) {
-    if (controller.isLoading.value) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.xl * 2),
-        child: Center(child: CircularProgressIndicator()),
-      );
-    }
-
+  /// Lo que se enseña cuando todavía no hay un perfil que pintar.
+  Widget _shortState() {
+    if (controller.isLoading.value) return const CircularProgressIndicator();
     if (controller.needsAccount.value) return _guestState();
 
-    if (profile == null) {
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: AppEmptyState(
-          icon: Icons.person_off_outlined,
-          title: 'No se pudo abrir el perfil',
-          message: controller.errorMessage.value,
-          action: FilledButton.icon(
-            onPressed: controller.refreshProfile,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
-          ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xl,
+      ),
+      child: AppEmptyState(
+        icon: Icons.person_off_outlined,
+        title: 'No se pudo abrir el perfil',
+        message: controller.errorMessage.value,
+        action: FilledButton.icon(
+          onPressed: controller.refreshProfile,
+          icon: const Icon(Icons.refresh),
+          label: const Text('Reintentar'),
         ),
-      );
-    }
+      ),
+    );
+  }
 
+  Widget _profileBody(UserProfile profile) {
     final created = controller.createdProjects;
     final joined = controller.joinedProjects;
     final owner = controller.isOwnProfile.value;
@@ -242,15 +266,13 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _guestState() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.xl,
-        AppSpacing.lg,
-        AppSpacing.scrollBottomInset,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xl,
       ),
       child: AppEmptyState(
         icon: Icons.account_circle_outlined,
-        title: 'Aquí va tu perfil',
+        title: 'Aun no te conocemos',
         message:
             'Estás viendo Innovation Hub como invitado. Con una cuenta puedes '
             'crear proyectos, formar equipo y que otros te encuentren por tu '

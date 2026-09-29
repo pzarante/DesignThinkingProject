@@ -9,6 +9,8 @@ class AuthenticationUser {
   final String? firstName;
   final String? lastName;
   final String? career;
+  /// `users.academic_year`: el semestre que se cursa (1 a 10), no un año.
+  /// La columna conserva el nombre que tiene en ROBLE.
   final int? academicYear;
   final String? bio;
 

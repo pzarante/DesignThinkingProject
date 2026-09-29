@@ -31,11 +31,15 @@ class _NotificationsPageState extends State<NotificationsPage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.items.isEmpty) {
-          return const AppEmptyState(
-            icon: Icons.notifications_none_outlined,
-            title: 'Sin notificaciones',
-            message:
-                'Cuando pase algo relevante en tus proyectos, aparecerá aquí.',
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: AppEmptyState(
+              icon: Icons.notifications_none_outlined,
+              title: 'Sin notificaciones',
+              message:
+                  'Cuando pase algo relevante en tus proyectos, aparecerá '
+                  'aquí.',
+            ),
           );
         }
         return ListView.separated(

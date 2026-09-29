@@ -17,7 +17,7 @@ class ProjectMember {
   /// Etiqueta corta del rol en el proyecto, p. ej. "CO-LÍDER" o "ANIMADORA".
   final String? roleLabel;
 
-  /// Línea secundaria del diseño: "Motion Designer · 3er año".
+  /// Línea secundaria del diseño: "Motion Designer · 3er semestre".
   final String? subtitle;
 
   /// Correo institucional, usado al postularse a un proyecto.

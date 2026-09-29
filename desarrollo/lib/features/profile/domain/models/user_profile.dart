@@ -31,7 +31,7 @@ class UserProfile {
   final String? avatarUrl;
   final String? career;
 
-  /// `users.academic_year`, un `smallint`: el año de carrera, no una fecha.
+  /// `users.academic_year`, un `smallint`: el semestre de carrera, no una fecha.
   final int? academicYear;
   final String? bio;
   final DateTime? joinedAt;
@@ -48,11 +48,11 @@ class UserProfile {
     return full.isEmpty ? userName : full;
   }
 
-  /// "Ingeniería de Sistemas · 3er año", saltando lo que falte.
+  /// "Ingeniería de Sistemas · 3er semestre", saltando lo que falte.
   String? get academicLine {
     final parts = <String>[
       if (career != null && career!.trim().isNotEmpty) career!.trim(),
-      if (academicYear != null) '$academicYearº año',
+      if (academicYear != null) '$academicYearº semestre',
     ];
     return parts.isEmpty ? null : parts.join(' · ');
   }
