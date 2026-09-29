@@ -28,6 +28,7 @@ class RobleHomeSource implements IHomeSource {
   static const _tableCommunityMembers = 'community_members';
   static const _tableProjectCommunities = 'project_communities';
   static const _tableProjectRoles = 'project_roles';
+  static const _tableProjectApplications = 'project_applications';
   static const _tableProjectLinks = 'project_links';
 
   @override
@@ -64,6 +65,10 @@ class RobleHomeSource implements IHomeSource {
       filters: {'status': 'published'},
     );
 
+    final relationByProject = myUserId == null
+        ? const <String, MyProjectRelation>{}
+        : await _myRelations(myUserId, memberRows);
+
     final myProjects = <Project>[];
     final recommendedProjects = <Project>[];
     for (final row in projectRows) {
@@ -73,8 +78,14 @@ class RobleHomeSource implements IHomeSource {
         tagNamesByProject,
         memberCountByProject,
       );
-      if (myUserId != null && row['creator_id'] == myUserId) {
-        myProjects.add(project);
+      // Sin fila en project_members (proyectos viejos) manda creator_id.
+      final relation =
+          relationByProject[project.id] ??
+          (myUserId != null && row['creator_id'] == myUserId
+              ? MyProjectRelation.creator
+              : null);
+      if (relation != null) {
+        myProjects.add(project.copyWith(myRelation: relation));
       } else {
         recommendedProjects.add(project);
       }
@@ -339,6 +350,54 @@ class RobleHomeSource implements IHomeSource {
       );
     }
     return result;
+  }
+
+  /// Qué es [userId] en cada proyecto: líder o integrante según su fila
+  /// activa de `project_members`, o postulante si tiene una postulación
+  /// pendiente a alguno de sus cupos (`project_roles.project_id`). Una
+  /// postulación rechazada o aceptada no aparece: la aceptada ya es una
+  /// membresía.
+  Future<Map<String, MyProjectRelation>> _myRelations(
+    String userId,
+    List<Map<String, dynamic>> memberRows,
+  ) async {
+    final relations = <String, MyProjectRelation>{};
+    for (final row in memberRows) {
+      if (row['user_id'] != userId || row['status'] != 'active') continue;
+      relations[row['project_id'] as String] = row['is_creator'] == true
+          ? MyProjectRelation.creator
+          : MyProjectRelation.member;
+    }
+
+    final List<Map<String, dynamic>> applications;
+    try {
+      applications = await _db.read(
+        _tableProjectApplications,
+        filters: {'applicant_id': userId, 'status': 'pending'},
+      );
+    } on RobleApiHttpException {
+      // Sin permiso (p. ej. invitado) no hay postulaciones que mostrar; no
+      // debe tumbar el resto del feed.
+      return relations;
+    }
+    if (applications.isEmpty) return relations;
+    final roleRows = await readPublicOrPrivate(_db, _tableProjectRoles);
+    final projectByRole = {
+      for (final r in roleRows) r['_id'] as String: r['project_id'] as String,
+    };
+    for (final application in applications) {
+      if (application['applicant_id'] != userId ||
+          application['status'] != 'pending') {
+        continue;
+      }
+      final projectId = projectByRole[application['project_role_id']];
+      if (projectId == null) continue;
+      relations.putIfAbsent(
+        projectId,
+        () => MyProjectRelation.pendingApplication,
+      );
+    }
+    return relations;
   }
 
   Project _toProject(

@@ -1,3 +1,15 @@
+/// Relación de quien tiene la sesión con un proyecto de "Mis Proyectos".
+enum MyProjectRelation {
+  /// Lo lidera (`project_members.is_creator`).
+  creator,
+
+  /// Forma parte del equipo, pero lo lidera otra persona.
+  member,
+
+  /// Tiene una postulación pendiente a una de sus vacantes.
+  pendingApplication,
+}
+
 class Project {
   const Project({
     required this.id,
@@ -11,6 +23,7 @@ class Project {
     this.createdAt,
     this.description,
     this.requiredRoles = const [],
+    this.myRelation,
   });
 
   final String id;
@@ -39,6 +52,10 @@ class Project {
   final String? description;
   final List<String> requiredRoles;
 
+  /// Solo en "Mis Proyectos". Null en el feed y en los datos en memoria,
+  /// donde todo lo propio se trata como creado por el usuario.
+  final MyProjectRelation? myRelation;
+
   /// Whether to show the "NUEVO" badge on the card.
   //
   // no especificado en PROJECT_SPEC.md, no un dato validado en investigación.
@@ -59,6 +76,7 @@ class Project {
     DateTime? createdAt,
     String? description,
     List<String>? requiredRoles,
+    MyProjectRelation? myRelation,
   }) {
     return Project(
       id: id ?? this.id,
@@ -72,6 +90,7 @@ class Project {
       createdAt: createdAt ?? this.createdAt,
       description: description ?? this.description,
       requiredRoles: requiredRoles ?? this.requiredRoles,
+      myRelation: myRelation ?? this.myRelation,
     );
   }
 }

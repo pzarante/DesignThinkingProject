@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
 import '../../../home/domain/models/project.dart';
+import '../../../home/ui/viewmodels/home_controller.dart';
 import '../../../notifications/domain/models/app_notification.dart';
 import '../../../notifications/ui/viewmodels/notifications_controller.dart';
 import '../../domain/models/project_comment.dart';
@@ -203,6 +204,57 @@ class ProjectDetailController extends GetxController with UiLoggy {
           'fue rechazada.',
       projectId: projectId,
     );
+  }
+
+  /// Mientras se procesa la salida del proyecto abierto.
+  final RxBool isLeaving = false.obs;
+
+  /// Integrantes activos del proyecto abierto, sin quien tiene la sesión:
+  /// entre ellos se elige al nuevo líder.
+  List<ProjectMember> get otherMembers {
+    final me = currentUser.value?.id;
+    return (detail?.members ?? const <ProjectMember>[])
+        .where((m) => m.isActive && m.id != me)
+        .toList();
+  }
+
+  /// True si quien tiene la sesión lidera el proyecto abierto: para salir
+  /// tiene que dejar a alguien a cargo.
+  bool get isLeader {
+    final me = currentUser.value?.id;
+    final mine = detail?.members.where((m) => m.id == me).firstOrNull;
+    return mine?.isCreator ?? detail?.viewerRole == ViewerRole.creator;
+  }
+
+  /// Sale del equipo del proyecto abierto. Si lidera, [newLeaderId] es quien
+  /// queda a cargo. Refresca "Mis Proyectos".
+  ///
+  /// Devuelve null si salió bien, o el mensaje de error para mostrar.
+  Future<String?> leaveProject({String? newLeaderId}) async {
+    final current = detail;
+    if (current == null) return 'No se encontró el proyecto.';
+
+    isLeaving.value = true;
+    try {
+      await _repository.leaveProject(
+        projectId: current.projectId,
+        newLeaderId: newLeaderId,
+      );
+    } catch (exception) {
+      loggy.error('ProjectDetailController: error leaving', exception);
+      isLeaving.value = false;
+      return exception is StateError
+          ? exception.message
+          : 'No se pudo salir del proyecto. Intenta de nuevo.';
+    }
+
+    // Avisar al resto del equipo necesita notificaciones por destinatario
+    // (ROBLE); en memoria solo existe la persona que tiene la sesión.
+    if (Get.isRegistered<HomeController>()) {
+      await Get.find<HomeController>().getFeed();
+    }
+    isLeaving.value = false;
+    return null;
   }
 
   /// Avisa sin arriesgar la operación que lo provocó: aceptar o rechazar

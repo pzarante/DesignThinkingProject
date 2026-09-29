@@ -19,12 +19,54 @@ class MyProjectsPage extends StatefulWidget {
   State<MyProjectsPage> createState() => _MyProjectsPageState();
 }
 
+/// Secciones de "Mis Proyectos" según la relación con cada proyecto.
+enum _Section {
+  all('Todos'),
+  created('Creados por mí'),
+  joined('Donde participo'),
+  pending('Postulaciones pendientes');
+
+  const _Section(this.label);
+  final String label;
+
+  bool matches(Project project) {
+    // Null = datos en memoria, donde todo lo propio es creado por el usuario.
+    final relation = project.myRelation ?? MyProjectRelation.creator;
+    return switch (this) {
+      _Section.all => true,
+      _Section.created => relation == MyProjectRelation.creator,
+      _Section.joined => relation == MyProjectRelation.member,
+      _Section.pending => relation == MyProjectRelation.pendingApplication,
+    };
+  }
+
+  String get emptyMessage => switch (this) {
+    _Section.all => 'No tienes proyectos aún.',
+    _Section.created => 'Aún no has creado ningún proyecto.',
+    _Section.joined =>
+      'Todavía no haces parte del equipo de otro proyecto. '
+          'Cuando acepten una postulación tuya, aparecerá aquí.',
+    _Section.pending =>
+      'No tienes postulaciones pendientes. '
+          'Explora proyectos y postúlate a una vacante.',
+  };
+}
+
 class _MyProjectsPageState extends State<MyProjectsPage> {
+  final HomeController ctrl = Get.find();
+  _Section _section = _Section.all;
   String _selectedStage = 'Todos';
 
   @override
+  void initState() {
+    super.initState();
+    // Postularse, ser aceptado o salir de un equipo pasa en otras pantallas
+    // (o en otros dispositivos): se relee al entrar.
+    ctrl.getFeed();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final HomeController ctrl = Get.find();
 
     return Scaffold(
       appBar: AppBar(
@@ -67,7 +109,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
               query.isEmpty || p.name.toLowerCase().contains(query);
           final matchesStage =
               _selectedStage == 'Todos' || p.stage == _selectedStage;
-          return matchesQuery && matchesStage;
+          return matchesQuery && matchesStage && _section.matches(p);
         }).toList()
           ..sort((a, b) {
             if (a.isPinned == b.isPinned) return 0;
@@ -95,6 +137,20 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                 AppSpacing.md,
                 0,
               ),
+              child: AppChoiceChipRow<_Section>(
+                options: _Section.values,
+                labelBuilder: (section) => section.label,
+                selected: _section,
+                onSelected: (section) => setState(() => _section = section),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.xs,
+                AppSpacing.md,
+                0,
+              ),
               child: AppChoiceChipRow<String>(
                 options: const ['Todos', 'Investigación', 'Equipo', 'Prototipo'],
                 labelBuilder: (stage) => stage,
@@ -107,10 +163,14 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
             Expanded(
               child: projects.isEmpty
                   ? Center(
-                      child: Text(
-                        ctrl.feed.myProjects.isEmpty
-                            ? 'No tienes proyectos aún.'
-                            : 'No hay proyectos con este filtro.',
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: Text(
+                          ctrl.feed.myProjects.any(_section.matches)
+                              ? 'No hay proyectos con este filtro.'
+                              : _section.emptyMessage,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     )
                   : ListView.separated(
@@ -182,6 +242,8 @@ class _ProjectListTile extends StatelessWidget {
         subtitle: Wrap(
           spacing: AppSpacing.xs,
           children: [
+            if (project.myRelation == MyProjectRelation.pendingApplication)
+              const AppTagChip(label: 'Postulación pendiente'),
             if (project.stage != null) AppTagChip(label: project.stage!),
             Text(
               '${project.memberCount} integrante${project.memberCount == 1 ? '' : 's'}',

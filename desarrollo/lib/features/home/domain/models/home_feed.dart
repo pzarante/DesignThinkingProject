@@ -26,11 +26,17 @@ class HomeFeed {
   /// versión resumida de "Mis Proyectos" en el Home (validado semana 5).
   /// Anclados van primero; si hay espacio, se completa con los más
   /// recientes que no estén ya incluidos.
+  ///
+  /// Las postulaciones pendientes no cuentan: todavía no es un proyecto
+  /// propio.
   List<Project> get myProjectsSummary {
-    final pinned = myProjects.where((p) => p.isPinned).toList();
+    final own = myProjects.where(
+      (p) => p.myRelation != MyProjectRelation.pendingApplication,
+    );
+    final pinned = own.where((p) => p.isPinned).toList();
 
     final recentCandidates =
-        myProjects.where((p) => !p.isPinned && p.lastVisitedAt != null).toList()
+        own.where((p) => !p.isPinned && p.lastVisitedAt != null).toList()
           ..sort((a, b) => b.lastVisitedAt!.compareTo(a.lastVisitedAt!));
 
     final remainingSlots = (2 - pinned.length).clamp(0, 2);
