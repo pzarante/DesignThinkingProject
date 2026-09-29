@@ -10,8 +10,16 @@ void registerFakeAuth({
   String id = 'me',
   String name = 'María García',
   String email = 'maria@uni.edu',
+  bool isAnonymous = false,
 }) {
-  Get.put<IAuthRepository>(_FakeAuthRepository(id: id, name: name, email: email));
+  Get.put<IAuthRepository>(
+    _FakeAuthRepository(
+      id: id,
+      name: name,
+      email: email,
+      isAnonymous: isAnonymous,
+    ),
+  );
 }
 
 class _FakeAuthRepository implements IAuthRepository {
@@ -19,11 +27,16 @@ class _FakeAuthRepository implements IAuthRepository {
     required this.id,
     required this.name,
     required this.email,
+    required this.isAnonymous,
   });
 
   final String id;
   final String name;
   final String email;
+
+  /// Sesión de invitado: cuenta real sin correo ni perfil en `users`.
+  @override
+  final bool isAnonymous;
 
   @override
   Future<AuthenticationUser?> getLoggedUser() async =>
@@ -39,6 +52,9 @@ class _FakeAuthRepository implements IAuthRepository {
   Future<bool> signUp(AuthenticationUser user) async => true;
 
   @override
+  Future<bool> isUserNameAvailable(String userName) async => true;
+
+  @override
   Future<bool> logOut() async => true;
 
   @override
@@ -49,9 +65,6 @@ class _FakeAuthRepository implements IAuthRepository {
 
   @override
   Future<void> forgotPassword(String email) async {}
-
-  @override
-  bool get isAnonymous => false;
 
   @override
   Future<AuthenticationUser> ensureGuestSession() async =>

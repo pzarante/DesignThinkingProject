@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
 import '../../../../core/error_message.dart';
+import '../../domain/password_policy.dart';
 
 class AuthenticationController extends GetxController with UiLoggy {
   final IAuthRepository repoAuthentication;
@@ -51,11 +52,11 @@ class AuthenticationController extends GetxController with UiLoggy {
   Future<bool> login(String email, String password) async {
     loggy.debug('AuthenticationController: Login $email');
     error.value = '';
-    if (!_validate(email, password)) {
+    // Solo se comprueba que no estén vacíos: si una cuenta antigua no cumple
+    // la política de hoy, quien decide es el servidor, no esta pantalla.
+    if (email.trim().isEmpty || password.isEmpty) {
       loggy.warning('AuthenticationController: Invalid email or password');
-      error.value =
-          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
-          '(mayúscula, minúscula, número y símbolo).';
+      error.value = 'Escribe tu correo y tu contraseña.';
       return false;
     }
     _isLoading.value = true;
@@ -93,16 +94,28 @@ class AuthenticationController extends GetxController with UiLoggy {
     if (!_validate(email, password)) {
       loggy.warning('AuthenticationController: Invalid email or password');
       error.value =
-          'Ingresa un correo válido y una contraseña de al menos 8 caracteres '
-          '(mayúscula, minúscula, número y símbolo).';
+          'Ingresa un correo válido y una contraseña de al menos '
+          '${PasswordPolicy.minLength} caracteres (mayúscula, minúscula, '
+          'número y símbolo).';
       return false;
     }
     _isLoading.value = true;
     try {
+      // El nombre de usuario se reserva de hecho al crear la fila de `users`,
+      // que pasa después de registrar la cuenta: sin esta comprobación, un
+      // nombre repetido dejaría la cuenta creada y el perfil sin crear.
+      final userName = (name == null || name.trim().isEmpty)
+          ? email
+          : name.trim();
+      if (!await repoAuthentication.isUserNameAvailable(userName)) {
+        error.value = 'Ese nombre de usuario ya está tomado. Prueba con otro.';
+        return false;
+      }
+
       final created = await repoAuthentication.signUp(
         AuthenticationUser(
           email: email,
-          name: (name == null || name.trim().isEmpty) ? email : name.trim(),
+          name: userName,
           password: password,
           firstName: _orNull(firstName),
           lastName: _orNull(lastName),
@@ -156,5 +169,5 @@ class AuthenticationController extends GetxController with UiLoggy {
   }
 
   bool _validate(String email, String password) =>
-      email.isNotEmpty && password.length >= 8;
+      email.contains('@') && PasswordPolicy.isValid(password);
 }

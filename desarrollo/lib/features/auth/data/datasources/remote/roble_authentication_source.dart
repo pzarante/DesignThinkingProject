@@ -1,6 +1,7 @@
 import 'package:loggy/loggy.dart';
 import 'package:roble/roble.dart';
 
+import '../../../../../core/roble_read.dart';
 import '../../../domain/models/authentication_user.dart';
 import 'i_authentication_source.dart';
 
@@ -86,6 +87,23 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
       );
     }
     return true;
+  }
+
+  /// Mira la tabla `users`, que es donde vive el nombre visible; la cuenta de
+  /// ROBLE solo garantiza que el correo sea único.
+  ///
+  /// Se consulta sin sesión (quien se está registrando todavía no la tiene),
+  /// así que depende de que `users` esté marcada como pública en la consola.
+  /// Si no lo está, `readPublicOrPrivate` devuelve vacío y esto da "libre":
+  /// se pierde el aviso temprano, no se rompe el registro.
+  @override
+  Future<bool> isUserNameAvailable(String userName) async {
+    final normalized = userName.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    final rows = await readPublicOrPrivate(_db, 'users');
+    return !rows.any(
+      (row) => (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
+    );
   }
 
   @override

@@ -9,6 +9,9 @@ abstract class IAuthRepository {
 
   Future<bool> signUp(AuthenticationUser user);
 
+  /// True si nadie ha tomado todavía ese nombre de usuario.
+  Future<bool> isUserNameAvailable(String userName);
+
   Future<bool> logOut();
 
   Future<bool> validate(String email, String validationCode);

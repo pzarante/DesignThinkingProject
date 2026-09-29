@@ -11,11 +11,11 @@ class AppSectionHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.xs,
-        AppSpacing.lg,
-        AppSpacing.xs,
-        AppSpacing.sm,
+      // Sin sangría lateral: el título tiene que empezar en el mismo borde
+      // que las tarjetas que encabeza, y esos 4 px lo dejaban descuadrado.
+      padding: const EdgeInsets.only(
+        top: AppSpacing.lg,
+        bottom: AppSpacing.sm,
       ),
       child: Text(title, style: Theme.of(context).textTheme.titleLarge),
     );

@@ -25,6 +25,9 @@ class _StubAuthRepository implements IAuthRepository {
   Future<bool> signUp(AuthenticationUser user) async => true;
 
   @override
+  Future<bool> isUserNameAvailable(String userName) async => true;
+
+  @override
   Future<bool> logOut() async => true;
 
   @override

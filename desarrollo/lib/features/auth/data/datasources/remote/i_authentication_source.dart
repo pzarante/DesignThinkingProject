@@ -9,6 +9,13 @@ abstract class IAuthenticationSource {
 
   Future<bool> signUp(AuthenticationUser user);
 
+  /// True si nadie ha tomado todavía ese nombre de usuario.
+  ///
+  /// Se comprueba antes de registrar porque `user_name` es cómo se busca a
+  /// una persona en Explorar: dos iguales harían la búsqueda ambigua, y el
+  /// registro fallaría a medias (la cuenta de ROBLE creada, el perfil no).
+  Future<bool> isUserNameAvailable(String userName);
+
   Future<bool> logOut();
 
   Future<bool> validate(String email, String validationCode);

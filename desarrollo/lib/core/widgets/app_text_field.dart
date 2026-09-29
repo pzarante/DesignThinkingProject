@@ -22,6 +22,8 @@ class AppTextField extends StatelessWidget {
     this.obscureText = false,
     this.keyboardType,
     this.validator,
+    this.suffixIcon,
+    this.errorText,
   });
 
   /// Null deja el campo sin etiqueta encima (pasos que ya la llevan en el
@@ -43,6 +45,13 @@ class AppTextField extends StatelessWidget {
   final bool obscureText;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+
+  /// Acción dentro del campo, p. ej. el ojo que enseña la contraseña.
+  final Widget? suffixIcon;
+
+  /// Error ya decidido por quien llama, para validar mientras se escribe sin
+  /// tener que envolver la pantalla en un [Form].
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +95,8 @@ class AppTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hintText,
             helperText: helperText,
+            errorText: errorText,
+            suffixIcon: suffixIcon,
           ),
         ),
       ],

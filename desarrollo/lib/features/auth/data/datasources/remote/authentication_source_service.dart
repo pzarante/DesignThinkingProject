@@ -59,6 +59,14 @@ class AuthenticationSourceService
   }
 
   @override
+  Future<bool> isUserNameAvailable(String userName) async {
+    final normalized = userName.trim().toLowerCase();
+    if (normalized.isEmpty) return false;
+    final users = await _getUsers();
+    return !users.any((account) => account.name.toLowerCase() == normalized);
+  }
+
+  @override
   Future<bool> logOut() async {
     loggy.debug('Attempting logout');
     await preferences.remove(_sessionKey);

@@ -18,6 +18,7 @@ class _LoginPageState extends State<LoginPage> {
   final AuthenticationController controller = Get.find();
   final _emailField = TextEditingController();
   final _passwordField = TextEditingController();
+  bool _showPassword = false;
 
   @override
   void dispose() {
@@ -45,32 +46,73 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Iniciar sesión')),
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+        ),
         children: [
-          Text(
-            'Inicia sesión para crear proyectos y comunidades.',
-            style: Theme.of(context).textTheme.bodyLarge,
+          Center(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.md),
+              child: Image.asset(
+                'assets/launcher_icon/icon.png',
+                width: 72,
+                height: 72,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Bienvenido de vuelta',
+            style: theme.textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Entra para crear proyectos, formar equipo y comentar con tu '
+            'nombre.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: AppSpacing.xl),
           AppTextField(
             label: 'Correo',
             controller: _emailField,
-            hintText: 'tucorreo@uni.edu',
+            hintText: 'tucorreo@uninorte.edu.co',
+            keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
             label: 'Contraseña',
             controller: _passwordField,
             hintText: 'Tu contraseña',
-            obscureText: true,
+            obscureText: !_showPassword,
+            suffixIcon: IconButton(
+              tooltip: _showPassword
+                  ? 'Ocultar contraseña'
+                  : 'Mostrar contraseña',
+              icon: Icon(
+                _showPassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
+              ),
+              onPressed: () => setState(() => _showPassword = !_showPassword),
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
           Center(
             child: TextButton(
-              onPressed: () => Get.toNamed(AppRoutes.signup),
+              onPressed: () => Get.offNamed(AppRoutes.signup),
               child: const Text('¿No tienes cuenta? Crear una'),
             ),
           ),
