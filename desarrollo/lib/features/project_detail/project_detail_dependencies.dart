@@ -20,7 +20,7 @@ void registerProjectDetail({bool remote = true}) {
   registerProjectApplications();
   Get.put<IProjectDetailSource>(
     remote
-        ? RobleProjectDetailSource(Get.find(), Get.find())
+        ? RobleProjectDetailSource(Get.find(), Get.find(), Get.find())
         : LocalProjectDetailSource(Get.find()),
   );
   Get.put<IProjectDetailRepository>(ProjectDetailRepository(Get.find()));

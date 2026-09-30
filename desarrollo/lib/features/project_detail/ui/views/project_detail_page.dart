@@ -6,6 +6,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../home/domain/models/project.dart';
 import '../../../project_applications/ui/viewmodels/apply_controller.dart';
@@ -213,6 +214,24 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
+  /// Guardar y seguir escriben en ROBLE: hay que esperar el resultado para
+  /// saber si se confirmó o si hacía falta una cuenta.
+  Future<void> _toggleFlag(
+    Future<void> Function() action, {
+    required String Function() onDone,
+  }) async {
+    await action();
+    if (!mounted) return;
+
+    final error = controller.actionError.value;
+    if (error.isNotEmpty) {
+      controller.actionError.value = '';
+      showErrorSnack('No se pudo guardar', message: error);
+      return;
+    }
+    showInfoSnack(onDone());
+  }
+
   void _openDestination(int index) {
     final route = AppRoutes.mainDestinations[index];
     if (!AppRoutes.isRegistered(route)) {
@@ -353,22 +372,18 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               onConfigure: () => _openSettings(detail),
               onCreatePost: () => _createPublication(detail),
               onApply: () => _apply(detail),
-              onSave: () {
-                controller.toggleSaved();
-                _notifyPending(
-                  controller.isSaved.value
-                      ? 'Proyecto guardado.'
-                      : 'Proyecto quitado de guardados.',
-                );
-              },
-              onFollow: () {
-                controller.toggleFollowing();
-                _notifyPending(
-                  controller.isFollowing.value
-                      ? 'Ahora sigues este proyecto.'
-                      : 'Dejaste de seguir este proyecto.',
-                );
-              },
+              onSave: () => _toggleFlag(
+                controller.toggleSaved,
+                onDone: () => controller.isSaved.value
+                    ? 'Proyecto guardado. Lo verás en Mis Proyectos.'
+                    : 'Proyecto quitado de guardados.',
+              ),
+              onFollow: () => _toggleFlag(
+                controller.toggleFollowing,
+                onDone: () => controller.isFollowing.value
+                    ? 'Ahora sigues este proyecto.'
+                    : 'Dejaste de seguir este proyecto.',
+              ),
               isSaved: controller.isSaved.value,
               isFollowing: controller.isFollowing.value,
               hasApplied: Get.find<ApplyController>().alreadyApplied.value,

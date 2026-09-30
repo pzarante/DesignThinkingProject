@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 import '../../../profile/ui/viewmodels/user_search_controller.dart';
 import '../../../profile/ui/widgets/user_result_tile.dart';
 import '../viewmodels/home_controller.dart';
@@ -53,6 +54,7 @@ class _ExplorePageState extends State<ExplorePage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Explorar'),
+        actions: const [NotificationsAction()],
       ),
       body: Column(
         children: [

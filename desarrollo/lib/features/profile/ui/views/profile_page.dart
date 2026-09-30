@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
 import '../../../home/ui/viewmodels/home_controller.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 import '../../domain/models/profile_project.dart';
 import '../../domain/models/user_profile.dart';
 import '../viewmodels/profile_controller.dart';
@@ -117,6 +118,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   controller.isOwnProfile.value ? 'Mi perfil' : 'Perfil',
                 ),
                 actions: [
+                  const NotificationsAction(),
                   if (controller.isOwnProfile.value && profile != null)
                     IconButton(
                       tooltip: 'Cerrar sesión',

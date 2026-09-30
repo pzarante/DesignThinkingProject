@@ -5,6 +5,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/app_wizard_progress.dart';
 import '../../domain/password_policy.dart';
@@ -114,10 +115,9 @@ class _SignUpPageState extends State<SignUpPage> {
       // devolver a Explorar, no al formulario de una cuenta ya creada.
       Get.offNamed(AppRoutes.signupSuccess, arguments: _userName);
     } else {
-      Get.snackbar(
+      showErrorSnack(
         'No se pudo crear la cuenta',
-        controller.error.value,
-        snackPosition: SnackPosition.BOTTOM,
+        message: controller.error.value,
       );
     }
   }

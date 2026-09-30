@@ -81,12 +81,14 @@ class ProfileStats {
     required this.createdProjects,
     required this.memberships,
     required this.communities,
+    this.saved = 0,
   });
 
   const ProfileStats.empty()
     : createdProjects = 0,
       memberships = 0,
-      communities = 0;
+      communities = 0,
+      saved = 0;
 
   /// Proyectos donde es `creator_id`.
   final int createdProjects;
@@ -96,6 +98,9 @@ class ProfileStats {
 
   /// Comunidades activas en `community_members`.
   final int communities;
+
+  /// Proyectos de otros marcados en `project_saved`.
+  final int saved;
 }
 
 /// Lo justo para pintar un resultado de búsqueda sin traerse los contadores

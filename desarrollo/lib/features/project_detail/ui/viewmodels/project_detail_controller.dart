@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import '../../../../core/error_message.dart' as errors;
 import '../../../home/domain/models/project.dart';
 import '../../../notifications/domain/models/app_notification.dart';
 import '../../../notifications/ui/viewmodels/notifications_controller.dart';
@@ -48,14 +49,26 @@ class ProjectDetailController extends GetxController with UiLoggy {
     isSaved.value = false;
     publications.clear();
     try {
-      final stored = await _repository.getDetail(project.id);
-      _detail.value = stored ?? _fromFeedProject(project);
-      currentUser.value = await _repository.getCurrentUser();
+      // Todo a la vez: son consultas independientes y encadenarlas era
+      // sumar una espera de red detrás de otra.
+      final [stored, user, likeStatus, loadedComments, flags] =
+          await Future.wait<Object?>([
+            _repository.getDetail(project.id),
+            _repository.getCurrentUser(),
+            _repository.getLikeStatus(project.id),
+            _repository.getComments(project.id),
+            _repository.getViewerFlags(project.id),
+          ]);
 
-      final likeStatus = await _repository.getLikeStatus(project.id);
-      likeCount.value = likeStatus.count;
-      likedByMe.value = likeStatus.likedByMe;
-      comments.value = await _repository.getComments(project.id);
+      _detail.value = (stored as ProjectDetail?) ?? _fromFeedProject(project);
+      currentUser.value = user as ProjectMember;
+      final likes = likeStatus as ({int count, bool likedByMe});
+      likeCount.value = likes.count;
+      likedByMe.value = likes.likedByMe;
+      comments.value = loadedComments as List<ProjectComment>;
+      final viewerFlags = flags as ({bool saved, bool following});
+      isSaved.value = viewerFlags.saved;
+      isFollowing.value = viewerFlags.following;
     } catch (exception) {
       loggy.error(
         'ProjectDetailController: error loading ${project.id}',
@@ -82,9 +95,38 @@ class ProjectDetailController extends GetxController with UiLoggy {
   /// Refleja en pantalla lo que se acaba de guardar en la configuración.
   void applyUpdate(ProjectDetail updated) => _detail.value = updated;
 
-  void toggleFollowing() => isFollowing.toggle();
+  /// Mensaje del último intento de guardar o seguir que no se pudo hacer;
+  /// la pantalla lo enseña y lo vacía.
+  final RxString actionError = ''.obs;
 
-  void toggleSaved() => isSaved.toggle();
+  Future<void> toggleFollowing() => _toggleFlag(
+    flag: isFollowing,
+    action: _repository.toggleFollowing,
+  );
+
+  Future<void> toggleSaved() =>
+      _toggleFlag(flag: isSaved, action: _repository.toggleSaved);
+
+  /// Cambia la marca en pantalla y la escribe; si el servidor la rechaza
+  /// —por ejemplo porque hace falta una cuenta— se deshace y se explica.
+  Future<void> _toggleFlag({
+    required RxBool flag,
+    required Future<bool> Function(String projectId) action,
+  }) async {
+    final projectId = detail?.projectId;
+    if (projectId == null) return;
+
+    final previous = flag.value;
+    flag.value = !previous;
+    actionError.value = '';
+    try {
+      flag.value = await action(projectId);
+    } catch (exception) {
+      loggy.error('ProjectDetailController: error toggling flag', exception);
+      flag.value = previous;
+      actionError.value = errors.errorMessage(exception);
+    }
+  }
 
   /// Alterna el "me gusta" del proyecto abierto, optimista y con reversa si
   /// el servidor lo rechaza.

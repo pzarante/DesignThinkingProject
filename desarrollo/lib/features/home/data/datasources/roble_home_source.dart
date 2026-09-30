@@ -1,6 +1,6 @@
 import 'package:roble/roble.dart';
 
-import '../../../../core/roble_read.dart';
+import '../../../../core/roble_cache.dart';
 import '../../../auth/domain/repositories/i_auth_repository.dart';
 import '../../domain/models/community.dart';
 import '../../domain/models/home_feed.dart';
@@ -14,9 +14,10 @@ import 'i_home_source.dart';
 /// aquí son varias lecturas que se cruzan en Dart (`project_stages`, `tags`,
 /// `project_tags`, `project_members`).
 class RobleHomeSource implements IHomeSource {
-  RobleHomeSource(this._db, this._authRepository);
+  RobleHomeSource(this._db, this._cache, this._authRepository);
 
   final RobleApiDataBase _db;
+  final RobleTableCache _cache;
   final IAuthRepository _authRepository;
 
   static const _tableStages = 'project_stages';
@@ -29,44 +30,70 @@ class RobleHomeSource implements IHomeSource {
   static const _tableProjectCommunities = 'project_communities';
   static const _tableProjectRoles = 'project_roles';
   static const _tableProjectLinks = 'project_links';
+  static const _tableProjectSaved = 'project_saved';
 
   @override
   Future<HomeFeed> getFeed() async {
     final me = await _authRepository.getLoggedUser();
-    final myUserId = me?.id;
+    final myUserId = _authRepository.isAnonymous ? null : me?.id;
 
-    final stageNameById = await _stageNamesById();
-    final tagNameById = await _tagNamesById();
+    // Todo de una vez: antes eran seis lecturas encadenadas y el feed no
+    // aparecía hasta que volvía la última.
+    final tables = await _cache.readAll([
+      _tableStages,
+      _tableTags,
+      _tableProjectTags,
+      _tableProjectMembers,
+      _tableProjects,
+      _tableProjectSaved,
+      _tableCommunityMembers,
+      _tableCommunities,
+      _tableProjectCommunities,
+    ]);
+    final stages = tables[0];
+    final tags = tables[1];
+    final tagLinks = tables[2];
+    final memberRows = tables[3];
+    final projectRows = tables[4];
+    final savedRows = tables[5];
+    final communityMembers = tables[6];
+    final communities = tables[7];
+    final projectCommunities = tables[8];
 
-    final tagLinks = await readPublicOrPrivate(_db, _tableProjectTags);
+    final stageNameById = {
+      for (final row in stages) row['_id'] as String: row['name'] as String,
+    };
+    final tagNameById = {
+      for (final row in tags) row['_id'] as String: row['name'] as String,
+    };
+
     final tagNamesByProject = <String, List<String>>{};
     for (final link in tagLinks) {
-      final projectId = link['project_id'] as String;
       final tagName = tagNameById[link['tag_id'] as String];
       if (tagName == null) continue;
-      (tagNamesByProject[projectId] ??= []).add(tagName);
+      (tagNamesByProject[link['project_id'] as String] ??= []).add(tagName);
     }
 
-    final memberRows = await readPublicOrPrivate(
-      _db,
-      _tableProjectMembers,
-      filters: {'status': 'active'},
-    );
     final memberCountByProject = <String, int>{};
     for (final row in memberRows) {
+      if (row['status'] != 'active') continue;
       final projectId = row['project_id'] as String;
-      memberCountByProject[projectId] = (memberCountByProject[projectId] ?? 0) + 1;
+      memberCountByProject[projectId] =
+          (memberCountByProject[projectId] ?? 0) + 1;
     }
 
-    final projectRows = await readPublicOrPrivate(
-      _db,
-      _tableProjects,
-      filters: {'status': 'published'},
-    );
+    final savedProjectIds = myUserId == null
+        ? const <String>{}
+        : {
+            for (final row in savedRows)
+              if (row['user_id'] == myUserId) row['project_id'] as String,
+          };
 
     final myProjects = <Project>[];
     final recommendedProjects = <Project>[];
+    final savedProjects = <Project>[];
     for (final row in projectRows) {
+      if (row['status'] != 'published' || row['deleted_at'] != null) continue;
       final project = _toProject(
         row,
         stageNameById,
@@ -77,19 +104,24 @@ class RobleHomeSource implements IHomeSource {
         myProjects.add(project);
       } else {
         recommendedProjects.add(project);
+        if (savedProjectIds.contains(project.id)) savedProjects.add(project);
       }
     }
 
-    final followedCommunities = myUserId == null
-        ? <Community>[]
-        : await _communitiesFollowedBy(myUserId);
-
     return HomeFeed(
-      followedCommunities: followedCommunities,
+      followedCommunities: myUserId == null
+          ? const <Community>[]
+          : _communitiesFollowedBy(
+              myUserId,
+              communityMembers,
+              communities,
+              projectCommunities,
+            ),
       recommendedProjects: recommendedProjects,
       // No hay tabla de convocatorias/oportunidades en el esquema todavía.
       opportunities: const <Opportunity>[],
       myProjects: myProjects,
+      savedProjects: savedProjects,
     );
   }
 
@@ -109,7 +141,7 @@ class RobleHomeSource implements IHomeSource {
       throw StateError('No hay sesión iniciada: no se puede publicar un proyecto.');
     }
 
-    final stages = await _db.read(_tableStages);
+    final stages = await _cache.read(_tableStages);
     final stageRow = stages.firstWhere(
       (row) => row['name'] == project.stage,
       orElse: () => throw StateError(
@@ -189,6 +221,14 @@ class RobleHomeSource implements IHomeSource {
       });
     }
 
+    _cache.invalidate([
+      _tableProjects,
+      _tableProjectTags,
+      _tableTags,
+      _tableProjectRoles,
+      _tableProjectLinks,
+      _tableProjectMembers,
+    ]);
     return project.copyWith(
       id: projectId,
       memberCount: coLeaderId == null ? 1 : 2,
@@ -229,6 +269,12 @@ class RobleHomeSource implements IHomeSource {
         'created_at': now,
       });
     }
+
+    _cache.invalidate([
+      _tableCommunities,
+      _tableCommunityMembers,
+      _tableProjectCommunities,
+    ]);
   }
 
   @override
@@ -255,6 +301,8 @@ class RobleHomeSource implements IHomeSource {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
     }
+
+    _cache.invalidate([_tableProjects, _tableProjectTags, _tableTags]);
   }
 
   @override
@@ -281,16 +329,8 @@ class RobleHomeSource implements IHomeSource {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
     }
-  }
 
-  Future<Map<String, String>> _stageNamesById() async {
-    final rows = await readPublicOrPrivate(_db, _tableStages);
-    return {for (final row in rows) row['_id'] as String: row['name'] as String};
-  }
-
-  Future<Map<String, String>> _tagNamesById() async {
-    final rows = await readPublicOrPrivate(_db, _tableTags);
-    return {for (final row in rows) row['_id'] as String: row['name'] as String};
+    _cache.invalidate([_tableCommunities, _tableProjectCommunities]);
   }
 
   Future<String> _findOrCreateTag(String name) async {
@@ -309,36 +349,39 @@ class RobleHomeSource implements IHomeSource {
     return created['_id'] as String;
   }
 
-  Future<List<Community>> _communitiesFollowedBy(String userId) async {
-    final memberships = await _db.read(
-      _tableCommunityMembers,
-      filters: {'user_id': userId, 'status': 'active'},
-    );
+  /// Las comunidades activas de esta persona, cruzadas sobre lo que ya se
+  /// leyó: antes era una lectura por comunidad, dentro de un bucle.
+  List<Community> _communitiesFollowedBy(
+    String userId,
+    List<Map<String, dynamic>> memberships,
+    List<Map<String, dynamic>> communities,
+    List<Map<String, dynamic>> projectLinks,
+  ) {
+    final myCommunityIds = {
+      for (final membership in memberships)
+        if (membership['user_id'] == userId && membership['status'] == 'active')
+          membership['community_id'] as String,
+    };
+    if (myCommunityIds.isEmpty) return const [];
 
-    final result = <Community>[];
-    for (final membership in memberships) {
-      final communityId = membership['community_id'] as String;
-      final row = await _db.getById(_tableCommunities, communityId);
-      if (row == null) continue;
-
-      final links = await _db.read(
-        _tableProjectCommunities,
-        filters: {'community_id': communityId},
-      );
-
-      result.add(
-        Community(
-          id: communityId,
-          name: row['name'] as String,
-          description: row['description'] as String?,
-          coverUrl: row['cover_url'] as String?,
-          projectIds: [
-            for (final link in links) link['project_id'] as String,
-          ],
-        ),
+    final projectIdsByCommunity = <String, List<String>>{};
+    for (final link in projectLinks) {
+      (projectIdsByCommunity[link['community_id'] as String] ??= []).add(
+        link['project_id'] as String,
       );
     }
-    return result;
+
+    return [
+      for (final row in communities)
+        if (myCommunityIds.contains(row['_id']))
+          Community(
+            id: row['_id'] as String,
+            name: row['name'] as String,
+            description: row['description'] as String?,
+            coverUrl: row['cover_url'] as String?,
+            projectIds: projectIdsByCommunity[row['_id']] ?? const [],
+          ),
+    ];
   }
 
   Project _toProject(

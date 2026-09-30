@@ -21,18 +21,22 @@ Future<Project> _projectById(String id) async {
   ].firstWhere((project) => project.id == id);
 }
 
-/// Abre el detalle como lo hace la app: navegando con el proyecto del feed
-/// como argumento.
+/// Con la pantalla alta que usa [_openDetail] la pestaña entera está
+/// construida, así que basta con comprobar que el texto está.
 Future<void> _scrollTo(WidgetTester tester, Finder finder) async {
-  await tester.scrollUntilVisible(
-    finder,
-    300,
-    scrollable: find.byType(Scrollable).first,
-  );
-  await tester.pumpAndSettle();
+  expect(finder, findsWidgets);
 }
 
+/// Abre el detalle como lo hace la app: navegando con el proyecto del feed
+/// como argumento.
+///
+/// La pantalla es estrecha y muy alta a propósito: el detalle es una
+/// `ListView`, y lo que queda fuera ni se construye.
 Future<void> _openDetail(WidgetTester tester, Project project) async {
+  tester.view.physicalSize = const Size(400, 6000);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   await tester.pumpWidget(
     GetMaterialApp(
       theme: AppTheme.light,
@@ -72,12 +76,12 @@ void main() {
     await _scrollTo(tester, find.text('Equipo'));
     await tester.tap(find.text('Equipo'));
     await tester.pumpAndSettle();
-    await _scrollTo(tester, find.text('Integrantes (2/6)'));
+    await _scrollTo(tester, find.text('Integrantes (3/6)'));
     await _scrollTo(tester, find.text('Roles buscados'));
 
-    await tester.tap(find.byTooltip('Configurar proyecto').first);
+    await tester.tap(find.byTooltip('Editar proyecto').first);
     await tester.pumpAndSettle();
-    expect(find.text('Configurar proyecto'), findsWidgets);
+    expect(find.text('Editar proyecto'), findsWidgets);
     expect(find.text('Guardar cambios'), findsOneWidget);
   });
 
@@ -90,7 +94,7 @@ void main() {
     expect(find.text('Postularme'), findsOneWidget);
     await _scrollTo(tester, find.text('Descripción'));
     expect(find.text('Crear publicación'), findsNothing);
-    expect(find.byTooltip('Configurar proyecto'), findsNothing);
+    expect(find.byTooltip('Editar proyecto'), findsNothing);
   });
 
   testWidgets('a visitor can apply through the existing application flow', (
@@ -101,14 +105,24 @@ void main() {
     await tester.tap(find.text('Postularme'));
     await tester.pumpAndSettle();
 
+    // Rol: es un desplegable, hay que abrirlo y elegir.
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Desarrollador Móvil').last);
+    await tester.pumpAndSettle();
+
+    // Disponibilidad: un selector de opciones, no un campo de texto.
+    await tester.tap(find.text('Part-time'));
+    await tester.pumpAndSettle();
+
+    // Motivación: la etiqueta va encima del campo, así que se busca por
+    // posición — es el último campo de texto del formulario.
     await tester.enterText(
-      find.widgetWithText(TextFormField, 'Motivación'),
+      find.byType(TextFormField).last,
       'Quiero aportar en la parte de visión por computador.',
     );
-    await tester.enterText(
-      find.widgetWithText(TextFormField, 'Disponibilidad'),
-      '6 horas por semana',
-    );
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('Enviar postulación'));
     await tester.pumpAndSettle();
 

@@ -1,30 +1,31 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:f_clean_template/main.dart';
+import 'package:f_clean_template/app_routes.dart';
 
+/// Comprobaciones del mapa de rutas.
+///
+/// Lo que había aquí era la prueba del contador que viene con `flutter
+/// create`: montaba un `MyApp` con un `+` que esta app nunca tuvo. Se cambió
+/// por algo que sí dice si el mapa de navegación está sano.
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('cada destino de la barra inferior tiene su pantalla', () {
+    for (final destination in AppRoutes.mainDestinations) {
+      expect(
+        AppRoutes.isRegistered(destination),
+        isTrue,
+        reason: '$destination está en la barra pero no en `pages`',
+      );
+    }
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('no hay dos rutas con el mismo nombre', () {
+    final names = AppRoutes.pages.map((page) => page.name).toList();
+    expect(names.toSet(), hasLength(names.length));
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('las rutas empiezan por barra', () {
+    for (final page in AppRoutes.pages) {
+      expect(page.name, startsWith('/'));
+    }
   });
 }

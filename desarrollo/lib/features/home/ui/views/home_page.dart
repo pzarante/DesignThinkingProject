@@ -12,7 +12,7 @@ import '../viewmodels/home_controller.dart';
 import '../widgets/feed_entry_tile.dart';
 import '../widgets/project_card.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
-import '../../../notifications/ui/viewmodels/notifications_controller.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -34,21 +34,7 @@ class HomePage extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          Obx(() {
-            final unread =
-                Get.find<NotificationsController>().unreadCount.value;
-            return IconButton(
-              icon: unread > 0
-                  ? Badge(
-                      label: Text('$unread'),
-                      child: const Icon(Icons.notifications_outlined),
-                    )
-                  : const Icon(Icons.notifications_outlined),
-              onPressed: () => Get.toNamed(AppRoutes.notifications),
-            );
-          }),
-        ],
+        actions: const [NotificationsAction()],
       ),
       body: Obx(
         () => homeController.isLoading.value
@@ -174,9 +160,11 @@ class _FeedList extends StatelessWidget {
                   icon: Icons.groups_outlined,
                   title: community.name,
                   subtitle: community.lastActivity,
+                  // Al feed de la comunidad, no a su configuración: lo
+                  // normal al tocarla es querer ver sus proyectos.
                   onTap: () => Get.toNamed(
-                    AppRoutes.communitySettings,
-                    arguments: community,
+                    AppRoutes.community,
+                    arguments: community.id,
                   ),
                 ),
             const AppSectionHeader(title: 'Mis Proyectos'),

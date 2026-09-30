@@ -13,6 +13,7 @@ import 'features/notifications/ui/views/notifications_page.dart';
 import 'features/profile/ui/views/profile_page.dart';
 import 'features/project_detail/ui/views/project_detail_page.dart';
 import 'features/project_detail/ui/views/project_settings_page.dart';
+import 'features/community_detail/ui/views/community_feed_page.dart';
 import 'features/community_settings/ui/views/community_settings_page.dart';
 import 'features/project_creation/ui/views/project_created_page.dart';
 import 'features/project_creation/ui/views/project_review_page.dart';
@@ -46,6 +47,9 @@ abstract final class AppRoutes {
   static const String createCommunitySuccess = '/create/community/success';
   static const String communitySettings = '/community/settings';
 
+  /// Feed de una comunidad: sus datos y los proyectos que acoge.
+  static const String community = '/community';
+
   /// Inicio de sesión y registro; se llega aquí al intentar crear sin cuenta.
   static const String login = '/login';
   static const String signup = '/signup';
@@ -76,6 +80,7 @@ abstract final class AppRoutes {
       name: createCommunitySuccess,
       page: () => const CommunityCreatedPage(),
     ),
+    GetPage(name: community, page: () => const CommunityFeedPage()),
     GetPage(name: communitySettings, page: () => const CommunitySettingsPage()),
     GetPage(name: applyToProject, page: () => const ApplyPage()),
     GetPage(name: projectApplicants, page: () => const ApplicantsPage()),

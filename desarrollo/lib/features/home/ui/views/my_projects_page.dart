@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_search_bar.dart';
+import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 import '../../domain/models/project.dart';
 import '../viewmodels/home_controller.dart';
 
@@ -22,6 +24,13 @@ class MyProjectsPage extends StatefulWidget {
 class _MyProjectsPageState extends State<MyProjectsPage> {
   String _selectedStage = 'Todos';
 
+  static const int _mineTab = 0;
+  static const List<String> _tabs = ['Míos', 'Guardados'];
+
+  /// Qué lista se está viendo: los proyectos propios o los que se guardaron
+  /// desde el detalle de un proyecto ajeno.
+  int _tab = _mineTab;
+
   @override
   Widget build(BuildContext context) {
     final HomeController ctrl = Get.find();
@@ -30,6 +39,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Mis Proyectos'),
+        actions: const [NotificationsAction()],
       ),
       body: Obx(() {
         if (ctrl.isLoading.value) {
@@ -62,7 +72,10 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         }
 
         final query = ctrl.searchQuery.value.trim().toLowerCase();
-        final projects = ctrl.feed.myProjects.where((p) {
+        final source = _tab == _mineTab
+            ? ctrl.feed.myProjects
+            : ctrl.feed.savedProjects;
+        final projects = source.where((p) {
           final matchesQuery =
               query.isEmpty || p.name.toLowerCase().contains(query);
           final matchesStage =
@@ -83,9 +96,21 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                 AppSpacing.md,
                 0,
               ),
-              child: AppSearchBar(
-                hintText: 'Buscar mis proyectos...',
-                onChanged: ctrl.setSearchQuery,
+              child: Column(
+                children: [
+                  AppSegmentedTabBar(
+                    labels: _tabs,
+                    selectedIndex: _tab,
+                    onSelected: (index) => setState(() => _tab = index),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppSearchBar(
+                    hintText: _tab == _mineTab
+                        ? 'Buscar mis proyectos...'
+                        : 'Buscar en guardados...',
+                    onChanged: ctrl.setSearchQuery,
+                  ),
+                ],
               ),
             ),
             Padding(
@@ -107,10 +132,18 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
             Expanded(
               child: projects.isEmpty
                   ? Center(
-                      child: Text(
-                        ctrl.feed.myProjects.isEmpty
-                            ? 'No tienes proyectos aún.'
-                            : 'No hay proyectos con este filtro.',
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        child: Text(
+                          source.isEmpty
+                              ? (_tab == _mineTab
+                                    ? 'No tienes proyectos aún.'
+                                    : 'Todavía no has guardado ningún '
+                                          'proyecto. Abre uno que te interese '
+                                          'y toca Guardar.')
+                              : 'No hay proyectos con este filtro.',
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     )
                   : ListView.separated(

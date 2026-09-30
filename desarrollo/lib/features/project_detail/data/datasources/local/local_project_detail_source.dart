@@ -18,6 +18,8 @@ class LocalProjectDetailSource implements IProjectDetailSource {
 
   final Map<String, Set<String>> _likedBy = {};
   final Map<String, List<ProjectComment>> _comments = {};
+  final Set<String> _saved = {};
+  final Set<String> _following = {};
 
   /// Identidad de respaldo de los proyectos sembrados (ComicVerse, ArquiSmart)
   /// y de `getCurrentUser()` si por alguna razón no hay sesión iniciada.
@@ -353,6 +355,28 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     final likes = _likedBy.putIfAbsent(projectId, () => {});
     if (!likes.remove(me)) likes.add(me);
     return likes.length;
+  }
+
+  @override
+  Future<({bool saved, bool following})> getViewerFlags(
+    String projectId,
+  ) async => (
+    saved: _saved.contains(projectId),
+    following: _following.contains(projectId),
+  );
+
+  @override
+  Future<bool> toggleSaved(String projectId) async =>
+      _toggle(_saved, projectId);
+
+  @override
+  Future<bool> toggleFollowing(String projectId) async =>
+      _toggle(_following, projectId);
+
+  bool _toggle(Set<String> ids, String projectId) {
+    if (ids.remove(projectId)) return false;
+    ids.add(projectId);
+    return true;
   }
 
   @override

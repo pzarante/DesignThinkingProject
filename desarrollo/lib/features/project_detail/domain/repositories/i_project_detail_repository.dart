@@ -18,6 +18,15 @@ abstract class IProjectDetailRepository {
   /// Da o quita el "me gusta" de quien mira. Devuelve el total ya actualizado.
   Future<int> toggleLike(String projectId);
 
+  /// Si quien mira ya guardó el proyecto y si lo sigue.
+  Future<({bool saved, bool following})> getViewerFlags(String projectId);
+
+  /// Guarda o quita el proyecto de los guardados. Devuelve el estado nuevo.
+  Future<bool> toggleSaved(String projectId);
+
+  /// Sigue o deja de seguir el proyecto. Devuelve el estado nuevo.
+  Future<bool> toggleFollowing(String projectId);
+
   /// Comentarios públicos del proyecto, del más antiguo al más nuevo.
   Future<List<ProjectComment>> getComments(String projectId);
 

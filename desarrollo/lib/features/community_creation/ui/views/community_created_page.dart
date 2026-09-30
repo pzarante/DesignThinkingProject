@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
 import '../../../../core/widgets/app_success_view.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../home/domain/models/community.dart';
 
 /// Confirmación de creación de comunidad. Recibe la [Community] por
@@ -22,9 +23,9 @@ class CommunityCreatedPage extends StatelessWidget {
             'miembros a unirse y empezar a colaborar.',
         primaryLabel: 'Ver comunidad',
         // El detalle de comunidad todavía no existe como pantalla.
-        onPrimary: () => Get.snackbar(
+        onPrimary: () => showInfoSnack(
           'Sección aún no disponible',
-          'El detalle de la comunidad llegará en una próxima entrega.',
+          message: 'El detalle de la comunidad llegará en una próxima entrega.',
         ),
         secondaryActions: [
           TextButton(

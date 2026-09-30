@@ -3,6 +3,7 @@ import 'package:roble/roble.dart';
 
 import '../../../../../core/roble_read.dart';
 import '../../../domain/models/authentication_user.dart';
+import '../../../domain/unknown_account_exception.dart';
 import 'i_authentication_source.dart';
 
 /// Habla con ROBLE sobre cuentas. No decide nada: convertir el mapa que
@@ -16,11 +17,44 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
   @override
   Future<bool> login(AuthenticationUser user) async {
     final profile = await _db.login(
-      email: user.email,
+      email: await _resolveEmail(user.email),
       password: user.password ?? '',
     );
     await _ensureUserRow(profile);
     return true;
+  }
+
+  /// Traduce lo que se escribió en el campo a un correo.
+  ///
+  /// ROBLE solo sabe entrar con correo, pero el nombre de usuario es lo que
+  /// la gente ve y recuerda de sí misma, así que se acepta cualquiera de los
+  /// dos: si lleva arroba es un correo y se usa tal cual; si no, se busca en
+  /// `users` el correo de quien tenga ese `user_name`.
+  ///
+  /// La búsqueda va sin sesión (todavía no la hay), así que depende de que
+  /// `users` esté marcada como pública en la consola. Si no lo está, el
+  /// nombre de usuario no se puede resolver y solo funcionará el correo.
+  Future<String> _resolveEmail(String identifier) async {
+    final value = identifier.trim();
+    if (value.contains('@')) return value;
+
+    final normalized = value.toLowerCase();
+    final rows = await readPublicOrPrivate(_db, 'users');
+    final match = rows
+        .where(
+          (row) =>
+              (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
+        )
+        .firstOrNull;
+
+    final email = match?['email'] as String?;
+    if (email == null || email.isEmpty) {
+      throw const UnknownAccountException(
+        'No encontramos ninguna cuenta con ese nombre de usuario. '
+        'Prueba con tu correo.',
+      );
+    }
+    return email;
   }
 
   /// `users` es el perfil de la app, aparte de la cuenta de ROBLE: otras

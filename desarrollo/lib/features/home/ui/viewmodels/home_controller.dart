@@ -68,7 +68,33 @@ class HomeController extends GetxController with UiLoggy {
 
   List<Project> get filteredRecommendedProjects {
     if (selectedType.value == HomeEntryType.comunidades) return [];
-    return feed.recommendedProjects.where(_matchesProject).toList();
+    final matching = feed.recommendedProjects.where(_matchesProject).toList();
+    return _byAffinity(matching);
+  }
+
+  /// Las etiquetas que describen los intereses de esta persona: las de los
+  /// proyectos que guardó y las de los suyos.
+  Set<String> get _myInterests => {
+    for (final project in feed.savedProjects) ...project.tags,
+    for (final project in feed.myProjects) ...project.tags,
+    for (final community in feed.followedCommunities) ...community.tags,
+  };
+
+  /// Ordena las recomendaciones poniendo delante las que comparten más
+  /// etiquetas con lo que ya le interesa.
+  ///
+  /// Sin intereses todavía (cuenta nueva, o sin sesión) se deja el orden como
+  /// viene: inventar un ranking con cero señales solo barajaría la lista.
+  List<Project> _byAffinity(List<Project> projects) {
+    final interests = _myInterests;
+    if (interests.isEmpty) return projects;
+
+    int score(Project project) =>
+        project.tags.where(interests.contains).length;
+
+    final ranked = [...projects];
+    ranked.sort((a, b) => score(b).compareTo(score(a)));
+    return ranked;
   }
 
   List<Project> get filteredMyProjectsSummary {
@@ -114,6 +140,7 @@ class HomeController extends GetxController with UiLoggy {
       recommendedProjects: feed.recommendedProjects,
       opportunities: feed.opportunities,
       myProjects: updated,
+      savedProjects: feed.savedProjects,
     );
   }
 }

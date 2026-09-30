@@ -29,6 +29,19 @@ class ProjectDetailRepository implements IProjectDetailRepository {
       await source.toggleLike(projectId);
 
   @override
+  Future<({bool saved, bool following})> getViewerFlags(
+    String projectId,
+  ) async => await source.getViewerFlags(projectId);
+
+  @override
+  Future<bool> toggleSaved(String projectId) async =>
+      await source.toggleSaved(projectId);
+
+  @override
+  Future<bool> toggleFollowing(String projectId) async =>
+      await source.toggleFollowing(projectId);
+
+  @override
   Future<List<ProjectComment>> getComments(String projectId) async =>
       await source.getComments(projectId);
 

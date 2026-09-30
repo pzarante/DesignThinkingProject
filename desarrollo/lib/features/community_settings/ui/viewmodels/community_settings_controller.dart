@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 
 import '../../../home/domain/models/community.dart';
 import '../../../home/domain/models/project.dart';
@@ -109,16 +110,16 @@ class CommunitySettingsController extends GetxController with UiLoggy {
       await Get.find<HomeController>().getFeed();
       saved = updated;
       _original = updated;
-      Get.snackbar(
+      showSuccessSnack(
         'Cambios guardados',
-        'La comunidad se actualizó correctamente.',
+        message: 'La comunidad se actualizó correctamente.',
       );
       return true;
     } catch (exception, stackTrace) {
       loggy.error('CommunitySettingsController: save failed', exception, stackTrace);
-      Get.snackbar(
+      showErrorSnack(
         'No se pudo guardar',
-        'Revisa los datos e inténtalo de nuevo.',
+        message: 'Revisa los datos e inténtalo de nuevo.',
       );
       return false;
     } finally {
