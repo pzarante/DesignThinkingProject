@@ -1,6 +1,8 @@
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import '../../../../core/error_message.dart' as errors;
+
 import '../../domain/models/community.dart';
 import '../../domain/models/home_feed.dart';
 import '../../domain/models/project.dart';
@@ -42,7 +44,9 @@ class HomeController extends GetxController with UiLoggy {
       _feed.value = await repository.getFeed();
     } catch (exception, stackTrace) {
       loggy.error('HomeController: error getting feed', exception, stackTrace);
-      errorMessage.value = 'No se pudieron cargar tus proyectos.';
+      // El mensaje de verdad, no uno genérico: si la causa es que una tabla
+      // no está marcada como pública, el texto dice cuál.
+      errorMessage.value = errors.errorMessage(exception);
     } finally {
       isLoading.value = false;
     }

@@ -128,16 +128,26 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
   ///
   /// Se consulta sin sesión (quien se está registrando todavía no la tiene),
   /// así que depende de que `users` esté marcada como pública en la consola.
-  /// Si no lo está, `readPublicOrPrivate` devuelve vacío y esto da "libre":
-  /// se pierde el aviso temprano, no se rompe el registro.
+  /// Si no lo está no se puede comprobar, y entonces se deja pasar: perder el
+  /// aviso temprano de un nombre repetido es mucho menos malo que impedir
+  /// registrarse. Queda en el log para poder diagnosticarlo.
   @override
   Future<bool> isUserNameAvailable(String userName) async {
     final normalized = userName.trim().toLowerCase();
     if (normalized.isEmpty) return false;
-    final rows = await readPublicOrPrivate(_db, 'users');
-    return !rows.any(
-      (row) => (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
-    );
+    try {
+      final rows = await readPublicOrPrivate(_db, 'users');
+      return !rows.any(
+        (row) =>
+            (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
+      );
+    } on RobleTableNotPublicException catch (exception) {
+      loggy.warning(
+        'RobleAuthenticationSource: no se pudo comprobar el nombre de '
+        'usuario: $exception',
+      );
+      return true;
+    }
   }
 
   @override

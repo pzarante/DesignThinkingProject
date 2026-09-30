@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_empty_note.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../viewmodels/home_controller.dart';
@@ -36,14 +37,37 @@ class HomePage extends StatelessWidget {
         ),
         actions: const [NotificationsAction()],
       ),
-      body: Obx(
-        () => homeController.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: homeController.getFeed,
-                child: _FeedList(controller: homeController),
+      body: Obx(() {
+        if (homeController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Antes un fallo dejaba el feed vacío sin explicar nada, que por
+        // pantalla es igual que "todavía no hay proyectos".
+        final error = homeController.errorMessage.value;
+        if (error != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: AppEmptyState(
+                icon: Icons.cloud_off_outlined,
+                title: 'No se pudo cargar el feed',
+                message: error,
+                action: FilledButton.icon(
+                  onPressed: homeController.getFeed,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reintentar'),
+                ),
               ),
-      ),
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: homeController.getFeed,
+          child: _FeedList(controller: homeController),
+        );
+      }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed(AppRoutes.create),
         icon: const Icon(Icons.add),
