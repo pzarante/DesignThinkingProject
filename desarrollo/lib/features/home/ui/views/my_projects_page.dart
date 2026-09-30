@@ -130,6 +130,11 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
           ],
         );
       }),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.toNamed(AppRoutes.create),
+        icon: const Icon(Icons.add),
+        label: const Text('Crear'),
+      ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 2,
         onDestinationSelected: (index) => _openDestination(index),

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../../../core/widgets/app_empty_note.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
@@ -193,8 +194,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 title: owner ? 'Mis proyectos' : 'Proyectos que creó',
               ),
               if (created.isEmpty)
-                _emptyLine(
-                  owner
+                AppEmptyNote(
+                  text: owner
                       ? 'Todavía no has publicado ningún proyecto.'
                       : 'Todavía no ha publicado ningún proyecto.',
                 )
@@ -220,19 +221,6 @@ class _ProfilePageState extends State<ProfilePage> {
         child: ProfileProjectCard(project: project),
       ),
   ];
-
-  Widget _emptyLine(String text) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Text(
-        text,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.colorScheme.onSurfaceVariant,
-        ),
-      ),
-    );
-  }
 
   /// Datos de contacto y antigüedad. El correo solo en el perfil propio: la
   /// tabla `users` es legible para cualquiera, pero enseñarlo en el perfil de
