@@ -60,7 +60,7 @@ void main() {
     expect(find.text('Mi perfil'), findsOneWidget);
     expect(find.text('María García'), findsOneWidget);
     expect(find.text('@mariagarcia'), findsOneWidget);
-    expect(find.text('Ingeniería de Sistemas · 4º año'), findsOneWidget);
+    expect(find.text('Ingeniería de Sistemas · 4º semestre'), findsOneWidget);
 
     // Los tres contadores del encabezado.
     expect(find.text('Proyectos'), findsOneWidget);
@@ -113,7 +113,7 @@ void main() {
 
     await _open(tester, AppRoutes.profile);
 
-    expect(find.text('Aquí va tu perfil'), findsOneWidget);
+    expect(find.text('Aun no te conocemos'), findsOneWidget);
     expect(find.text('Crear cuenta'), findsOneWidget);
     expect(find.text('Ya tengo cuenta'), findsOneWidget);
   });
