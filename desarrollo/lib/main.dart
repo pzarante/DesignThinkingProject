@@ -9,10 +9,12 @@ import 'core/app_theme.dart';
 import 'core/i_local_preferences.dart';
 import 'core/local_preferences_secured.dart';
 import 'core/local_preferences_shared.dart';
+import 'core/roble_cache.dart';
 import 'core/roble_config.dart';
 
 import 'features/auth/auth_dependencies.dart';
 import 'features/community_creation/community_creation_dependencies.dart';
+import 'features/community_detail/community_detail_dependencies.dart';
 import 'features/community_settings/community_settings_dependencies.dart';
 import 'features/home/home_dependencies.dart';
 import 'features/notifications/notifications_dependencies.dart';
@@ -40,6 +42,9 @@ void main() async {
     ),
   );
   Get.put<RobleApiDataBase>(robleDb, permanent: true);
+  // Memoria corta compartida: sin ella cada pantalla vuelve a pedir las
+  // mismas tablas (`users`, `tags`, `project_stages`) una y otra vez.
+  Get.put<RobleTableCache>(RobleTableCache(robleDb), permanent: true);
 
   registerAuth();
   registerNotifications();
@@ -49,6 +54,7 @@ void main() async {
   registerProjectCreation();
   registerCommunityCreation();
   registerCommunitySettings();
+  registerCommunityDetail();
   registerProjectApplications();
   registerProduct();
   runApp(const MyApp());

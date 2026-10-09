@@ -35,10 +35,13 @@ class _ApplicantsPageState extends State<ApplicantsPage> {
           return const Center(child: CircularProgressIndicator());
         }
         if (controller.applications.isEmpty) {
-          return const AppEmptyState(
-            icon: Icons.inbox_outlined,
-            title: 'Sin postulaciones aún',
-            message: 'Cuando alguien se postule, aparecerá aquí.',
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: AppEmptyState(
+              icon: Icons.inbox_outlined,
+              title: 'Sin postulaciones aún',
+              message: 'Cuando alguien se postule, aparecerá aquí.',
+            ),
           );
         }
         return ListView.separated(

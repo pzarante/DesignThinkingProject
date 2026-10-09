@@ -1,6 +1,8 @@
 import '../../../domain/models/authentication_user.dart';
 
 abstract class IAuthenticationSource {
+  /// Inicia sesión. `user.email` admite el correo o el nombre de usuario:
+  /// quien implemente esto se encarga de resolver el segundo.
   Future<bool> login(AuthenticationUser user);
 
   Future<bool> restoreSession();

@@ -7,6 +7,7 @@ import 'package:f_clean_template/features/home/data/repositories/home_repository
 import 'package:f_clean_template/features/home/domain/repositories/i_home_repository.dart';
 import 'package:f_clean_template/features/home/ui/viewmodels/home_controller.dart';
 import 'package:f_clean_template/features/home/ui/views/home_page.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
@@ -49,6 +50,15 @@ class _StubAuthRepository implements IAuthRepository {
 
 void main() {
   testWidgets('HomePage renders every feed section', (tester) async {
+    // El feed es una `ListView`: en la pantalla por defecto de las pruebas
+    // las últimas secciones ni se construyen, y no se puede afirmar nada
+    // sobre ellas.
+    // Estrecha y muy alta: a lo ancho las portadas 16:9 crecen, y el
+    // feed entero se sale de cualquier alto razonable.
+    tester.view.physicalSize = const Size(400, 6000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     Get.testMode = true;
     Get.put<IHomeRepository>(HomeRepository(LocalHomeSource()));
     Get.put(HomeController(Get.find()));
@@ -61,23 +71,23 @@ void main() {
     expect(find.text('Comunidades que sigues'), findsOneWidget);
     expect(find.text('Studio Creativo UNI'), findsOneWidget);
     expect(find.text('Recomendado para ti'), findsOneWidget);
-    expect(find.text('Tecnología • Investigación'), findsOneWidget);
+    // La tarjeta enseña la etiqueta y la etapa como dos chips, no como una
+    // línea "Tecnología • Investigación" (así era un diseño anterior).
+    expect(find.text('TECNOLOGÍA'), findsWidgets);
+    expect(find.text('INVESTIGACIÓN'), findsWidgets);
     expect(find.text('Ferias y oportunidades'), findsOneWidget);
     expect(find.text('Crear'), findsOneWidget);
     expect(find.text('Inicio'), findsOneWidget);
 
-    await tester.scrollUntilVisible(
-      find.text('15 proyectos participando'),
-      300,
-    );
-    await tester.scrollUntilVisible(
+    // Con la pantalla alta ya no hace falta desplazarse: todo el feed está
+    // construido.
+    expect(find.text('15 proyectos participando'), findsOneWidget);
+    expect(
       find.widgetWithText(AppSectionHeader, 'Mis Proyectos'),
-      300,
+      findsOneWidget,
     );
-    await tester.scrollUntilVisible(find.text('MotionLab'), 300);
+    expect(find.text('MotionLab'), findsOneWidget);
     expect(find.text('3 Integrantes'), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('ComicVerse App'), 300);
-    expect(find.text('2 Integrantes'), findsOneWidget);
 
     Get.reset();
   });

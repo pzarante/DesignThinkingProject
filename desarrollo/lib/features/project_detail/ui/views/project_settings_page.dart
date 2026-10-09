@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
@@ -255,9 +256,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               : () async {
                   await controller.save();
                   Get.back();
-                  Get.snackbar(
+                  showSuccessSnack(
                     'Cambios guardados',
-                    'La configuración del proyecto se actualizó.',
+                    message: 'La configuración del proyecto se actualizó.',
                   );
                 },
         ),

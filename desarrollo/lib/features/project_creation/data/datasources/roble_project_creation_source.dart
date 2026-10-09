@@ -1,5 +1,4 @@
-import 'package:roble/roble.dart';
-
+import '../../../../core/roble_cache.dart';
 import '../../domain/models/person.dart';
 import '../../domain/models/project_form_options.dart';
 import '../../domain/models/project_stage_option.dart';
@@ -10,10 +9,15 @@ import 'i_project_creation_source.dart';
 /// `roleSuggestions` y `availabilityOptions` no tienen tabla propia en el
 /// esquema (son sugerencias/enum fijos, no datos de usuario), así que quedan
 /// como constantes aquí en vez de inventar una tabla para dos listas chicas.
+///
+/// Va por [RobleTableCache] y no por el cliente directo por dos razones: son
+/// las mismas tablas que ya cargó el inicio, y una lectura directa exige
+/// sesión —el asistente se prepara al arrancar la app, cuando todavía no hay
+/// ninguna, y eso devolvía un 401.
 class RobleProjectCreationSource implements IProjectCreationSource {
-  RobleProjectCreationSource(this._db);
+  RobleProjectCreationSource(this._cache);
 
-  final RobleApiDataBase _db;
+  final RobleTableCache _cache;
 
   static const _roleSuggestions = [
     'Desarrollador Frontend',
@@ -26,7 +30,8 @@ class RobleProjectCreationSource implements IProjectCreationSource {
 
   @override
   Future<ProjectFormOptions> getFormOptions() async {
-    final stageRows = await _db.read('project_stages');
+    final tables = await _cache.readAll(['project_stages', 'tags', 'users']);
+    final stageRows = tables[0];
     stageRows.sort(
       (a, b) => ((a['display_order'] as num?) ?? 0).compareTo(
         (b['display_order'] as num?) ?? 0,
@@ -41,7 +46,7 @@ class RobleProjectCreationSource implements IProjectCreationSource {
           ),
     ];
 
-    final tagRows = await _db.read('tags');
+    final tagRows = tables[1];
     final systemTags = [
       for (final row in tagRows)
         if (row['tag_type'] == 'system') row['name'] as String,
@@ -51,13 +56,14 @@ class RobleProjectCreationSource implements IProjectCreationSource {
         if (row['tag_type'] == 'community') row['name'] as String,
     ];
 
-    final userRows = await _db.read('users');
+    final userRows = tables[2];
     final candidates = [
       for (final row in userRows)
-        Person(
-          id: row['user_id'] as String,
-          name: (row['user_name'] as String?) ?? 'Sin nombre',
-        ),
+        if (row['user_id'] != null)
+          Person(
+            id: row['user_id'] as String,
+            name: (row['user_name'] as String?) ?? 'Sin nombre',
+          ),
     ];
 
     return ProjectFormOptions(

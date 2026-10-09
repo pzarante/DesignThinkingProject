@@ -9,18 +9,24 @@ class HomeFeed {
     required this.recommendedProjects,
     required this.opportunities,
     required this.myProjects,
+    this.savedProjects = const [],
   });
 
   const HomeFeed.empty()
     : followedCommunities = const [],
       recommendedProjects = const [],
       opportunities = const [],
-      myProjects = const [];
+      myProjects = const [],
+      savedProjects = const [];
 
   final List<Community> followedCommunities;
   final List<Project> recommendedProjects;
   final List<Opportunity> opportunities;
   final List<Project> myProjects;
+
+  /// Proyectos de otros que esta persona marcó como guardados
+  /// (`project_saved`). Vacío sin cuenta: guardar exige una.
+  final List<Project> savedProjects;
 
   /// Proyectos anclados y/o los 2 visitados más recientemente, para la
   /// versión resumida de "Mis Proyectos" en el Home (validado semana 5).

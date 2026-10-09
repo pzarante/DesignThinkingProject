@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../theme/app_spacing.dart';
 
@@ -36,8 +37,10 @@ class AppTextField extends StatelessWidget {
   final String? helperText;
   final bool isRequired;
 
-  /// Límite mostrado en el contador `usados / maxLength`. No recorta el texto
-  /// automáticamente: el contador informa, igual que en el diseño.
+  /// Límite de caracteres: se enseña en el contador `usados / maxLength` y se
+  /// aplica al escribir. Antes solo informaba, y un campo que dice "máx. 280"
+  /// pero deja escribir 500 acaba en un texto que el servidor recorta o
+  /// rechaza sin avisar.
   final int? maxLength;
   final int? minLines;
   final int maxLines;
@@ -87,6 +90,9 @@ class AppTextField extends StatelessWidget {
         TextFormField(
           controller: controller,
           onChanged: onChanged,
+          inputFormatters: maxLength == null
+              ? null
+              : [LengthLimitingTextInputFormatter(maxLength)],
           validator: validator,
           minLines: minLines,
           maxLines: maxLines,

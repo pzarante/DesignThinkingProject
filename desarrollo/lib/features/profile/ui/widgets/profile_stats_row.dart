@@ -36,6 +36,14 @@ class ProfileStatsRow extends StatelessWidget {
             icon: Icons.diversity_3_outlined,
           ),
         ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _StatCard(
+            value: stats.saved,
+            label: 'Guardados',
+            icon: Icons.bookmark_outline,
+          ),
+        ),
       ],
     );
   }
@@ -71,6 +79,9 @@ class _StatCard extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
+            // Con cuatro columnas "Comunidades" no cabe en una línea en un
+            // teléfono estrecho; se deja partir antes que recortarla.
+            maxLines: 2,
             style: theme.textTheme.labelMedium?.copyWith(
               color: colors.onSurfaceVariant,
             ),

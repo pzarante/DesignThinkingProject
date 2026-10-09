@@ -5,12 +5,15 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
+import '../../../../core/widgets/app_empty_note.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../viewmodels/home_controller.dart';
 import '../widgets/feed_entry_tile.dart';
 import '../widgets/project_card.dart';
-import '../../../notifications/ui/viewmodels/notifications_controller.dart';
+import '../../../auth/ui/viewmodels/authentication_controller.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -32,30 +35,39 @@ class HomePage extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          Obx(() {
-            final unread =
-                Get.find<NotificationsController>().unreadCount.value;
-            return IconButton(
-              icon: unread > 0
-                  ? Badge(
-                      label: Text('$unread'),
-                      child: const Icon(Icons.notifications_outlined),
-                    )
-                  : const Icon(Icons.notifications_outlined),
-              onPressed: () => Get.toNamed(AppRoutes.notifications),
-            );
-          }),
-        ],
+        actions: const [NotificationsAction()],
       ),
-      body: Obx(
-        () => homeController.isLoading.value
-            ? const Center(child: CircularProgressIndicator())
-            : RefreshIndicator(
-                onRefresh: homeController.getFeed,
-                child: _FeedList(controller: homeController),
+      body: Obx(() {
+        if (homeController.isLoading.value) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        // Antes un fallo dejaba el feed vacío sin explicar nada, que por
+        // pantalla es igual que "todavía no hay proyectos".
+        final error = homeController.errorMessage.value;
+        if (error != null) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: AppEmptyState(
+                icon: Icons.cloud_off_outlined,
+                title: 'No se pudo cargar el feed',
+                message: error,
+                action: FilledButton.icon(
+                  onPressed: homeController.getFeed,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reintentar'),
+                ),
               ),
-      ),
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: homeController.getFeed,
+          child: _FeedList(controller: homeController),
+        );
+      }),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => Get.toNamed(AppRoutes.create),
         icon: const Icon(Icons.add),
@@ -119,6 +131,12 @@ class _FeedList extends StatelessWidget {
       final feed = controller.feed;
       final categoryOptions = ['Todos', ...controller.availableTags];
       final selectedCategory = controller.selectedTag.value ?? 'Todos';
+      // Una sesión de invitado no tiene comunidades seguidas ni proyectos
+      // propios: no es que estén vacíos, es que esas secciones todavía no
+      // existen para quien entra sin cuenta.
+      final hasAccount = Get.find<AuthenticationController>().hasAccount;
+      final communities = controller.filteredCommunities;
+      final myProjects = controller.filteredMyProjectsSummary;
 
       return ListView(
         padding: const EdgeInsets.fromLTRB(
@@ -152,31 +170,58 @@ class _FeedList extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: ProjectCard(project: project),
             ),
-          const AppSectionHeader(title: 'Comunidades que sigues'),
-          for (final community in controller.filteredCommunities)
-            FeedEntryTile(
-              icon: Icons.groups_outlined,
-              title: community.name,
-              subtitle: community.lastActivity,
-              onTap: () => Get.toNamed(
-                AppRoutes.communitySettings,
-                arguments: community,
-              ),
-            ),
-          const AppSectionHeader(title: 'Mis Proyectos'),
-          for (final project in controller.filteredMyProjectsSummary)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: ProjectCard(project: project),
-            ),
+          if (hasAccount) ...[
+            const AppSectionHeader(title: 'Comunidades que sigues'),
+            if (communities.isEmpty)
+              AppEmptyNote(
+                text: feed.followedCommunities.isEmpty
+                    ? 'Todavía no sigues ninguna comunidad.'
+                    : 'Ninguna comunidad coincide con el filtro.',
+              )
+            else
+              for (final community in communities)
+                FeedEntryTile(
+                  icon: Icons.groups_outlined,
+                  title: community.name,
+                  subtitle: community.lastActivity,
+                  // Al feed de la comunidad, no a su configuración: lo
+                  // normal al tocarla es querer ver sus proyectos.
+                  onTap: () => Get.toNamed(
+                    AppRoutes.community,
+                    arguments: community.id,
+                  ),
+                ),
+            const AppSectionHeader(title: 'Mis Proyectos'),
+            if (myProjects.isEmpty)
+              AppEmptyNote(
+                // El resumen del inicio solo trae los anclados y los dos
+                // últimos visitados, así que puede quedar vacío con proyectos
+                // de por medio: por eso el segundo texto no dice "ninguno",
+                // dice dónde están.
+                text: feed.myProjects.isEmpty
+                    ? 'Todavía no has creado ningún proyecto.'
+                    : 'Ancla un proyecto o ábrelo para verlo aquí; están '
+                          'todos en "Mis Proyectos".',
+              )
+            else
+              for (final project in myProjects)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: ProjectCard(project: project),
+                ),
+          ],
           const AppSectionHeader(title: 'Ferias y oportunidades'),
-          for (final opportunity in feed.opportunities)
-            FeedEntryTile(
-              icon: Icons.calendar_today_outlined,
-              title: opportunity.name,
-              subtitle:
-                  '${opportunity.participatingProjects} proyectos participando',
-            ),
+          if (feed.opportunities.isEmpty)
+            const AppEmptyNote(text: 'No hay eventos por el momento.')
+          else
+            for (final opportunity in feed.opportunities)
+              FeedEntryTile(
+                icon: Icons.calendar_today_outlined,
+                title: opportunity.name,
+                subtitle:
+                    '${opportunity.participatingProjects} proyectos '
+                    'participando',
+              ),
         ],
       );
     });

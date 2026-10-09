@@ -5,6 +5,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/widgets/app_wizard_progress.dart';
 import '../../domain/password_policy.dart';
@@ -114,10 +115,9 @@ class _SignUpPageState extends State<SignUpPage> {
       // devolver a Explorar, no al formulario de una cuenta ya creada.
       Get.offNamed(AppRoutes.signupSuccess, arguments: _userName);
     } else {
-      Get.snackbar(
+      showErrorSnack(
         'No se pudo crear la cuenta',
-        controller.error.value,
-        snackPosition: SnackPosition.BOTTOM,
+        message: controller.error.value,
       );
     }
   }
@@ -269,11 +269,13 @@ class _SignUpPageState extends State<SignUpPage> {
       hintText: 'Ingeniería de Sistemas',
     ),
     const SizedBox(height: AppSpacing.md),
-    Text('Año que cursas', style: Theme.of(context).textTheme.labelMedium),
+    Text('Semestre que cursas', style: Theme.of(context).textTheme.labelMedium),
     const SizedBox(height: AppSpacing.xs),
     AppChoiceChipRow<int?>(
-      options: const [1, 2, 3, 4, 5, 6],
-      labelBuilder: (year) => '$yearº',
+      // Semestres, no años de carrera: es como cuenta la universidad y es lo
+      // que guarda `users.academic_year`.
+      options: const [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      labelBuilder: (semester) => '$semesterº',
       selected: _academicYear,
       // Volver a tocar el año elegido lo quita: es opcional y no hay otra
       // forma de dejarlo en blanco después de haberlo marcado.

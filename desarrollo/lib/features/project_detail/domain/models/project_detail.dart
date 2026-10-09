@@ -1,3 +1,4 @@
+import 'project_community.dart';
 import 'project_member.dart';
 import 'project_milestone.dart';
 import 'project_role.dart';
@@ -29,6 +30,7 @@ class ProjectDetail {
     this.openRoles = const [],
     this.availability,
     this.communityName,
+    this.communities = const [],
     this.viewerRole = ViewerRole.visitor,
   });
 
@@ -67,8 +69,13 @@ class ProjectDetail {
   /// Dedicación esperada del equipo, p. ej. "Part-time".
   final String? availability;
 
-  /// Comunidad a la que está vinculado, si lo está.
+  /// Nombre de la comunidad principal, si hay alguna. Es lo que edita la
+  /// pantalla de configuración, que todavía trabaja con una sola.
   final String? communityName;
+
+  /// Todas las comunidades que lo acogen, con su id para poder abrir su feed.
+  /// [communityName] es el nombre de la primera de esta lista.
+  final List<ProjectCommunity> communities;
 
   final ViewerRole viewerRole;
 
@@ -113,6 +120,7 @@ class ProjectDetail {
       communityName: clearCommunity
           ? null
           : (communityName ?? this.communityName),
+      communities: clearCommunity ? const [] : communities,
       viewerRole: viewerRole,
     );
   }

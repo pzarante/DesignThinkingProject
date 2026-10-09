@@ -1,6 +1,4 @@
-import 'package:roble/roble.dart';
-
-import '../../../../core/roble_read.dart';
+import '../../../../core/roble_cache.dart';
 import '../../domain/models/profile_project.dart';
 import '../../domain/models/user_profile.dart';
 import 'i_profile_source.dart';
@@ -11,9 +9,9 @@ import 'i_profile_source.dart';
 /// joins ni agregados, así que "cuántos proyectos creó" es contar filas de
 /// `projects` con ese `creator_id`.
 class RobleProfileSource implements IProfileSource {
-  RobleProfileSource(this._db);
+  RobleProfileSource(this._cache);
 
-  final RobleApiDataBase _db;
+  final RobleTableCache _cache;
 
   static const _tableUsers = 'users';
   static const _tableProjects = 'projects';
@@ -22,23 +20,29 @@ class RobleProfileSource implements IProfileSource {
   static const _tableStages = 'project_stages';
   static const _tableTags = 'tags';
   static const _tableProjectTags = 'project_tags';
+  static const _tableSaved = 'project_saved';
 
   @override
   Future<UserProfile?> getProfile(String userId) async {
-    final rows = await readPublicOrPrivate(_db, _tableUsers);
-    final row = rows.where((r) => r['user_id'] == userId).firstOrNull;
-    if (row == null) return null;
+    // Las cuatro tablas a la vez: el perfil son una fila y tres conteos, y
+    // pedirlas en fila era lo que lo hacía lento al abrir.
+    final tables = await _cache.readAll([
+      _tableUsers,
+      _tableProjects,
+      _tableProjectMembers,
+      _tableCommunityMembers,
+      _tableSaved,
+    ]);
 
-    final projects = await readPublicOrPrivate(_db, _tableProjects);
-    final memberships = await readPublicOrPrivate(_db, _tableProjectMembers);
-    final communities = await readPublicOrPrivate(_db, _tableCommunityMembers);
+    final row = tables[0].where((r) => r['user_id'] == userId).firstOrNull;
+    if (row == null) return null;
 
     return _toProfile(row).copyWith(
       stats: ProfileStats(
-        createdProjects: projects
+        createdProjects: tables[1]
             .where((p) => p['creator_id'] == userId && !_isDeleted(p))
             .length,
-        memberships: memberships
+        memberships: tables[2]
             .where(
               (m) =>
                   m['user_id'] == userId &&
@@ -46,16 +50,17 @@ class RobleProfileSource implements IProfileSource {
                   m['is_creator'] != true,
             )
             .length,
-        communities: communities
+        communities: tables[3]
             .where((c) => c['user_id'] == userId && c['status'] == 'active')
             .length,
+        saved: tables[4].where((s) => s['user_id'] == userId).length,
       ),
     );
   }
 
   @override
   Future<List<UserSummary>> getUsers() async {
-    final rows = await readPublicOrPrivate(_db, _tableUsers);
+    final rows = await _cache.read(_tableUsers);
     final users = [
       for (final row in rows)
         if (row['user_id'] != null && row['user_name'] != null)
@@ -75,10 +80,16 @@ class RobleProfileSource implements IProfileSource {
 
   @override
   Future<List<ProfileProject>> getProjectsOf(String userId) async {
-    final projects = await readPublicOrPrivate(_db, _tableProjects);
-    final memberships = await readPublicOrPrivate(_db, _tableProjectMembers);
+    final tables = await _cache.readAll([
+      _tableProjects,
+      _tableProjectMembers,
+      _tableStages,
+      _tableTags,
+      _tableProjectTags,
+    ]);
+    final projects = tables[0];
+    final active = tables[1].where((m) => m['status'] == 'active').toList();
 
-    final active = memberships.where((m) => m['status'] == 'active').toList();
     final myProjectIds = {
       for (final m in active)
         if (m['user_id'] == userId) m['project_id'] as String,
@@ -101,15 +112,13 @@ class RobleProfileSource implements IProfileSource {
     if (mine.isEmpty) return const [];
 
     final stageNameById = {
-      for (final row in await readPublicOrPrivate(_db, _tableStages))
-        row['_id'] as String: row['name'] as String,
+      for (final row in tables[2]) row['_id'] as String: row['name'] as String,
     };
     final tagNameById = {
-      for (final row in await readPublicOrPrivate(_db, _tableTags))
-        row['_id'] as String: row['name'] as String,
+      for (final row in tables[3]) row['_id'] as String: row['name'] as String,
     };
     final tagNamesByProject = <String, List<String>>{};
-    for (final link in await readPublicOrPrivate(_db, _tableProjectTags)) {
+    for (final link in tables[4]) {
       final name = tagNameById[link['tag_id'] as String];
       if (name == null) continue;
       (tagNamesByProject[link['project_id'] as String] ??= []).add(name);

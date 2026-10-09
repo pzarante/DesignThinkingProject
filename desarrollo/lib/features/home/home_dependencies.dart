@@ -13,7 +13,7 @@ import 'ui/viewmodels/home_controller.dart';
 /// offline, sin sesión ni red real). `main.dart` no pasa nada y usa ROBLE.
 void registerHome({bool remote = true}) {
   final IHomeSource source = remote
-      ? RobleHomeSource(Get.find(), Get.find())
+      ? RobleHomeSource(Get.find(), Get.find(), Get.find())
       : LocalHomeSource();
   Get.put<IHomeSource>(source);
   Get.put<IHomeRepository>(HomeRepository(Get.find()));

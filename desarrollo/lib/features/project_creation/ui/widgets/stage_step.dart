@@ -25,7 +25,18 @@ class StageStep extends StatelessWidget {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: AppSpacing.md),
-          if (controller.options.stages.isEmpty)
+          if (controller.optionsError.value != null)
+            AppEmptyState(
+              icon: Icons.cloud_off_outlined,
+              title: 'No se pudo cargar el formulario',
+              message: controller.optionsError.value,
+              action: FilledButton.icon(
+                onPressed: controller.reloadOptions,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            )
+          else if (controller.options.stages.isEmpty)
             const AppEmptyState(
               icon: Icons.flag_outlined,
               title: 'Sin etapas configuradas',

@@ -4,9 +4,11 @@ import 'package:get/get.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_search_bar.dart';
+import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
+import '../../../notifications/ui/widgets/notifications_action.dart';
 import '../../domain/models/project.dart';
 import '../viewmodels/home_controller.dart';
 
@@ -57,6 +59,13 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   _Section _section = _Section.all;
   String _selectedStage = 'Todos';
 
+  static const int _mineTab = 0;
+  static const List<String> _tabs = ['Míos', 'Guardados'];
+
+  /// Qué lista se está viendo: los proyectos propios o los que se guardaron
+  /// desde el detalle de un proyecto ajeno.
+  int _tab = _mineTab;
+
   @override
   void initState() {
     super.initState();
@@ -72,6 +81,7 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Mis Proyectos'),
+        actions: const [NotificationsAction()],
       ),
       body: Obx(() {
         if (ctrl.isLoading.value) {
@@ -104,12 +114,17 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
         }
 
         final query = ctrl.searchQuery.value.trim().toLowerCase();
-        final projects = ctrl.feed.myProjects.where((p) {
+        final source = _tab == _mineTab
+            ? ctrl.feed.myProjects
+            : ctrl.feed.savedProjects;
+        final projects = source.where((p) {
           final matchesQuery =
               query.isEmpty || p.name.toLowerCase().contains(query);
           final matchesStage =
               _selectedStage == 'Todos' || p.stage == _selectedStage;
-          return matchesQuery && matchesStage && _section.matches(p);
+          // Las secciones son de los propios; los guardados no tienen relación.
+          final matchesSection = _tab != _mineTab || _section.matches(p);
+          return matchesQuery && matchesStage && matchesSection;
         }).toList()
           ..sort((a, b) {
             if (a.isPinned == b.isPinned) return 0;
@@ -125,12 +140,25 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                 AppSpacing.md,
                 0,
               ),
-              child: AppSearchBar(
-                hintText: 'Buscar mis proyectos...',
-                onChanged: ctrl.setSearchQuery,
+              child: Column(
+                children: [
+                  AppSegmentedTabBar(
+                    labels: _tabs,
+                    selectedIndex: _tab,
+                    onSelected: (index) => setState(() => _tab = index),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  AppSearchBar(
+                    hintText: _tab == _mineTab
+                        ? 'Buscar mis proyectos...'
+                        : 'Buscar en guardados...',
+                    onChanged: ctrl.setSearchQuery,
+                  ),
+                ],
               ),
             ),
-            Padding(
+            if (_tab == _mineTab)
+              Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
                 AppSpacing.xs,
@@ -166,9 +194,16 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
                       child: Padding(
                         padding: const EdgeInsets.all(AppSpacing.lg),
                         child: Text(
-                          ctrl.feed.myProjects.any(_section.matches)
-                              ? 'No hay proyectos con este filtro.'
-                              : _section.emptyMessage,
+                          source.isEmpty
+                              ? (_tab == _mineTab
+                                    ? 'No tienes proyectos aún.'
+                                    : 'Todavía no has guardado ningún '
+                                          'proyecto. Abre uno que te interese '
+                                          'y toca Guardar.')
+                              : (_tab == _mineTab &&
+                                        !source.any(_section.matches)
+                                    ? _section.emptyMessage
+                                    : 'No hay proyectos con este filtro.'),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -190,6 +225,11 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
           ],
         );
       }),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.toNamed(AppRoutes.create),
+        icon: const Icon(Icons.add),
+        label: const Text('Crear'),
+      ),
       bottomNavigationBar: AppBottomNavBar(
         currentIndex: 2,
         onDestinationSelected: (index) => _openDestination(index),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../viewmodels/apply_controller.dart';
 
 /// Postularse a un proyecto. Recibe por [Get.arguments] un mapa con
@@ -53,7 +54,10 @@ class _ApplyPageState extends State<ApplyPage> {
     }
 
     Get.back(result: true);
-    Get.snackbar('Postulación enviada', 'El equipo revisará tu solicitud.');
+    showSuccessSnack(
+      'Postulación enviada',
+      message: 'El equipo revisará tu solicitud.',
+    );
   }
 
   @override

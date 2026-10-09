@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import '../../../../core/error_message.dart' as errors;
 import '../../../home/domain/models/project.dart';
 import '../../../home/domain/repositories/i_home_repository.dart';
 import '../../../home/ui/viewmodels/home_controller.dart';
@@ -45,6 +46,10 @@ class ProjectCreationController extends GetxController with UiLoggy {
 
   final Rx<ProjectFormOptions> _options = const ProjectFormOptions.empty().obs;
   ProjectFormOptions get options => _options.value;
+
+  /// Por qué no se pudo traer el catálogo, si es que pasó. Se enseña en el
+  /// primer paso, donde se nota: sin etapas no hay nada que elegir.
+  final RxnString optionsError = RxnString();
 
   /// Paso visible, empezando en 1.
   final RxInt currentStep = 1.obs;
@@ -98,13 +103,32 @@ class ProjectCreationController extends GetxController with UiLoggy {
     super.onClose();
   }
 
+  /// Trae el catálogo del formulario (etapas, etiquetas, candidatos).
+  ///
+  /// Se llama al arrancar la app, así que un fallo aquí no puede escaparse:
+  /// sin este `try` el error salía como excepción asíncrona sin dueño y se
+  /// veía como una caída, en vez de como un paso que no cargó.
   Future<void> _loadOptions() async {
     loggy.debug('ProjectCreationController: loading form options');
-    _options.value = await _repository.getFormOptions();
-    if (options.availabilityOptions.isNotEmpty) {
-      availability.value = options.availabilityOptions.first;
+    optionsError.value = null;
+    try {
+      _options.value = await _repository.getFormOptions();
+      if (options.availabilityOptions.isNotEmpty) {
+        availability.value = options.availabilityOptions.first;
+      }
+    } catch (exception, stackTrace) {
+      loggy.error(
+        'ProjectCreationController: could not load form options',
+        exception,
+        stackTrace,
+      );
+      _options.value = const ProjectFormOptions.empty();
+      optionsError.value = errors.errorMessage(exception);
     }
   }
+
+  /// Reintento manual desde el primer paso.
+  Future<void> reloadOptions() => _loadOptions();
 
   /// Deja el asistente en blanco. Se llama al entrar al flujo, no al volver
   /// desde la pantalla de revisión.

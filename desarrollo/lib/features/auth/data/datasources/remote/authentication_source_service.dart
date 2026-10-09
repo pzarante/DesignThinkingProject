@@ -22,17 +22,21 @@ class AuthenticationSourceService
   @override
   Future<bool> login(AuthenticationUser user) async {
     loggy.debug("Attempting login for email: ${user.email}");
-    final email = _normalizedEmail(user.email);
+    final identifier = _normalizedEmail(user.email);
     final users = await _getUsers();
-    final account = users
-        .where((account) => account.email == email)
-        .firstOrNull;
+    // Igual que la fuente de ROBLE: se puede entrar con el correo o con el
+    // nombre de usuario.
+    final account =
+        users.where((account) => account.email == identifier).firstOrNull ??
+        users
+            .where((account) => account.name.toLowerCase() == identifier)
+            .firstOrNull;
 
     if (account == null || account.password != user.password) {
       throw StateError('Invalid email or password.');
     }
 
-    await _saveSession(email);
+    await _saveSession(account.email);
     return true;
   }
 

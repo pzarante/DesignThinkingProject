@@ -30,6 +30,19 @@ void main() {
       },
     );
 
+    test('entra con el nombre de usuario, no solo con el correo', () async {
+      await source.signUp(
+        AuthenticationUser(
+          email: 'ana@example.com',
+          name: 'anamartinez',
+          password: 'Password1!',
+        ),
+      );
+
+      expect(await source.login(_user('AnaMartinez', 'Password1!')), isTrue);
+      expect((await source.getLoggedUser())?.email, 'ana@example.com');
+    });
+
     test('rejects duplicate accounts and invalid credentials', () async {
       await source.signUp(_user('alice@example.com', 'Password1!'));
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_labeled_progress.dart';
 import '../../../../core/widgets/app_section_header.dart';
@@ -33,6 +35,26 @@ class DetailsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (detail.communities.isNotEmpty) ...[
+          const AppSectionHeader(title: 'Comunidades'),
+          Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              // Se toca para abrir el feed de la comunidad y ver el resto de
+              // proyectos que la acompañan.
+              for (final community in detail.communities)
+                ActionChip(
+                  avatar: const Icon(Icons.groups_outlined, size: 18),
+                  label: Text(community.name),
+                  onPressed: () => Get.toNamed(
+                    AppRoutes.community,
+                    arguments: community.id,
+                  ),
+                ),
+            ],
+          ),
+        ],
         if (detail.description != null)
           _Section(title: 'Descripción', body: detail.description!),
         if (detail.problem != null)

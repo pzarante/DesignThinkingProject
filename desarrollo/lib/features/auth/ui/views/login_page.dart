@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../viewmodels/authentication_controller.dart';
 
@@ -16,30 +17,29 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final AuthenticationController controller = Get.find();
-  final _emailField = TextEditingController();
+  final _identifierField = TextEditingController();
   final _passwordField = TextEditingController();
   bool _showPassword = false;
 
   @override
   void dispose() {
-    _emailField.dispose();
+    _identifierField.dispose();
     _passwordField.dispose();
     super.dispose();
   }
 
   Future<void> _login() async {
     final loggedIn = await controller.login(
-      _emailField.text.trim(),
+      _identifierField.text.trim(),
       _passwordField.text,
     );
     if (!mounted) return;
     if (loggedIn) {
       Get.back();
     } else {
-      Get.snackbar(
+      showErrorSnack(
         'No se pudo iniciar sesión',
-        controller.error.value,
-        snackPosition: SnackPosition.BOTTOM,
+        message: controller.error.value,
       );
     }
   }
@@ -77,8 +77,8 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Entra para crear proyectos, formar equipo y comentar con tu '
-            'nombre.',
+            'Entra con tu correo o tu nombre de usuario para crear '
+            'proyectos, formar equipo y comentar con tu nombre.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -86,9 +86,10 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: AppSpacing.xl),
           AppTextField(
-            label: 'Correo',
-            controller: _emailField,
-            hintText: 'tucorreo@uninorte.edu.co',
+            label: 'Correo o nombre de usuario',
+            controller: _identifierField,
+            hintText: 'tucorreo@uninorte.edu.co  ·  anamartinez',
+            helperText: 'Puedes entrar con cualquiera de los dos.',
             keyboardType: TextInputType.emailAddress,
           ),
           const SizedBox(height: AppSpacing.md),

@@ -2,6 +2,7 @@ import 'package:f_clean_template/features/home/home_dependencies.dart';
 import 'package:f_clean_template/features/project_applications/domain/models/project_application.dart';
 import 'package:f_clean_template/features/project_applications/domain/repositories/i_project_application_repository.dart';
 import 'package:f_clean_template/features/project_applications/ui/viewmodels/applicants_controller.dart';
+import 'package:f_clean_template/features/notifications/notifications_dependencies.dart';
 import 'package:f_clean_template/features/project_detail/domain/repositories/i_project_detail_repository.dart';
 import 'package:f_clean_template/features/project_detail/project_detail_dependencies.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,8 +12,12 @@ import '../../support/fake_auth_repository.dart';
 
 void main() {
   setUp(() {
+    // Aceptar una postulación toca el detalle del proyecto (ocupa un cupo del
+    // rol y suma al equipo) y deja una notificación: los dos controladores
+    // tienen que existir.
     Get.testMode = true;
     registerFakeAuth();
+    registerNotifications();
     registerHome(remote: false);
     registerProjectDetail(remote: false);
   });

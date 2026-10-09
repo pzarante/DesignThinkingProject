@@ -18,6 +18,8 @@ class LocalProjectDetailSource implements IProjectDetailSource {
 
   final Map<String, Set<String>> _likedBy = {};
   final Map<String, List<ProjectComment>> _comments = {};
+  final Set<String> _saved = {};
+  final Set<String> _following = {};
 
   /// Identidad de respaldo de los proyectos sembrados (ComicVerse, ArquiSmart)
   /// y de `getCurrentUser()` si por alguna razón no hay sesión iniciada.
@@ -25,7 +27,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     id: 'me',
     name: 'María García',
     roleLabel: 'LÍDER',
-    subtitle: 'Líder · 5to año',
+    subtitle: 'Líder · 5to semestre',
     email: 'maria@uni.edu',
     isCreator: true,
   );
@@ -42,7 +44,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         name: 'Ana Martínez',
         avatarUrl: 'https://i.pravatar.cc/120?img=47',
         roleLabel: 'LÍDER',
-        subtitle: 'Líder · 3er año',
+        subtitle: 'Líder · 3er semestre',
         isCreator: true,
       ),
       description:
@@ -85,7 +87,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           name: 'Ana Martínez',
           avatarUrl: 'https://i.pravatar.cc/120?img=47',
           roleLabel: 'LÍDER',
-          subtitle: 'Motion Designer · 3er año',
+          subtitle: 'Motion Designer · 3er semestre',
           isCreator: true,
         ),
         ProjectMember(
@@ -93,14 +95,14 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           name: 'Carlos López',
           avatarUrl: 'https://i.pravatar.cc/120?img=12',
           roleLabel: 'CO-LÍDER',
-          subtitle: 'Diseñador de Sonido · 4to año',
+          subtitle: 'Diseñador de Sonido · 4to semestre',
           isCoLeader: true,
         ),
         ProjectMember(
           id: 'u16',
           name: 'Sara Gómez',
           roleLabel: 'GUIONISTA',
-          subtitle: 'Guionista · 2do año',
+          subtitle: 'Guionista · 2do semestre',
         ),
       ],
       maxMembers: 6,
@@ -134,13 +136,13 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u12',
           name: 'Diego Soto',
           roleLabel: 'ILUSTRADOR',
-          subtitle: 'Ilustrador · 2do año',
+          subtitle: 'Ilustrador · 2do semestre',
         ),
         ProjectMember(
           id: 'u17',
           name: 'Camila Vidal',
           roleLabel: 'GUIONISTA',
-          subtitle: 'Guionista · 3er año',
+          subtitle: 'Guionista · 3er semestre',
         ),
       ],
       maxMembers: 5,
@@ -170,7 +172,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u18',
           name: 'Tomás Rivas',
           roleLabel: 'INGENIERO ESTRUCTURAL',
-          subtitle: 'Ingeniería Civil · 4to año',
+          subtitle: 'Ingeniería Civil · 4to semestre',
         ),
       ],
       maxMembers: 4,
@@ -193,7 +195,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         id: 'u20',
         name: 'Laura Méndez',
         roleLabel: 'LÍDER',
-        subtitle: 'Líder · 4to año',
+        subtitle: 'Líder · 4to semestre',
         isCreator: true,
       ),
       description:
@@ -205,7 +207,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u20',
           name: 'Laura Méndez',
           roleLabel: 'LÍDER',
-          subtitle: 'Líder · 4to año',
+          subtitle: 'Líder · 4to semestre',
           isCreator: true,
         ),
       ],
@@ -225,7 +227,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         id: 'u21',
         name: 'Carlos Ruiz',
         roleLabel: 'LÍDER',
-        subtitle: 'Líder · 5to año',
+        subtitle: 'Líder · 5to semestre',
         isCreator: true,
       ),
       description:
@@ -236,7 +238,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u21',
           name: 'Carlos Ruiz',
           roleLabel: 'LÍDER',
-          subtitle: 'Líder · 5to año',
+          subtitle: 'Líder · 5to semestre',
           isCreator: true,
         ),
       ],
@@ -253,7 +255,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         id: 'u22',
         name: 'Valentina Rojas',
         roleLabel: 'LÍDER',
-        subtitle: 'Líder · 3er año',
+        subtitle: 'Líder · 3er semestre',
         isCreator: true,
       ),
       description:
@@ -265,7 +267,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u22',
           name: 'Valentina Rojas',
           roleLabel: 'LÍDER',
-          subtitle: 'Líder · 3er año',
+          subtitle: 'Líder · 3er semestre',
           isCreator: true,
         ),
       ],
@@ -297,7 +299,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
         id: 'u23',
         name: 'Andrés Peña',
         roleLabel: 'LÍDER',
-        subtitle: 'Líder · 4to año',
+        subtitle: 'Líder · 4to semestre',
         isCreator: true,
       ),
       description:
@@ -309,14 +311,14 @@ class LocalProjectDetailSource implements IProjectDetailSource {
           id: 'u23',
           name: 'Andrés Peña',
           roleLabel: 'LÍDER',
-          subtitle: 'Líder · 4to año',
+          subtitle: 'Líder · 4to semestre',
           isCreator: true,
         ),
         ProjectMember(
           id: 'u24',
           name: 'Camila Torres',
           roleLabel: 'LOCUTORA',
-          subtitle: 'Comunicación Social · 3er año',
+          subtitle: 'Comunicación Social · 3er semestre',
         ),
       ],
       maxMembers: 3,
@@ -414,6 +416,28 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     final likes = _likedBy.putIfAbsent(projectId, () => {});
     if (!likes.remove(me)) likes.add(me);
     return likes.length;
+  }
+
+  @override
+  Future<({bool saved, bool following})> getViewerFlags(
+    String projectId,
+  ) async => (
+    saved: _saved.contains(projectId),
+    following: _following.contains(projectId),
+  );
+
+  @override
+  Future<bool> toggleSaved(String projectId) async =>
+      _toggle(_saved, projectId);
+
+  @override
+  Future<bool> toggleFollowing(String projectId) async =>
+      _toggle(_following, projectId);
+
+  bool _toggle(Set<String> ids, String projectId) {
+    if (ids.remove(projectId)) return false;
+    ids.add(projectId);
+    return true;
   }
 
   @override

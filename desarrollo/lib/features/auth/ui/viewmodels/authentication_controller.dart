@@ -49,20 +49,26 @@ class AuthenticationController extends GetxController with UiLoggy {
     }
   }
 
-  Future<bool> login(String email, String password) async {
-    loggy.debug('AuthenticationController: Login $email');
+  /// [identifier] es el correo o el nombre de usuario; resolver cuál es le
+  /// toca a la fuente, que es la única que puede consultar `users`.
+  Future<bool> login(String identifier, String password) async {
+    loggy.debug('AuthenticationController: Login $identifier');
     error.value = '';
     // Solo se comprueba que no estén vacíos: si una cuenta antigua no cumple
     // la política de hoy, quien decide es el servidor, no esta pantalla.
-    if (email.trim().isEmpty || password.isEmpty) {
-      loggy.warning('AuthenticationController: Invalid email or password');
-      error.value = 'Escribe tu correo y tu contraseña.';
+    if (identifier.trim().isEmpty || password.isEmpty) {
+      loggy.warning('AuthenticationController: Invalid credentials');
+      error.value = 'Escribe tu correo o nombre de usuario y tu contraseña.';
       return false;
     }
     _isLoading.value = true;
     try {
       final loggedIn = await repoAuthentication.login(
-        AuthenticationUser(email: email, name: email, password: password),
+        AuthenticationUser(
+          email: identifier,
+          name: identifier,
+          password: password,
+        ),
       );
       _logged.value = loggedIn;
       _loggedUser.value = loggedIn
