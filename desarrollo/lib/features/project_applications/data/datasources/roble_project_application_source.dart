@@ -1,6 +1,6 @@
 import 'package:roble/roble.dart';
 
-import '../../../../core/roble_read.dart';
+import '../../../../core/roble_cache.dart';
 import '../../../auth/domain/repositories/i_auth_repository.dart';
 import '../../domain/models/project_application.dart';
 import 'i_project_application_source.dart';
@@ -10,11 +10,13 @@ import 'i_project_application_source.dart';
 /// La fila solo guarda el cupo (`project_role_id`), no el proyecto: para
 /// saber a qué proyecto pertenece una postulación se cruza con
 /// `project_roles`, y el nombre de quien se postula sale de `users`. ROBLE
-/// no hace joins, así que se lee cada tabla una vez y se cruza en Dart.
+/// no hace joins, así que las tablas se leen juntas por [RobleTableCache] y
+/// se cruzan en Dart.
 class RobleProjectApplicationSource implements IProjectApplicationSource {
-  RobleProjectApplicationSource(this._db, this._authRepository);
+  RobleProjectApplicationSource(this._db, this._cache, this._authRepository);
 
   final RobleApiDataBase _db;
+  final RobleTableCache _cache;
   final IAuthRepository _authRepository;
 
   static const _tableApplications = 'project_applications';
@@ -23,30 +25,30 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
 
   @override
   Future<List<ProjectApplication>> getForProject(String projectId) async {
-    // Sin sesión `readPublicOrPrivate` ignora los filtros: se vuelve a
-    // filtrar aquí para no depender de eso.
-    final roleRows = (await readPublicOrPrivate(
-      _db,
+    final tables = await _cache.readAll([
       _tableProjectRoles,
-      filters: {'project_id': projectId},
-    )).where((r) => r['project_id'] == projectId).toList();
+      _tableApplications,
+      _tableUsers,
+    ]);
+    final roleRows = tables[0]
+        .where((r) => r['project_id'] == projectId)
+        .toList();
     final roleIds = {for (final r in roleRows) r['_id'] as String};
     if (roleIds.isEmpty) return const [];
 
-    final rows = await _db.read(_tableApplications);
-    final mine = rows.where((r) => roleIds.contains(r['project_role_id']));
-    return _toApplications(mine, roleRows);
+    final mine = tables[1].where((r) => roleIds.contains(r['project_role_id']));
+    return _toApplications(mine, roleRows, tables[2]);
   }
 
   @override
   Future<List<ProjectApplication>> getForUser(String applicantId) async {
-    final rows = await _db.read(
+    final tables = await _cache.readAll([
       _tableApplications,
-      filters: {'applicant_id': applicantId},
-    );
-    if (rows.isEmpty) return const [];
-    final roleRows = await readPublicOrPrivate(_db, _tableProjectRoles);
-    return _toApplications(rows, roleRows);
+      _tableProjectRoles,
+      _tableUsers,
+    ]);
+    final mine = tables[0].where((r) => r['applicant_id'] == applicantId);
+    return _toApplications(mine, tables[1], tables[2]);
   }
 
   @override
@@ -92,6 +94,7 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
       'created_at': now,
       'updated_at': now,
     });
+    _cache.invalidate([_tableApplications]);
     return ProjectApplication(
       id: created['_id'] as String,
       projectId: application.projectId,
@@ -117,6 +120,7 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
       'reviewed_by': me,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
+    _cache.invalidate([_tableApplications]);
     return _byId(applicationId);
   }
 
@@ -128,6 +132,7 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
       'availability': application.availability,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
+    _cache.invalidate([_tableApplications]);
     return application;
   }
 
@@ -136,22 +141,31 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
   @override
   Future<void> withdraw(String applicationId) async {
     await _db.delete(_tableApplications, applicationId);
+    _cache.invalidate([_tableApplications]);
   }
 
   Future<ProjectApplication> _byId(String applicationId) async {
-    final row = await _db.getById(_tableApplications, applicationId);
+    final tables = await _cache.readAll([
+      _tableApplications,
+      _tableProjectRoles,
+      _tableUsers,
+    ]);
+    final row = tables[0].where((r) => r['_id'] == applicationId).firstOrNull;
     if (row == null) throw StateError('No se encontró la postulación.');
-    final roleRows = await readPublicOrPrivate(_db, _tableProjectRoles);
-    return (await _toApplications([row], roleRows)).single;
+    final found = _toApplications([row], tables[1], tables[2]);
+    if (found.isEmpty) {
+      throw StateError('El cupo de esta postulación ya no existe.');
+    }
+    return found.single;
   }
 
-  Future<List<ProjectApplication>> _toApplications(
+  List<ProjectApplication> _toApplications(
     Iterable<Map<String, dynamic>> rows,
     List<Map<String, dynamic>> roleRows,
-  ) async {
+    List<Map<String, dynamic>> users,
+  ) {
     if (rows.isEmpty) return const [];
     final roleById = {for (final r in roleRows) r['_id'] as String: r};
-    final users = await readPublicOrPrivate(_db, _tableUsers);
     final userById = {for (final u in users) u['user_id'] as String: u};
 
     final result = <ProjectApplication>[];

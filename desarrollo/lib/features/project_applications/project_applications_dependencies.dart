@@ -15,7 +15,7 @@ void registerProjectApplications({bool remote = true}) {
   // visibles desde "Mis aplicaciones" (Persona 4).
   Get.put<IProjectApplicationSource>(
     remote
-        ? RobleProjectApplicationSource(Get.find(), Get.find())
+        ? RobleProjectApplicationSource(Get.find(), Get.find(), Get.find())
         : LocalProjectApplicationSource(),
     permanent: true,
   );
