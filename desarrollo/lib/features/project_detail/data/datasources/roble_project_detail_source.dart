@@ -327,6 +327,16 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       rethrow;
     }
 
+    // `creator_id` es el respaldo del líder para proyectos sin equipo (y lo
+    // que usa Home cuando no hay fila en `project_members`): sigue al nuevo
+    // líder.
+    if (successor != null) {
+      await _db.update(_tableProjects, projectId, {
+        'creator_id': successor['user_id'],
+        'updated_at': now,
+      });
+    }
+
     // Su cupo vuelve a quedar libre para otra postulación.
     final slotId = mine['project_role_id'] as String?;
     if (slotId != null) {
@@ -336,7 +346,11 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         'updated_at': now,
       });
     }
-    _cache.invalidate([_tableProjectMembers, _tableProjectRoles]);
+    _cache.invalidate([
+      _tableProjectMembers,
+      _tableProjectRoles,
+      _tableProjects,
+    ]);
   }
 
   @override

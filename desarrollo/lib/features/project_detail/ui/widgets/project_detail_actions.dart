@@ -21,6 +21,8 @@ class ProjectDetailActions extends StatelessWidget {
     required this.hasApplied,
     required this.hasOpenRoles,
     required this.onReviewApplication,
+    required this.onLeave,
+    this.isLeaving = false,
   });
 
   final ViewerRole viewerRole;
@@ -35,6 +37,12 @@ class ProjectDetailActions extends StatelessWidget {
 
   /// Abre la propia postulación (pendiente) para editarla o retirarla.
   final VoidCallback onReviewApplication;
+
+  /// Sale del equipo; lo ve cualquier integrante, lidere o no.
+  final VoidCallback onLeave;
+
+  /// Mientras se procesa la salida, para no pedirla dos veces.
+  final bool isLeaving;
 
   /// Falso si ninguno de los roles buscados del proyecto tiene cupos
   /// disponibles — sin vacantes abiertas no se puede postular.
@@ -58,6 +66,20 @@ class ProjectDetailActions extends StatelessWidget {
                 tooltip: 'Editar proyecto',
                 onPressed: onConfigure,
                 icon: const Icon(Icons.edit_outlined),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+            ],
+            if (viewerRole.belongsToProject) ...[
+              IconButton.outlined(
+                tooltip: 'Salir del proyecto',
+                onPressed: isLeaving ? null : onLeave,
+                color: colors.error,
+                icon: isLeaving
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.logout),
               ),
               const SizedBox(width: AppSpacing.sm),
             ],

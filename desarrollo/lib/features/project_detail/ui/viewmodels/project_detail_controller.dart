@@ -268,11 +268,11 @@ class ProjectDetailController extends GetxController with UiLoggy {
     return mine?.isCreator ?? detail?.viewerRole == ViewerRole.creator;
   }
 
-  /// Sale del equipo del proyecto abierto. Si lidera, [newLeaderId] es quien
-  /// queda a cargo. Refresca "Mis Proyectos".
+  /// Sale del equipo del proyecto abierto. Si lidera, [newLeader] es quien
+  /// queda a cargo. Avisa al equipo y refresca "Mis Proyectos".
   ///
   /// Devuelve null si salió bien, o el mensaje de error para mostrar.
-  Future<String?> leaveProject({String? newLeaderId}) async {
+  Future<String?> leaveProject({ProjectMember? newLeader}) async {
     final current = detail;
     if (current == null) return 'No se encontró el proyecto.';
 
@@ -280,18 +280,28 @@ class ProjectDetailController extends GetxController with UiLoggy {
     try {
       await _repository.leaveProject(
         projectId: current.projectId,
-        newLeaderId: newLeaderId,
+        newLeaderId: newLeader?.id,
       );
     } catch (exception) {
       loggy.error('ProjectDetailController: error leaving', exception);
       isLeaving.value = false;
       return exception is StateError
           ? exception.message
-          : 'No se pudo salir del proyecto. Intenta de nuevo.';
+          : errors.errorMessage(exception);
     }
 
-    // Avisar al resto del equipo necesita notificaciones por destinatario
-    // (ROBLE); en memoria solo existe la persona que tiene la sesión.
+    final whoLeft = currentUser.value?.name;
+    await _push(
+      type: NotificationType.memberLeft,
+      title: 'Un integrante salió del proyecto',
+      message: [
+        '${whoLeft == null || whoLeft.isEmpty ? 'Un integrante' : whoLeft} '
+            'salió de ${current.name}.',
+        if (newLeader != null) '${newLeader.name} ahora lo lidera.',
+      ].join(' '),
+      projectId: current.projectId,
+    );
+
     if (Get.isRegistered<HomeController>()) {
       await Get.find<HomeController>().getFeed();
     }

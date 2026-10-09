@@ -12,6 +12,7 @@ import '../../../home/domain/models/project.dart';
 import '../../../project_applications/ui/viewmodels/apply_controller.dart';
 import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 import '../../domain/models/project_detail.dart';
+import '../../domain/models/project_member.dart';
 import '../../domain/models/publication.dart';
 import '../viewmodels/project_detail_controller.dart';
 import '../viewmodels/project_settings_controller.dart';
@@ -19,6 +20,7 @@ import '../widgets/application_form_sheet.dart';
 import '../widgets/create_publication_sheet.dart';
 import '../widgets/details_tab.dart';
 import '../widgets/leave_project_dialogs.dart';
+import '../widgets/member_picker_sheet.dart';
 import '../widgets/posts_tab.dart';
 import '../widgets/project_detail_actions.dart';
 import '../widgets/project_detail_header.dart';
@@ -215,44 +217,44 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     }
   }
 
-  /// Salir del equipo: si lidera, primero elige a quién deja a cargo; luego
-  /// confirma, porque desde su lado no hay vuelta atrás.
+  /// Salir del equipo: si lidera, primero elige a quién deja a cargo (se
+  /// sugiere al co-líder); luego confirma, porque desde su lado no hay
+  /// vuelta atrás.
   Future<void> _leaveProject(ProjectDetail detail) async {
-    String? newLeaderId;
-    String? newLeaderName;
+    ProjectMember? newLeader;
     if (controller.isLeader) {
       final candidates = controller.otherMembers;
       if (candidates.isEmpty) {
         await showCannotLeaveDialog(context);
         return;
       }
-      newLeaderId = await showPickNewLeaderDialog(
+      newLeader = await showMemberPickerSheet(
         context,
+        label: 'Elegir nuevo líder',
         candidates: candidates,
+        isSuggested: (member) => member.isCoLeader,
       );
-      if (newLeaderId == null || !mounted) return;
-      newLeaderName = candidates.firstWhere((m) => m.id == newLeaderId).name;
+      if (newLeader == null || !mounted) return;
     }
 
     if (!mounted) return;
     final confirmed = await showConfirmLeaveDialog(
       context,
       projectName: detail.name,
-      newLeaderName: newLeaderName,
+      newLeaderName: newLeader?.name,
     );
     if (!confirmed || !mounted) return;
 
-    final error = await controller.leaveProject(newLeaderId: newLeaderId);
+    final error = await controller.leaveProject(newLeader: newLeader);
     if (!mounted) return;
     if (error != null) {
-      _notifyPending(error);
+      showErrorSnack('No se pudo salir', message: error);
       return;
     }
     Get.back();
-    Get.snackbar(
+    showSuccessSnack(
       'Saliste del proyecto',
-      'Ya no formas parte de ${detail.name}.',
-      snackPosition: SnackPosition.BOTTOM,
+      message: 'Ya no formas parte de ${detail.name}.',
     );
   }
 
@@ -379,37 +381,6 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                 icon: const Icon(Icons.share_outlined),
                 onPressed: () => _shareProject(detail),
               ),
-            if (detail.viewerRole.belongsToProject)
-              controller.isLeaving.value
-                  ? const Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
-                      child: SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    )
-                  : PopupMenuButton<VoidCallback>(
-                      tooltip: 'Más opciones',
-                      onSelected: (action) => action(),
-                      itemBuilder: (context) => [
-                        PopupMenuItem(
-                          value: () => _leaveProject(detail),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            leading: Icon(
-                              Icons.logout,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                            title: Text(
-                              'Salir del proyecto',
-                              style: TextStyle(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
           ],
         ),
         body: ListView(
@@ -462,6 +433,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
               hasApplied: Get.find<ApplyController>().alreadyApplied.value,
               hasOpenRoles: detail.openRoles.any((role) => role.isOpen),
               onReviewApplication: () => _reviewApplication(detail),
+              onLeave: () => _leaveProject(detail),
+              isLeaving: controller.isLeaving.value,
             ),
             AppBottomNavBar(
               currentIndex: 0,

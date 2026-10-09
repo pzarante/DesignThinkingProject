@@ -1,21 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_spacing.dart';
-import '../../domain/models/project_member.dart';
-
-/// Pide a quien lidera que elija quién queda a cargo antes de salir.
-///
-/// Devuelve el id del elegido, o null si canceló.
-Future<String?> showPickNewLeaderDialog(
-  BuildContext context, {
-  required List<ProjectMember> candidates,
-}) {
-  return showDialog<String>(
-    context: context,
-    builder: (context) => _PickNewLeaderDialog(candidates: candidates),
-  );
-}
-
 /// Avisa que no se puede salir: quien lidera no tiene a quién dejarle el
 /// proyecto.
 Future<void> showCannotLeaveDialog(BuildContext context) {
@@ -75,73 +59,4 @@ Future<bool> showConfirmLeaveDialog(
     ),
   );
   return confirmed ?? false;
-}
-
-class _PickNewLeaderDialog extends StatefulWidget {
-  const _PickNewLeaderDialog({required this.candidates});
-
-  final List<ProjectMember> candidates;
-
-  @override
-  State<_PickNewLeaderDialog> createState() => _PickNewLeaderDialogState();
-}
-
-class _PickNewLeaderDialogState extends State<_PickNewLeaderDialog> {
-  String? _selectedId;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return AlertDialog(
-      title: const Text('Elige al nuevo líder'),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Lideras este proyecto. Antes de salir, elige quién quedará '
-              'a cargo.',
-              style: theme.textTheme.bodyMedium,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Flexible(
-              child: RadioGroup<String>(
-                groupValue: _selectedId,
-                onChanged: (id) => setState(() => _selectedId = id),
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final member in widget.candidates)
-                      RadioListTile<String>(
-                        value: member.id,
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(member.name),
-                        subtitle: member.roleLabel == null
-                            ? null
-                            : Text(member.roleLabel!),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancelar'),
-        ),
-        FilledButton(
-          onPressed: _selectedId == null
-              ? null
-              : () => Navigator.of(context).pop(_selectedId),
-          child: const Text('Continuar'),
-        ),
-      ],
-    );
-  }
 }
