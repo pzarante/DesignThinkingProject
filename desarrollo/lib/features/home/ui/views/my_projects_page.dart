@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
@@ -23,13 +24,16 @@ class MyProjectsPage extends StatefulWidget {
 
 /// Secciones de "Mis Proyectos" según la relación con cada proyecto.
 enum _Section {
-  all('Todos'),
-  created('Creados por mí'),
-  joined('Donde participo'),
-  pending('Postulaciones pendientes');
+  all('Todos', Icons.folder_open_outlined),
+  created('Creados por mi cuenta', Icons.edit_note_outlined),
+  joined('Creados por alguien más de los que hago parte', Icons.groups_outlined),
+  pending('Postulaciones pendientes', Icons.hourglass_empty_outlined);
 
-  const _Section(this.label);
+  const _Section(this.label, this.icon);
   final String label;
+
+  /// Ícono del estado vacío de la sección.
+  final IconData icon;
 
   bool matches(Project project) {
     // Null = datos en memoria, donde todo lo propio es creado por el usuario.
@@ -42,15 +46,19 @@ enum _Section {
     };
   }
 
+  String get emptyTitle => switch (this) {
+    _Section.all => 'No tienes proyectos aún',
+    _Section.created => 'Aún no has creado ningún proyecto',
+    _Section.joined => 'Todavía no haces parte de otro equipo',
+    _Section.pending => 'No tienes postulaciones pendientes',
+  };
+
   String get emptyMessage => switch (this) {
-    _Section.all => 'No tienes proyectos aún.',
-    _Section.created => 'Aún no has creado ningún proyecto.',
-    _Section.joined =>
-      'Todavía no haces parte del equipo de otro proyecto. '
-          'Cuando acepten una postulación tuya, aparecerá aquí.',
-    _Section.pending =>
-      'No tienes postulaciones pendientes. '
-          'Explora proyectos y postúlate a una vacante.',
+    _Section.all =>
+      'Crea un proyecto o postúlate a una vacante para verlo aquí.',
+    _Section.created => 'Los proyectos que crees aparecerán aquí.',
+    _Section.joined => 'Cuando acepten una postulación tuya, aparecerá aquí.',
+    _Section.pending => 'Explora proyectos y postúlate a una vacante.',
   };
 }
 
@@ -190,23 +198,26 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
             const SizedBox(height: AppSpacing.xs),
             Expanded(
               child: projects.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.lg),
-                        child: Text(
-                          source.isEmpty
-                              ? (_tab == _mineTab
-                                    ? 'No tienes proyectos aún.'
-                                    : 'Todavía no has guardado ningún '
+                  ? Padding(
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: _tab == _mineTab &&
+                              !source.any(_section.matches)
+                          // Vacío propio de la sección, no de la búsqueda.
+                          ? AppEmptyState(
+                              icon: _section.icon,
+                              title: _section.emptyTitle,
+                              message: _section.emptyMessage,
+                            )
+                          : Center(
+                              child: Text(
+                                source.isEmpty
+                                    ? 'Todavía no has guardado ningún '
                                           'proyecto. Abre uno que te interese '
-                                          'y toca Guardar.')
-                              : (_tab == _mineTab &&
-                                        !source.any(_section.matches)
-                                    ? _section.emptyMessage
-                                    : 'No hay proyectos con este filtro.'),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+                                          'y toca Guardar.'
+                                    : 'No hay proyectos con este filtro.',
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(

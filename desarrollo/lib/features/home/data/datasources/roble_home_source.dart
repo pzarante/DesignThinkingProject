@@ -115,7 +115,12 @@ class RobleHomeSource implements IHomeSource {
         myProjects.add(project.copyWith(myRelation: relation));
       } else {
         recommendedProjects.add(project);
-        if (savedProjectIds.contains(project.id)) savedProjects.add(project);
+      }
+      // Postularse no lo vuelve propio: si estaba guardado, sigue ahí.
+      if ((relation == null ||
+              relation == MyProjectRelation.pendingApplication) &&
+          savedProjectIds.contains(project.id)) {
+        savedProjects.add(project);
       }
     }
 
