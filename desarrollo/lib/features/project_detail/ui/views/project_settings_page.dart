@@ -6,13 +6,13 @@ import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
-import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
 import '../viewmodels/project_settings_controller.dart';
 import '../widgets/applications_list.dart';
+import '../widgets/member_picker_sheet.dart';
 import '../widgets/project_member_tile.dart';
 import '../widgets/role_settings_tile.dart';
 
@@ -339,29 +339,11 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       return;
     }
 
-    final selected = await showModalBottomSheet<ProjectMember>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.only(bottom: AppSpacing.sm),
-              child: AppTagChip(label: 'Elegir co-líder'),
-            ),
-            for (final member in candidates)
-              ListTile(
-                title: Text(member.name),
-                subtitle: member.subtitle == null
-                    ? null
-                    : Text(member.subtitle!),
-                trailing: member.isCoLeader ? const Icon(Icons.check) : null,
-                onTap: () => Navigator.of(context).pop(member),
-              ),
-          ],
-        ),
-      ),
+    final selected = await showMemberPickerSheet(
+      context,
+      label: 'Elegir co-líder',
+      candidates: candidates,
+      isSelected: (member) => member.isCoLeader,
     );
 
     if (selected != null) controller.setCoLeader(selected.id);
@@ -467,6 +449,11 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                     skills: skills,
                     totalSlots: totalSlots,
                     filledSlots: minSlots,
+                    // Los cupos ya guardados siguen siendo los mismos: sin
+                    // esto, renombrar el rol borraría sus filas y crearía
+                    // otras nuevas.
+                    slotIds: existing?.slotIds ?? const [],
+                    openSlotIds: existing?.openSlotIds ?? const [],
                   ),
                 );
               },

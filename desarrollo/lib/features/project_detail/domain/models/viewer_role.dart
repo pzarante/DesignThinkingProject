@@ -17,7 +17,10 @@ enum ViewerRole {
 
   bool get belongsToProject => this != ViewerRole.visitor;
 
-  bool get canConfigure => this == ViewerRole.creator;
+  /// Configuración y postulaciones: el co-líder gestiona igual que el líder
+  /// (la configuración ya impide que quite al líder del equipo).
+  bool get canConfigure =>
+      this == ViewerRole.creator || this == ViewerRole.coLeader;
 
   bool get canPublish => this == ViewerRole.creator || this == ViewerRole.coLeader;
 }

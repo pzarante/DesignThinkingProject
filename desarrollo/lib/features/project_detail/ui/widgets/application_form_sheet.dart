@@ -33,7 +33,10 @@ Future<bool> showApplicationForm(
   // dropdown aunque ya no tenga cupos libres — es su propia postulación.
   final selectableRoles = openRoles
       .where(
-        (role) => role.isOpen || role.title == existingApplication?.roleTitle,
+        (role) =>
+            role.isOpen ||
+            (existingApplication != null &&
+                _isRoleOf(role, existingApplication)),
       )
       .toList();
 
@@ -54,6 +57,10 @@ Future<bool> showApplicationForm(
 
   return submitted ?? false;
 }
+
+bool _isRoleOf(ProjectRole role, ProjectApplication application) =>
+    role.hasSlot(application.projectRoleId) ||
+    role.title == application.roleTitle;
 
 class _ApplicationForm extends StatefulWidget {
   const _ApplicationForm({
@@ -91,7 +98,9 @@ class _ApplicationFormState extends State<_ApplicationForm> {
     if (widget.isEditing) {
       final existing = widget.existingApplication!;
       _motivationField = TextEditingController(text: existing.motivation);
-      widget.controller.desiredRole.value = existing.roleTitle;
+      widget.controller.desiredRole.value = widget.openRoles
+          .where((role) => _isRoleOf(role, existing))
+          .firstOrNull;
       widget.controller.availability.value = existing.availability;
     } else {
       _motivationField = TextEditingController();
@@ -171,10 +180,21 @@ class _ApplicationFormState extends State<_ApplicationForm> {
       ),
     );
 
-    if (confirmed ?? false) {
-      await widget.controller.withdraw();
-      if (mounted) Navigator.pop(context, true);
+    if (!(confirmed ?? false)) return;
+    final ok = await widget.controller.withdraw();
+    if (!mounted) return;
+    if (ok) {
+      Navigator.pop(context, true);
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          widget.controller.errorMessage.value ??
+              'No se pudo retirar la postulación.',
+        ),
+      ),
+    );
   }
 
   @override
@@ -205,16 +225,23 @@ class _ApplicationFormState extends State<_ApplicationForm> {
             const SizedBox(height: AppSpacing.xs),
             Obx(
               () => DropdownButtonFormField<String>(
-                initialValue: widget.controller.desiredRole.value,
+                initialValue: widget.controller.desiredRole.value?.title,
                 items: [
                   for (final role in widget.openRoles)
                     DropdownMenuItem(
                       value: role.title,
-                      child: Text(role.title),
+                      child: Text(
+                        role.totalSlots > 1
+                            ? '${role.title} · ${role.openSlots} '
+                                  'cupo${role.openSlots == 1 ? '' : 's'}'
+                            : role.title,
+                      ),
                     ),
                 ],
-                onChanged: (value) =>
-                    widget.controller.desiredRole.value = value,
+                onChanged: (value) => widget.controller.desiredRole.value =
+                    widget.openRoles
+                        .where((role) => role.title == value)
+                        .firstOrNull,
                 decoration: const InputDecoration(),
               ),
             ),
@@ -261,17 +288,28 @@ class _ApplicationFormState extends State<_ApplicationForm> {
                 onPressed: widget.controller.isSubmitting.value
                     ? null
                     : _submit,
-                child: Text(
-                  widget.isEditing ? 'Guardar cambios' : 'Enviar postulación',
-                ),
+                child: widget.controller.isSubmitting.value
+                    ? const SizedBox.square(
+                        dimension: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        widget.isEditing
+                            ? 'Guardar cambios'
+                            : 'Enviar postulación',
+                      ),
               ),
             ),
 
             if (widget.isEditing) ...[
               const SizedBox(height: AppSpacing.sm),
-              TextButton(
-                onPressed: _confirmWithdraw,
-                child: const Text('Retirar postulación'),
+              Obx(
+                () => TextButton(
+                  onPressed: widget.controller.isSubmitting.value
+                      ? null
+                      : _confirmWithdraw,
+                  child: const Text('Retirar postulación'),
+                ),
               ),
             ],
           ],

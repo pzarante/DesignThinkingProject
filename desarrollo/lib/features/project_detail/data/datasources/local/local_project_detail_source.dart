@@ -342,6 +342,67 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     return ProjectMember(id: user.id ?? _currentUser.id, name: user.name, email: user.email);
   }
 
+  /// En memoria los roles no tienen filas propias: [projectRoleId] es el
+  /// título del rol.
+  @override
+  Future<void> addMember({
+    required String projectId,
+    required ProjectMember member,
+    required String projectRoleId,
+  }) async {
+    final current = _details[projectId];
+    if (current == null) return;
+
+    final roles = List<ProjectRole>.of(current.openRoles);
+    final index = roles.indexWhere(
+      (role) => role.title == projectRoleId || role.hasSlot(projectRoleId),
+    );
+    final roleTitle = index == -1 ? null : roles[index].title;
+    if (index != -1 && roles[index].isOpen) {
+      roles[index] = roles[index].copyWith(
+        filledSlots: roles[index].filledSlots + 1,
+      );
+    }
+
+    final joined = member.copyWith(
+      roleLabel: roleTitle?.toUpperCase(),
+      subtitle: roleTitle,
+    );
+    final alreadyMember = current.members.any((m) => m.id == member.id);
+    _details[projectId] = current.copyWith(
+      openRoles: roles,
+      members: alreadyMember
+          ? [for (final m in current.members) m.id == member.id ? joined : m]
+          : [...current.members, joined],
+    );
+  }
+
+  @override
+  Future<void> leaveProject({
+    required String projectId,
+    String? newLeaderId,
+  }) async {
+    final current = _details[projectId];
+    if (current == null) return;
+    final me = (await getCurrentUser()).id;
+    final mine = current.members.where((m) => m.id == me).firstOrNull;
+    if (mine == null) throw StateError('Ya no formas parte de este proyecto.');
+    if (mine.isCreator &&
+        !current.members.any((m) => m.id == newLeaderId && m.id != me)) {
+      throw StateError('Elige quién liderará el proyecto antes de salir.');
+    }
+
+    _details[projectId] = current.copyWith(
+      members: [
+        for (final m in current.members)
+          if (m.id != me)
+            m.id == newLeaderId
+                ? m.copyWith(isCreator: true, isCoLeader: false)
+                : m,
+      ],
+    );
+  }
+
   @override
   Future<({int count, bool likedByMe})> getLikeStatus(String projectId) async {
     final me = (await getCurrentUser()).id;
