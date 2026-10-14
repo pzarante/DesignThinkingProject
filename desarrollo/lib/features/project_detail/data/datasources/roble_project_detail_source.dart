@@ -50,6 +50,8 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   static const _tableApplications = 'project_applications';
   static const _applicationPending = 'pending';
   static const _likeType = 'like';
+  static String _publicationReactionType(String publicationId) =>
+      '$_likeType:$publicationId';
 
   static const _tableUpdates = 'project_updates';
   static const _tableMedia = 'project_media';
@@ -566,10 +568,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       filters: {'project_id': projectId},
     );
     final likes = rows.where(
-      (r) =>
-          r['project_id'] == projectId &&
-          r['update_id'] == null &&
-          r['reaction_type'] == _likeType,
+      (r) => r['project_id'] == projectId && r['reaction_type'] == _likeType,
     );
     final me = (await _authRepository.getLoggedUser())?.id;
     return (
@@ -589,7 +588,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         'user_id': me.id,
         'reaction_type': _likeType,
       },
-    )).where((r) => r['update_id'] == null).toList();
+    ));
     if (existing.isNotEmpty) {
       // Todas: un doble toque de antes pudo dejar más de una.
       for (final row in existing) {
@@ -690,9 +689,9 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       RobleQuery(_tableComments, {'project_id': projectId}),
       const RobleQuery(_tableUsers),
     ]);
-    // Los de una publicación (`update_id`) van en su tarjeta, no aquí.
+    // Los de una publicación (`parent_id`) van en su tarjeta, no aquí.
     final mine = tables[0]
-        .where((r) => r['project_id'] == projectId && r['update_id'] == null)
+        .where((r) => r['project_id'] == projectId && r['parent_id'] == null)
         .toList();
     if (mine.isEmpty) return const [];
     return _toComments(mine, _usersById(tables[1]));
@@ -740,7 +739,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       'project_id': projectId,
       'author_id': me.id,
       'author_name': displayName,
-      'update_id': ?publicationId,
+      ...?publicationId == null ? null : {'parent_id': publicationId},
       'content': content,
       'status': 'published',
       'created_at': DateTime.now().toUtc().toIso8601String(),
@@ -797,10 +796,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         () {
           final id = update['_id'];
           final likes = reactions.where(
-            (r) => r['update_id'] == id && r['reaction_type'] == _likeType,
+            (r) => r['reaction_type'] == _publicationReactionType(id as String),
           );
           final own = _toComments(
-            comments.where((c) => c['update_id'] == id),
+            comments.where((c) => c['parent_id'] == id),
             userById,
           );
           return Publication(
@@ -1033,7 +1032,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   @override
   Future<int> togglePublicationReaction(Publication publication) async {
     final me = await _authRepository.ensureGuestSession();
-    final likes = {'update_id': publication.id, 'reaction_type': _likeType};
+    final likes = {
+      'project_id': publication.projectId,
+      'reaction_type': _publicationReactionType(publication.id),
+    };
     final existing = await _db.read(
       _tableReactions,
       filters: {...likes, 'user_id': me.id},
@@ -1044,8 +1046,6 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       }
     } else {
       await _db.create(_tableReactions, {
-        // La restricción pide `project_id` (y no `comment_id`).
-        'project_id': publication.projectId,
         ...likes,
         'user_id': me.id,
         'created_at': DateTime.now().toUtc().toIso8601String(),
@@ -1101,6 +1101,9 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     _tablePolls,
     _tablePollQuestions,
     _tablePollOptions,
+    _tablePollResponses,
+    _tableComments,
+    _tableReactions,
   ];
 
   /// El id de quien tiene sesión, solo si es una cuenta de verdad: un
