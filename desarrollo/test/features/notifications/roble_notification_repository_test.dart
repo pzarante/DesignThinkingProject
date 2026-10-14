@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 
-import 'package:f_clean_template/core/i_local_preferences.dart';
 import 'package:f_clean_template/features/auth/domain/repositories/i_auth_repository.dart';
 import 'package:f_clean_template/features/notifications/data/repositories/roble_notification_repository.dart';
 import 'package:f_clean_template/features/notifications/domain/models/app_notification.dart';
@@ -33,22 +32,6 @@ FakeRobleServer _project() => FakeRobleServer({
   ],
 });
 
-/// Preferencias en memoria, compartidas como las de un mismo teléfono.
-class _Preferences implements ILocalPreferences {
-  final Map<String, String> values = {};
-
-  @override
-  Future<String?> getString(String key) async => values[key];
-
-  @override
-  Future<void> setString(String key, String value) async => values[key] = value;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-final _phone = _Preferences();
-
 /// El repositorio visto por [userId].
 RobleNotificationRepository _as(FakeRobleServer server, String userId) {
   Get.reset();
@@ -57,7 +40,6 @@ RobleNotificationRepository _as(FakeRobleServer server, String userId) {
     server.db,
     server.cache,
     Get.find<IAuthRepository>(),
-    _phone,
   );
 }
 
@@ -123,26 +105,41 @@ void main() {
   );
 
   test(
-    'un rechazo sale en la bandeja de quien se postuló sin fila propia',
+    'un rechazo se guarda como application_rejected y se marca leído',
     () async {
       final server = _project();
-      server.rows('project_applications').add({
-        '_id': 'a1',
-        'project_id': 'p1',
-        'applicant_id': 'ana',
-        'status': 'rejected',
-        'reviewed_at': '2026-10-14T10:00:00Z',
-      });
+
+      await _as(server, 'lider').send(
+        type: NotificationType.applicationRejected,
+        recipientId: 'ana',
+        message: 'Tu postulación a MotionLab no fue aceptada esta vez.',
+        projectId: 'p1',
+      );
+
+      final row = server.rows('notifications').single;
+      expect(row['notification_type'], 'application_rejected');
 
       final inbox = _as(server, 'ana');
       final rejection = (await inbox.getAll()).single;
       expect(rejection.type, NotificationType.applicationRejected);
-      expect(rejection.message, contains('MotionLab'));
-      expect(await inbox.getUnreadCount(), 1);
-
-      await inbox.markAllAsRead();
+      await inbox.markAsRead(rejection.id);
       expect(await inbox.getUnreadCount(), 0);
-      expect(server.rows('notifications'), isEmpty);
     },
   );
+
+  test('una salida del equipo avisa a quienes lideran', () async {
+    final server = _project();
+
+    await _as(server, 'dev').send(
+      type: NotificationType.memberLeft,
+      message: 'dev salió de MotionLab.',
+      projectId: 'p1',
+    );
+
+    expect(_recipients(server), {'lider', 'colider'});
+    expect(
+      server.rows('notifications').first['notification_type'],
+      'member_left',
+    );
+  });
 }
