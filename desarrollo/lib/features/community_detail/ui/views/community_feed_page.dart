@@ -40,8 +40,8 @@ class _CommunityFeedPageState extends State<CommunityFeedPage> {
     _ => null,
   };
 
-  Future<void> _toggleMembership() async {
-    await controller.toggleMembership();
+  Future<void> _toggleFollowing() async {
+    await controller.toggleFollowing();
     final error = controller.actionError.value;
     if (error.isEmpty) return;
     controller.actionError.value = '';
@@ -137,10 +137,7 @@ class _CommunityFeedPageState extends State<CommunityFeedPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        CommunityHeader(
-          community: detail,
-          onToggleMembership: _toggleMembership,
-        ),
+        CommunityHeader(community: detail, onToggleFollowing: _toggleFollowing),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,

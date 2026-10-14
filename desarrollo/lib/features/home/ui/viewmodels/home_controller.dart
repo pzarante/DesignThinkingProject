@@ -90,21 +90,30 @@ class HomeController extends GetxController with UiLoggy {
     for (final community in feed.followedCommunities) ...community.tags,
   };
 
-  /// Ordena las recomendaciones poniendo delante las que comparten más
-  /// etiquetas con lo que ya le interesa.
+  /// Ordena las recomendaciones: primero los proyectos que sigue, luego los
+  /// que comparten más etiquetas con lo que ya le interesa, y a igualdad el
+  /// orden en que venían.
   ///
-  /// Sin intereses todavía (cuenta nueva, o sin sesión) se deja el orden como
-  /// viene: inventar un ranking con cero señales solo barajaría la lista.
+  /// Sin seguidos ni intereses todavía (cuenta nueva, o sin sesión) queda
+  /// como viene: inventar un ranking con cero señales solo barajaría la lista.
   List<Project> _byAffinity(List<Project> projects) {
     final interests = _myInterests;
-    if (interests.isEmpty) return projects;
+    final followed = feed.followedProjectIds;
+    if (interests.isEmpty && followed.isEmpty) return projects;
 
-    int score(Project project) =>
-        project.tags.where(interests.contains).length;
+    int score(Project project) => project.tags.where(interests.contains).length;
 
-    final ranked = [...projects];
-    ranked.sort((a, b) => score(b).compareTo(score(a)));
-    return ranked;
+    // Con el índice por delante: `sort` de Dart no es estable.
+    final ranked = [for (final (i, p) in projects.indexed) (i, p)];
+    ranked.sort((a, b) {
+      final byFollow = (followed.contains(b.$2.id) ? 1 : 0).compareTo(
+        followed.contains(a.$2.id) ? 1 : 0,
+      );
+      if (byFollow != 0) return byFollow;
+      final byScore = score(b.$2).compareTo(score(a.$2));
+      return byScore != 0 ? byScore : a.$1.compareTo(b.$1);
+    });
+    return [for (final entry in ranked) entry.$2];
   }
 
   List<Project> get filteredMyProjectsSummary {
@@ -151,6 +160,13 @@ class HomeController extends GetxController with UiLoggy {
       opportunities: feed.opportunities,
       myProjects: updated,
       savedProjects: feed.savedProjects,
+      followedProjectIds: feed.followedProjectIds,
     );
+  }
+
+  /// Refleja al instante que se siguió o se dejó de seguir un proyecto, sin
+  /// volver a pedir el feed: así el home ya lo prioriza al volver del detalle.
+  void markFollowed(String projectId, {required bool followed}) {
+    _feed.value = feed.withFollowed(projectId, followed: followed);
   }
 }

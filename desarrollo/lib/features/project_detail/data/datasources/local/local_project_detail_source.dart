@@ -2,6 +2,7 @@ import '../../../../auth/domain/repositories/i_auth_repository.dart';
 import '../../../domain/models/project_comment.dart';
 import '../../../domain/models/project_detail.dart';
 import '../../../domain/models/project_member.dart';
+import '../../../domain/models/publication.dart';
 import '../../../domain/models/project_milestone.dart';
 import '../../../domain/models/project_role.dart';
 import '../../../domain/models/viewer_role.dart';
@@ -18,6 +19,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
 
   final Map<String, Set<String>> _likedBy = {};
   final Map<String, List<ProjectComment>> _comments = {};
+  final Map<String, List<Publication>> _publications = {};
   final Set<String> _saved = {};
   final Set<String> _following = {};
 
@@ -332,14 +334,20 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       _details[projectId];
 
   @override
-  Future<void> saveDetail(ProjectDetail detail) async =>
-      _details[detail.projectId] = detail;
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  }) async => _details[detail.projectId] = detail;
 
   @override
   Future<ProjectMember> getCurrentUser() async {
     final user = await _authRepository.getLoggedUser();
     if (user == null) return _currentUser;
-    return ProjectMember(id: user.id ?? _currentUser.id, name: user.name, email: user.email);
+    return ProjectMember(
+      id: user.id ?? _currentUser.id,
+      name: user.name,
+      email: user.email,
+    );
   }
 
   /// En memoria los roles no tienen filas propias: [projectRoleId] es el
@@ -449,6 +457,7 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     String projectId,
     String content, {
     String? authorName,
+    String? publicationId,
   }) async {
     final me = await getCurrentUser();
     final comment = ProjectComment(
@@ -460,14 +469,83 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       content: content,
       createdAt: DateTime.now(),
     );
-    (_comments[projectId] ??= []).add(comment);
+    if (publicationId == null) {
+      (_comments[projectId] ??= []).add(comment);
+    } else {
+      _replace(
+        projectId,
+        publicationId,
+        (p) => p.copyWith(
+          comments: [...p.comments, comment],
+          commentCount: p.commentCount + 1,
+        ),
+      );
+    }
     return comment;
+  }
+
+  @override
+  Future<List<Publication>> getPublications(String projectId) async =>
+      List.of(_publications[projectId] ?? const []);
+
+  @override
+  Future<Publication> createPublication(Publication publication) async {
+    final created = publication.copyWith(
+      id: 'publication${DateTime.now().microsecondsSinceEpoch}',
+    );
+    (_publications[publication.projectId] ??= []).insert(0, created);
+    return created;
+  }
+
+  @override
+  Future<void> updatePublication(Publication publication) async => _replace(
+    publication.projectId,
+    publication.id,
+    (p) => publication.copyWith(pollVotes: p.pollVotes),
+  );
+
+  @override
+  Future<void> deletePublication(Publication publication) async =>
+      _publications[publication.projectId]?.removeWhere(
+        (p) => p.id == publication.id,
+      );
+
+  @override
+  Future<int> togglePublicationReaction(Publication publication) async {
+    var count = 0;
+    _replace(publication.projectId, publication.id, (p) {
+      count = p.reactionCount + (p.viewerReacted ? -1 : 1);
+      return p.copyWith(viewerReacted: !p.viewerReacted, reactionCount: count);
+    });
+    return count;
+  }
+
+  @override
+  Future<void> votePoll(Publication publication, String option) async =>
+      _replace(publication.projectId, publication.id, (p) {
+        final votes = Map.of(p.pollVotes);
+        final previous = p.selectedPollOption;
+        if (previous == option) return p;
+        if (previous != null) votes[previous] = (votes[previous] ?? 1) - 1;
+        votes[option] = (votes[option] ?? 0) + 1;
+        return p.copyWith(selectedPollOption: option, pollVotes: votes);
+      });
+
+  void _replace(
+    String projectId,
+    String publicationId,
+    Publication Function(Publication) change,
+  ) {
+    final list = _publications[projectId];
+    final index = list?.indexWhere((p) => p.id == publicationId) ?? -1;
+    if (index != -1) list![index] = change(list[index]);
   }
 
   @override
   Future<void> deleteProject(String projectId) async {
     _details.remove(projectId);
     _comments.remove(projectId);
+    _publications.remove(projectId);
     _likedBy.remove(projectId);
     _saved.remove(projectId);
     _following.remove(projectId);

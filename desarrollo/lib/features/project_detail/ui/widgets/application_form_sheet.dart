@@ -238,8 +238,8 @@ class _ApplicationFormState extends State<_ApplicationForm> {
                       ),
                     ),
                 ],
-                onChanged: (value) => widget.controller.desiredRole.value =
-                    widget.openRoles
+                onChanged: (value) =>
+                    widget.controller.desiredRole.value = widget.openRoles
                         .where((role) => role.title == value)
                         .firstOrNull,
                 decoration: const InputDecoration(),

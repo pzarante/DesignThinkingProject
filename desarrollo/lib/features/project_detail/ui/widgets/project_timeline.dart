@@ -71,8 +71,7 @@ class _TimelineEntry extends StatelessWidget {
                       )
                     : null,
               ),
-              if (!isLast)
-                Expanded(child: Container(width: 2, color: color)),
+              if (!isLast) Expanded(child: Container(width: 2, color: color)),
             ],
           ),
           const SizedBox(width: AppSpacing.sm),

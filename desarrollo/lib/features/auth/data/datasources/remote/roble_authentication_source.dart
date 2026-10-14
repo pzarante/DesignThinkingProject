@@ -1,6 +1,7 @@
 import 'package:loggy/loggy.dart';
 import 'package:roble/roble.dart';
 
+import '../../../../../core/roble_cache.dart';
 import '../../../../../core/roble_read.dart';
 import '../../../domain/models/authentication_user.dart';
 import '../../../domain/unknown_account_exception.dart';
@@ -10,9 +11,10 @@ import 'i_authentication_source.dart';
 /// devuelve el servidor y traducir los fallos es del repositorio y de
 /// `errorMessage`.
 class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
-  RobleAuthenticationSource(this._db);
+  RobleAuthenticationSource(this._db, this._cache);
 
   final RobleApiDataBase _db;
+  final RobleTableCache _cache;
 
   @override
   Future<bool> login(AuthenticationUser user) async {
@@ -20,6 +22,8 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
       email: await _resolveEmail(user.email),
       password: user.password ?? '',
     );
+    // Lo leído antes (como invitado u otra cuenta) no vale para esta sesión.
+    _cache.invalidate();
     await _ensureUserRow(profile);
     return true;
   }
@@ -38,16 +42,13 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
     final value = identifier.trim();
     if (value.contains('@')) return value;
 
-    final normalized = value.toLowerCase();
-    final rows = await readPublicOrPrivate(_db, 'users');
-    final match = rows
-        .where(
-          (row) =>
-              (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
-        )
-        .firstOrNull;
-
-    final email = match?['email'] as String?;
+    // Exacto, mayúsculas incluidas: "Ana" y "ana" son nombres distintos.
+    final rows = await readPublicOrPrivate(
+      _db,
+      'users',
+      filters: {'user_name': value},
+    );
+    final email = rows.firstOrNull?['email'] as String?;
     if (email == null || email.isEmpty) {
       throw const UnknownAccountException(
         'No encontramos ninguna cuenta con ese nombre de usuario. '
@@ -111,6 +112,7 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
         email: user.email,
         password: user.password ?? '',
       );
+      _cache.invalidate();
       await _ensureUserRow(profile, signupData: user);
     } catch (exception) {
       // P. ej. "nombre de usuario" repetido (es único): la cuenta de ROBLE
@@ -133,14 +135,15 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
   /// registrarse. Queda en el log para poder diagnosticarlo.
   @override
   Future<bool> isUserNameAvailable(String userName) async {
-    final normalized = userName.trim().toLowerCase();
-    if (normalized.isEmpty) return false;
+    final value = userName.trim();
+    if (value.isEmpty) return false;
     try {
-      final rows = await readPublicOrPrivate(_db, 'users');
-      return !rows.any(
-        (row) =>
-            (row['user_name'] as String?)?.trim().toLowerCase() == normalized,
+      final rows = await readPublicOrPrivate(
+        _db,
+        'users',
+        filters: {'user_name': value},
       );
+      return rows.isEmpty;
     } on RobleTableNotPublicException catch (exception) {
       loggy.warning(
         'RobleAuthenticationSource: no se pudo comprobar el nombre de '
@@ -152,7 +155,11 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
 
   @override
   Future<bool> logOut() async {
-    await _db.logout();
+    try {
+      await _db.logout();
+    } finally {
+      _cache.invalidate();
+    }
     return true;
   }
 

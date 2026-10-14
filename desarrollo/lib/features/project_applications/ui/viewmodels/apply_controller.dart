@@ -69,15 +69,21 @@ class ApplyController extends GetxController with UiLoggy {
   ///
   /// Si se está editando y el rol no cambió, se conserva el cupo original
   /// aunque ya no aparezca libre: es el suyo.
-  String _slotFor(ProjectRole role) {
+  ///
+  /// Null si el rol tiene cupos en ROBLE pero ninguno libre: usar el título
+  /// como id dejaría una postulación que nadie ve.
+  String? _slotFor(ProjectRole role) {
     final current = existing.value;
     if (current != null &&
         (role.hasSlot(current.projectRoleId) ||
             role.title == current.roleTitle)) {
       return current.projectRoleId;
     }
+    if (role.slotIds.isNotEmpty && role.firstOpenSlotId == null) return null;
     return role.firstOpenSlotId ?? role.title;
   }
+
+  static const _noSlotMessage = 'Ese rol ya no tiene cupos libres. Elige otro.';
 
   Future<bool> submit({
     required String projectId,
@@ -94,6 +100,11 @@ class ApplyController extends GetxController with UiLoggy {
     isSubmitting.value = true;
     errorMessage.value = null;
     try {
+      final slot = _slotFor(role);
+      if (slot == null) {
+        errorMessage.value = _noSlotMessage;
+        return false;
+      }
       final already = await repository.hasApplied(
         projectId: projectId,
         applicantId: applicantId,
@@ -107,7 +118,7 @@ class ApplyController extends GetxController with UiLoggy {
         ProjectApplication(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
           projectId: projectId,
-          projectRoleId: _slotFor(role),
+          projectRoleId: slot,
           roleTitle: role.title,
           applicantId: applicantId,
           applicantName: applicantName,
@@ -143,8 +154,13 @@ class ApplyController extends GetxController with UiLoggy {
     isSubmitting.value = true;
     errorMessage.value = null;
     try {
+      final slot = _slotFor(role);
+      if (slot == null) {
+        errorMessage.value = _noSlotMessage;
+        return false;
+      }
       final updated = current.copyWith(
-        projectRoleId: _slotFor(role),
+        projectRoleId: slot,
         roleTitle: role.title,
         motivation: motivation.value.trim(),
         availability: availability.value.trim(),

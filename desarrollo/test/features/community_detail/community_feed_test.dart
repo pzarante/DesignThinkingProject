@@ -41,7 +41,7 @@ void main() {
     await _openCommunity(tester, 'c1');
 
     expect(find.text('Studio Creativo UNI'), findsOneWidget);
-    expect(find.text('12 miembros'), findsOneWidget);
+    expect(find.text('2 miembros · 12 seguidores'), findsOneWidget);
     expect(find.text('1 proyecto en la comunidad'), findsOneWidget);
     expect(find.text('MotionLab'), findsOneWidget);
   });

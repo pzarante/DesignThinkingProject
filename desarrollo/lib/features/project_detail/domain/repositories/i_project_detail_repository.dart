@@ -1,13 +1,24 @@
 import '../models/project_comment.dart';
 import '../models/project_detail.dart';
 import '../models/project_member.dart';
+import '../models/publication.dart';
 
 abstract class IProjectDetailRepository {
   /// Detalle guardado de un proyecto, o null si todavía no tiene uno.
+  ///
+  /// Lanza `ProjectUnavailableException` si el proyecto se borró.
   Future<ProjectDetail?> getDetail(String projectId);
 
   /// Guarda el detalle recién creado o editado desde la configuración.
-  Future<void> saveDetail(ProjectDetail detail);
+  ///
+  /// [originalMemberIds] es la línea base del equipo: quiénes estaban activos
+  /// cuando se abrió la configuración. Solo a ellos se les puede retirar al
+  /// guardar; quien entró después no está en la copia que se edita y no debe
+  /// salir por eso. Vacío (un proyecto nuevo) no retira a nadie.
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  });
 
   /// Usuario en sesión, que es quien figura como creador de lo que publica.
   Future<ProjectMember> getCurrentUser();
@@ -51,7 +62,26 @@ abstract class IProjectDetailRepository {
     String projectId,
     String content, {
     String? authorName,
+    String? publicationId,
   });
+
+  /// Publicaciones del muro, de la más nueva a la más vieja.
+  Future<List<Publication>> getPublications(String projectId);
+
+  /// Publica [publication] y la devuelve con el id que le dio el servidor.
+  Future<Publication> createPublication(Publication publication);
+
+  /// Guarda título, texto, imagen y enlace. Las opciones de una encuesta no
+  /// se tocan: ya puede tener votos.
+  Future<void> updatePublication(Publication publication);
+
+  Future<void> deletePublication(Publication publication);
+
+  /// Da o quita el "me gusta" de quien mira. Devuelve el total ya actualizado.
+  Future<int> togglePublicationReaction(Publication publication);
+
+  /// Vota [option] en la encuesta; si ya había votado, cambia su voto.
+  Future<void> votePoll(Publication publication, String option);
 
   /// Elimina o archiva lógicamente el proyecto.
   Future<void> deleteProject(String projectId);

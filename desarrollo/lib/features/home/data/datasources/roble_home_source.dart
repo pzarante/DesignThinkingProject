@@ -32,6 +32,7 @@ class RobleHomeSource implements IHomeSource {
   static const _tableProjectApplications = 'project_applications';
   static const _tableProjectLinks = 'project_links';
   static const _tableProjectSaved = 'project_saved';
+  static const _tableProjectFollowers = 'project_followers';
 
   @override
   Future<HomeFeed> getFeed() async {
@@ -64,6 +65,10 @@ class RobleHomeSource implements IHomeSource {
         _tableCommunityMembers: RobleQuery(_tableCommunityMembers, {
           'user_id': myUserId,
         }),
+        _tableProjectFollowers: RobleQuery(_tableProjectFollowers, {
+          'user_id': myUserId,
+          'status': 'active',
+        }),
       },
     };
     final results = await _cache.readQueries(queries.values.toList());
@@ -78,6 +83,7 @@ class RobleHomeSource implements IHomeSource {
     final projectRows = tables[_tableProjects]!;
     final savedRows = tables[_tableProjectSaved] ?? none;
     final communityMembers = tables[_tableCommunityMembers] ?? none;
+    final followerRows = tables[_tableProjectFollowers] ?? none;
     final communities = tables[_tableCommunities]!;
     final projectCommunities = tables[_tableProjectCommunities]!;
     final applications = await applicationsFuture;
@@ -159,6 +165,9 @@ class RobleHomeSource implements IHomeSource {
       opportunities: const <Opportunity>[],
       myProjects: myProjects,
       savedProjects: savedProjects,
+      followedProjectIds: {
+        for (final row in followerRows) row['project_id'] as String,
+      },
     );
   }
 
@@ -171,11 +180,13 @@ class RobleHomeSource implements IHomeSource {
     required int maxMembers,
     required String availability,
     String? coLeaderId,
-    List<String> links = const [], 
+    List<String> links = const [],
   }) async {
     final userId = (await _authRepository.getLoggedUser())?.id;
     if (userId == null) {
-      throw StateError('No hay sesión iniciada: no se puede publicar un proyecto.');
+      throw StateError(
+        'No hay sesión iniciada: no se puede publicar un proyecto.',
+      );
     }
 
     final stages = await _cache.read(_tableStages);
@@ -276,7 +287,9 @@ class RobleHomeSource implements IHomeSource {
   Future<void> addCommunity(Community community) async {
     final userId = (await _authRepository.getLoggedUser())?.id;
     if (userId == null) {
-      throw StateError('No hay sesión iniciada: no se puede crear una comunidad.');
+      throw StateError(
+        'No hay sesión iniciada: no se puede crear una comunidad.',
+      );
     }
 
     final now = DateTime.now().toUtc().toIso8601String();
@@ -348,7 +361,8 @@ class RobleHomeSource implements IHomeSource {
       'name': community.name,
       'description': community.description,
       'cover_url': community.coverUrl,
-      'status': community.isPublic ? 'published' : 'private',
+      // El CHECK de `communities.status` no tiene 'private'.
+      'status': community.isPublic ? 'published' : 'draft',
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
 

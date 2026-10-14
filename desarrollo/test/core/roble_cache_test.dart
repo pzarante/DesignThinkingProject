@@ -86,24 +86,30 @@ void main() {
     expect(client.requestedTables, ['projects']);
   });
 
-  test('dos lecturas a la vez de la misma tabla son una sola petición', () async {
-    final client = _FakeClient(delay: const Duration(milliseconds: 20));
-    final cache = _cacheWith(client);
+  test(
+    'dos lecturas a la vez de la misma tabla son una sola petición',
+    () async {
+      final client = _FakeClient(delay: const Duration(milliseconds: 20));
+      final cache = _cacheWith(client);
 
-    await Future.wait([cache.read('users'), cache.read('users')]);
+      await Future.wait([cache.read('users'), cache.read('users')]);
 
-    expect(client.requestedTables, ['users']);
-  });
+      expect(client.requestedTables, ['users']);
+    },
+  );
 
-  test('ordenar lo devuelto no le cambia el orden a la siguiente lectura', () async {
-    final client = _FakeClient();
-    final cache = _cacheWith(client);
+  test(
+    'ordenar lo devuelto no le cambia el orden a la siguiente lectura',
+    () async {
+      final client = _FakeClient();
+      final cache = _cacheWith(client);
 
-    final first = await cache.read('tags');
-    first.clear();
+      final first = await cache.read('tags');
+      first.clear();
 
-    expect(await cache.read('tags'), hasLength(1));
-  });
+      expect(await cache.read('tags'), hasLength(1));
+    },
+  );
 
   test('un fallo dice de qué tabla fue', () async {
     final client = _FakeClient(statusByTable: {'project_members': 403});
@@ -169,22 +175,29 @@ void main() {
     );
   });
 
-  test('los filtros viajan al servidor y cada combinación se guarda aparte', () async {
-    final client = _FakeClient();
-    final cache = _cacheWith(client);
+  test(
+    'los filtros viajan al servidor y cada combinación se guarda aparte',
+    () async {
+      final client = _FakeClient();
+      final cache = _cacheWith(client);
 
-    await cache.read('project_saved', filters: {'user_id': 'ana'});
-    await cache.read('project_saved', filters: {'user_id': 'ana'});
-    await cache.read('project_saved', filters: {'user_id': 'luis'});
-    await cache.read('project_saved');
+      await cache.read('project_saved', filters: {'user_id': 'ana'});
+      await cache.read('project_saved', filters: {'user_id': 'ana'});
+      await cache.read('project_saved', filters: {'user_id': 'luis'});
+      await cache.read('project_saved');
 
-    expect(client.requestedTables, ['project_saved', 'project_saved', 'project_saved']);
-    expect(client.requestedFilters, [
-      {'user_id': 'ana'},
-      {'user_id': 'luis'},
-      <String, String>{},
-    ]);
-  });
+      expect(client.requestedTables, [
+        'project_saved',
+        'project_saved',
+        'project_saved',
+      ]);
+      expect(client.requestedFilters, [
+        {'user_id': 'ana'},
+        {'user_id': 'luis'},
+        <String, String>{},
+      ]);
+    },
+  );
 
   test('invalidar una tabla olvida también sus lecturas filtradas', () async {
     final client = _FakeClient();
@@ -196,21 +209,55 @@ void main() {
     await cache.read('project_members', filters: {'status': 'active'});
     await cache.read('tags');
 
-    expect(client.requestedTables, ['project_members', 'tags', 'project_members']);
+    expect(client.requestedTables, [
+      'project_members',
+      'tags',
+      'project_members',
+    ]);
   });
 
-  test('readQueries respeta el orden pedido aunque terminen desordenadas', () async {
+  test(
+    'readQueries respeta el orden pedido aunque terminen desordenadas',
+    () async {
+      final client = _FakeClient(delay: const Duration(milliseconds: 5));
+      final cache = _cacheWith(client);
+
+      final rows = await cache.readQueries([
+        for (final name in ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+          RobleQuery(name, {'x': name}),
+      ]);
+
+      expect(
+        [for (final table in rows) table.single['name']],
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+      );
+    },
+  );
+
+  test('una lectura en curso al invalidar no guarda lo viejo', () async {
     final client = _FakeClient(delay: const Duration(milliseconds: 5));
     final cache = _cacheWith(client);
 
-    final rows = await cache.readQueries([
-      for (final name in ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
-        RobleQuery(name, {'x': name}),
-    ]);
+    final before = cache.read('tags');
+    cache.invalidate(['tags']); // p. ej. una escritura mientras viajaba
+    await before;
+    await cache.read('tags');
 
-    expect(
-      [for (final table in rows) table.single['name']],
-      ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
-    );
+    expect(client.requestedTables, ['tags', 'tags']);
   });
+
+  test(
+    'cerrar sesión (invalidate sin tablas) también corta lo que viaja',
+    () async {
+      final client = _FakeClient(delay: const Duration(milliseconds: 5));
+      final cache = _cacheWith(client);
+
+      final before = cache.read('users');
+      cache.invalidate();
+      await before;
+      await cache.read('users');
+
+      expect(client.requestedTables, ['users', 'users']);
+    },
+  );
 }

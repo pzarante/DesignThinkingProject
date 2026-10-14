@@ -12,6 +12,6 @@ class CommunityDetailRepository implements ICommunityDetailRepository {
       source.getDetail(communityId);
 
   @override
-  Future<bool> toggleMembership(String communityId) =>
-      source.toggleMembership(communityId);
+  Future<bool> toggleFollowing(String communityId) =>
+      source.toggleFollowing(communityId);
 }

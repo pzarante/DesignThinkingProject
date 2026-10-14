@@ -283,7 +283,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                   } else if (mounted) {
                     showErrorSnack(
                       'No se pudo guardar',
-                      message: 'Verifica los campos obligatorios y permisos.',
+                      message:
+                          controller.saveError ??
+                          'Verifica los campos obligatorios y permisos.',
                     );
                   }
                 }
@@ -297,6 +299,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     final userSearchController = Get.find<UserSearchController>();
     if (userSearchController.users.isEmpty) {
       await userSearchController.load();
+      if (!context.mounted) return;
     }
     final existingUserIds = controller.members.map((m) => m.id).toSet();
     final availableUsers = userSearchController.users
@@ -307,15 +310,18 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('No hay más usuarios registrados disponibles para agregar.'),
+            content: Text(
+              'No hay más usuarios registrados disponibles para agregar.',
+            ),
           ),
         );
       }
       return;
     }
 
-    final roleField = TextEditingController();
+    final roles = controller.assignableRoles;
     UserSummary? selectedUser = availableUsers.first;
+    ProjectRole? selectedRole;
 
     final added = await showDialog<ProjectMember>(
       context: context,
@@ -350,32 +356,12 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                   onChanged: (val) => setDialogState(() => selectedUser = val),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                TextField(
-                  controller: roleField,
-                  decoration: const InputDecoration(
-                    labelText: 'Rol en el proyecto',
-                    hintText: 'Ej. FRONTEND, DISEÑADOR UI/UX',
-                  ),
+                _RolePicker(
+                  roles: roles,
+                  value: selectedRole,
+                  onChanged: (role) =>
+                      setDialogState(() => selectedRole = role),
                 ),
-                if (controller.openRoles.isNotEmpty) ...[
-                  const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    'Vacantes del proyecto:',
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
-                  Wrap(
-                    spacing: AppSpacing.xs,
-                    children: [
-                      for (final openRole in controller.openRoles)
-                        ActionChip(
-                          label: Text(openRole.title),
-                          onPressed: () {
-                            roleField.text = openRole.title;
-                          },
-                        ),
-                    ],
-                  ),
-                ],
               ],
             ),
           ),
@@ -387,13 +373,16 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
             FilledButton(
               onPressed: () {
                 if (selectedUser == null) return;
-                final roleText = roleField.text.trim();
+                final role = selectedRole;
                 final member = ProjectMember(
                   id: selectedUser!.userId,
                   name: selectedUser!.displayName,
                   avatarUrl: selectedUser!.avatarUrl,
-                  roleLabel: roleText.isEmpty ? null : roleText.toUpperCase(),
-                  subtitle: roleText.isEmpty ? (selectedUser!.career ?? '') : roleText,
+                  projectRoleId: role == null
+                      ? null
+                      : controller.freeSlotOf(role),
+                  roleLabel: role?.title.toUpperCase(),
+                  subtitle: role?.title ?? (selectedUser!.career ?? ''),
                 );
                 Navigator.of(context).pop(member);
               },
@@ -404,7 +393,6 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       ),
     );
 
-    roleField.dispose();
     if (added != null) {
       controller.addMember(added);
       if (mounted) {
@@ -458,34 +446,44 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
   }
 
   Future<void> _editRole(BuildContext context, ProjectMember member) async {
-    final field = TextEditingController(text: member.roleLabel ?? '');
+    final roles = controller.assignableRoles;
+    if (roles.isEmpty) {
+      showErrorSnack(
+        'Sin vacantes libres',
+        message: 'Agrega cupos a un rol para poder asignarlo.',
+      );
+      return;
+    }
+    ProjectRole? selected;
 
-    final role = await showDialog<String>(
+    final role = await showDialog<ProjectRole>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Rol de ${member.name}'),
-        content: TextField(
-          controller: field,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'Rol en el proyecto'),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text('Rol de ${member.name}'),
+          content: _RolePicker(
+            roles: roles,
+            value: selected,
+            allowNone: false,
+            onChanged: (role) => setDialogState(() => selected = role),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: selected == null
+                  ? null
+                  : () => Navigator.of(context).pop(selected),
+              child: const Text('Guardar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(field.text.trim()),
-            child: const Text('Guardar'),
-          ),
-        ],
       ),
     );
 
-    field.dispose();
-    if (role != null) {
-      controller.updateMemberRole(member.id, role.toUpperCase());
-    }
+    if (role != null) controller.updateMemberRole(member.id, role);
   }
 
   Future<void> _confirmRemove(
@@ -702,5 +700,40 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     } else {
       controller.updateRole(index, result);
     }
+  }
+}
+
+/// Elige el rol entre las vacantes con cupo libre: el rol de un integrante
+/// es el cupo que ocupa en `project_roles`, no un texto aparte.
+class _RolePicker extends StatelessWidget {
+  const _RolePicker({
+    required this.roles,
+    required this.value,
+    required this.onChanged,
+    this.allowNone = true,
+  });
+
+  final List<ProjectRole> roles;
+  final ProjectRole? value;
+  final ValueChanged<ProjectRole?> onChanged;
+  final bool allowNone;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<ProjectRole>(
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(
+        labelText: 'Rol en el proyecto',
+        helperText: roles.isEmpty ? 'No hay vacantes con cupo libre.' : null,
+      ),
+      items: [
+        if (allowNone)
+          const DropdownMenuItem<ProjectRole>(child: Text('Sin rol')),
+        for (final role in roles)
+          DropdownMenuItem(value: role, child: Text(role.title)),
+      ],
+      onChanged: onChanged,
+    );
   }
 }

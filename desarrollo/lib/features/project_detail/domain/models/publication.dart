@@ -1,4 +1,9 @@
+import 'project_comment.dart';
+
 /// Publicacion compartida dentro del muro de un proyecto.
+///
+/// En ROBLE es un avance (`project_updates`, con su imagen o enlace en
+/// `project_media`) o, si trae [pollOptions], una encuesta (`polls`).
 class Publication {
   const Publication({
     required this.id,
@@ -32,9 +37,13 @@ class Publication {
   final int reactionCount;
   final int commentCount;
   final bool viewerReacted;
-  final List<String> comments;
+  final List<ProjectComment> comments;
+
+  /// Las encuestas se votan; los me gusta y comentarios son de los avances.
+  bool get isPoll => pollOptions.isNotEmpty;
 
   Publication copyWith({
+    String? id,
     String? title,
     String? content,
     String? imageUrl,
@@ -45,10 +54,10 @@ class Publication {
     int? reactionCount,
     int? commentCount,
     bool? viewerReacted,
-    List<String>? comments,
+    List<ProjectComment>? comments,
   }) {
     return Publication(
-      id: id,
+      id: id ?? this.id,
       projectId: projectId,
       authorName: authorName,
       title: title ?? this.title,

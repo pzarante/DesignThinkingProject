@@ -10,7 +10,8 @@ class LocalCommunityDetailSource implements ICommunityDetailSource {
       id: 'c1',
       name: 'Studio Creativo UNI',
       description: 'Proyectos de diseño, narrativa y motion del campus.',
-      memberCount: 12,
+      memberCount: 2,
+      followerCount: 12,
       projects: [
         CommunityProject(
           id: 'p1',
@@ -28,11 +29,11 @@ class LocalCommunityDetailSource implements ICommunityDetailSource {
   Future<CommunityDetail?> getDetail(String communityId) async {
     final community = _communities[communityId];
     if (community == null) return null;
-    return community.copyWith(isMember: _followed.contains(communityId));
+    return community.copyWith(isFollowing: _followed.contains(communityId));
   }
 
   @override
-  Future<bool> toggleMembership(String communityId) async {
+  Future<bool> toggleFollowing(String communityId) async {
     if (_followed.remove(communityId)) return false;
     _followed.add(communityId);
     return true;

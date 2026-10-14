@@ -60,6 +60,7 @@ class ProjectMember {
     String? subtitle,
     bool? isCreator,
     bool? isCoLeader,
+    String? projectRoleId,
   }) {
     return ProjectMember(
       id: id,
@@ -71,7 +72,7 @@ class ProjectMember {
       isCreator: isCreator ?? this.isCreator,
       isCoLeader: isCoLeader ?? this.isCoLeader,
       membershipId: membershipId,
-      projectRoleId: projectRoleId,
+      projectRoleId: projectRoleId ?? this.projectRoleId,
       status: status,
       joinedAt: joinedAt,
       leftAt: leftAt,

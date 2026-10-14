@@ -11,6 +11,7 @@ import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/publication.dart';
 import '../../domain/models/viewer_role.dart';
+import '../../domain/project_unavailable_exception.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
 /// Estado de la pantalla de detalle de un proyecto.
@@ -22,6 +23,9 @@ class ProjectDetailController extends GetxController with UiLoggy {
   final Rxn<ProjectDetail> _detail = Rxn<ProjectDetail>();
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString();
+
+  /// El proyecto se borró: reintentar no sirve y no hay detalle que mostrar.
+  final RxBool isUnavailable = false.obs;
   final RxBool isFollowing = false.obs;
   final RxBool isSaved = false.obs;
   final RxList<Publication> publications = <Publication>[].obs;
@@ -36,6 +40,10 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   ProjectDetail? get detail => _detail.value;
 
+  /// Lo que la tarjeta del feed ya sabe del proyecto, para pintar la cabecera
+  /// mientras llega el detalle completo.
+  final Rxn<ProjectDetail> preview = Rxn<ProjectDetail>();
+
   /// Carga el detalle del proyecto abierto desde el feed.
   ///
   /// Recibe la entidad del feed porque es lo que entregan las tarjetas de
@@ -43,32 +51,65 @@ class ProjectDetailController extends GetxController with UiLoggy {
   /// mínimo con lo que el feed ya conoce.
   Future<void> load(Project project) async {
     loggy.debug('ProjectDetailController: loading ${project.id}');
+    preview.value = _fromFeedProject(project);
     isLoading.value = true;
     errorMessage.value = null;
+    isUnavailable.value = false;
     isFollowing.value = false;
     isSaved.value = false;
     publications.clear();
     try {
       // Todo a la vez: son consultas independientes y encadenarlas era
       // sumar una espera de red detrás de otra.
-      final [stored, user, likeStatus, loadedComments, flags] =
-          await Future.wait<Object?>([
-            _repository.getDetail(project.id),
-            _repository.getCurrentUser(),
-            _repository.getLikeStatus(project.id),
-            _repository.getComments(project.id),
-            _repository.getViewerFlags(project.id),
-          ]);
+      final [
+        stored,
+        user,
+        likeStatus,
+        loadedComments,
+        flags,
+        loadedPublications,
+      ] = await Future.wait<Object?>([
+        _repository.getDetail(project.id),
+        _repository.getCurrentUser(),
+        _repository.getLikeStatus(project.id),
+        _repository.getComments(project.id),
+        _repository.getViewerFlags(project.id),
+        // Un muro que no carga no debe tumbar el resto del proyecto.
+        _repository.getPublications(project.id).catchError((Object e) {
+          loggy.error('ProjectDetailController: publications', e);
+          actionError.value = 'No se pudieron cargar las publicaciones.';
+          return <Publication>[];
+        }),
+      ]);
 
       _detail.value = (stored as ProjectDetail?) ?? _fromFeedProject(project);
       currentUser.value = user as ProjectMember;
       final likes = likeStatus as ({int count, bool likedByMe});
       likeCount.value = likes.count;
       likedByMe.value = likes.likedByMe;
-      comments.value = loadedComments as List<ProjectComment>;
+      // Copia modificable: la fuente devuelve `const []` cuando no hay
+      // comentarios y luego se le añaden (y se le hace `clear`).
+      comments.value = List.of(loadedComments as List<ProjectComment>);
       final viewerFlags = flags as ({bool saved, bool following});
       isSaved.value = viewerFlags.saved;
       isFollowing.value = viewerFlags.following;
+      publications.value = List.of(loadedPublications as List<Publication>);
+    } on ProjectUnavailableException catch (exception) {
+      // Sin el respaldo del feed: lo que traía la tarjeta es justo lo que ya
+      // no vale. Se vacía todo lo del proyecto anterior y se refresca el
+      // feed para que la tarjeta desaparezca.
+      loggy.info(
+        'ProjectDetailController: ${project.id} ya no está disponible',
+      );
+      _detail.value = null;
+      comments.clear();
+      likeCount.value = 0;
+      likedByMe.value = false;
+      isUnavailable.value = true;
+      errorMessage.value = '$exception';
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().getFeed();
+      }
     } catch (exception) {
       loggy.error(
         'ProjectDetailController: error loading ${project.id}',
@@ -77,6 +118,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
       _detail.value = null;
       errorMessage.value = 'No se pudo cargar la información del proyecto.';
     } finally {
+      preview.value = null;
       isLoading.value = false;
     }
   }
@@ -99,10 +141,20 @@ class ProjectDetailController extends GetxController with UiLoggy {
   /// la pantalla lo enseña y lo vacía.
   final RxString actionError = ''.obs;
 
-  Future<void> toggleFollowing() => _toggleFlag(
-    flag: isFollowing,
-    action: _repository.toggleFollowing,
-  );
+  /// Marcas que siguen escribiéndose: un segundo toque antes de que termine
+  /// el primero crearía la fila dos veces.
+  final _toggling = <RxBool>{};
+
+  Future<void> toggleFollowing() async {
+    await _toggleFlag(flag: isFollowing, action: _repository.toggleFollowing);
+    final projectId = detail?.projectId;
+    if (projectId != null && Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().markFollowed(
+        projectId,
+        followed: isFollowing.value,
+      );
+    }
+  }
 
   Future<void> toggleSaved() =>
       _toggleFlag(flag: isSaved, action: _repository.toggleSaved);
@@ -116,6 +168,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     final projectId = detail?.projectId;
     if (projectId == null) return;
 
+    if (!_toggling.add(flag)) return;
     final previous = flag.value;
     flag.value = !previous;
     actionError.value = '';
@@ -125,6 +178,8 @@ class ProjectDetailController extends GetxController with UiLoggy {
       loggy.error('ProjectDetailController: error toggling flag', exception);
       flag.value = previous;
       actionError.value = errors.errorMessage(exception);
+    } finally {
+      _toggling.remove(flag);
     }
   }
 
@@ -134,6 +189,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     final projectId = detail?.projectId;
     if (projectId == null) return;
 
+    if (!_toggling.add(likedByMe)) return;
     final wasLiked = likedByMe.value;
     likedByMe.value = !wasLiked;
     likeCount.value += wasLiked ? -1 : 1;
@@ -143,6 +199,8 @@ class ProjectDetailController extends GetxController with UiLoggy {
       loggy.error('ProjectDetailController: error toggling like', exception);
       likedByMe.value = wasLiked;
       likeCount.value += wasLiked ? 1 : -1;
+    } finally {
+      _toggling.remove(likedByMe);
     }
   }
 
@@ -154,11 +212,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     isSendingComment.value = true;
     try {
       comments.add(
-        await _repository.addComment(
-          projectId,
-          text,
-          authorName: authorName,
-        ),
+        await _repository.addComment(projectId, text, authorName: authorName),
       );
     } catch (exception) {
       loggy.error('ProjectDetailController: error posting comment', exception);
@@ -167,55 +221,104 @@ class ProjectDetailController extends GetxController with UiLoggy {
     }
   }
 
-  void addPublication(Publication publication) =>
-      publications.insert(0, publication);
+  /// Publica y la pone arriba del muro. False si no se pudo (el motivo
+  /// queda en [actionError]).
+  Future<bool> addPublication(Publication publication) => _publicationAction(
+    () async =>
+        publications.insert(0, await _repository.createPublication(publication)),
+  );
 
-  void updatePublication(Publication publication) {
-    final index = publications.indexWhere((item) => item.id == publication.id);
-    if (index == -1) return;
-    publications[index] = publication;
-  }
+  Future<bool> updatePublication(Publication publication) =>
+      _publicationAction(() async {
+        await _repository.updatePublication(publication);
+        _replacePublication(publication.id, (_) => publication);
+      });
 
-  void deletePublication(String publicationId) {
-    publications.removeWhere((item) => item.id == publicationId);
-  }
+  Future<bool> deletePublication(Publication publication) =>
+      _publicationAction(() async {
+        await _repository.deletePublication(publication);
+        publications.removeWhere((item) => item.id == publication.id);
+      });
 
-  void togglePublicationReaction(String publicationId) {
-    final index = publications.indexWhere((item) => item.id == publicationId);
-    if (index == -1) return;
-    final publication = publications[index];
-    publications[index] = publication.copyWith(
-      viewerReacted: !publication.viewerReacted,
-      reactionCount:
-          publication.reactionCount + (publication.viewerReacted ? -1 : 1),
+  Future<bool> addPublicationComment(Publication publication, String text) =>
+      _publicationAction(() async {
+        final comment = await _repository.addComment(
+          publication.projectId,
+          text,
+          publicationId: publication.id,
+        );
+        _replacePublication(
+          publication.id,
+          (p) => p.copyWith(
+            comments: [...p.comments, comment],
+            commentCount: p.commentCount + 1,
+          ),
+        );
+      });
+
+  /// Optimista: cambia en pantalla y, si el servidor lo rechaza, lo deshace.
+  Future<void> togglePublicationReaction(Publication publication) async {
+    if (!_togglingPublications.add(publication.id)) return;
+    _replacePublication(
+      publication.id,
+      (p) => p.copyWith(
+        viewerReacted: !p.viewerReacted,
+        reactionCount: p.reactionCount + (p.viewerReacted ? -1 : 1),
+      ),
     );
+    final ok = await _publicationAction(() async {
+      final count = await _repository.togglePublicationReaction(publication);
+      _replacePublication(
+        publication.id,
+        (p) => p.copyWith(reactionCount: count),
+      );
+    });
+    if (!ok) _replacePublication(publication.id, (_) => publication);
+    _togglingPublications.remove(publication.id);
   }
 
-  void addPublicationComment(String publicationId, String comment) {
-    final index = publications.indexWhere((item) => item.id == publicationId);
-    if (index == -1) return;
-    final publication = publications[index];
-    publications[index] = publication.copyWith(
-      commentCount: publication.commentCount + 1,
-      comments: [...publication.comments, comment],
-    );
-  }
-
-  void votePublicationPoll(String publicationId, String option) {
-    final index = publications.indexWhere((item) => item.id == publicationId);
-    if (index == -1) return;
-    final publication = publications[index];
-    final votes = Map<String, int>.of(publication.pollVotes);
-    if (publication.selectedPollOption == option) return;
-    if (publication.selectedPollOption != null) {
-      final previous = publication.selectedPollOption!;
-      votes[previous] = (votes[previous] ?? 1) - 1;
+  Future<void> votePublicationPoll(Publication publication, String option) async {
+    if (publication.selectedPollOption == option ||
+        !_togglingPublications.add(publication.id)) {
+      return;
     }
+    final votes = Map<String, int>.of(publication.pollVotes);
+    final previous = publication.selectedPollOption;
+    if (previous != null) votes[previous] = (votes[previous] ?? 1) - 1;
     votes[option] = (votes[option] ?? 0) + 1;
-    publications[index] = publication.copyWith(
-      selectedPollOption: option,
-      pollVotes: votes,
+    _replacePublication(
+      publication.id,
+      (p) => p.copyWith(selectedPollOption: option, pollVotes: votes),
     );
+    final ok = await _publicationAction(
+      () => _repository.votePoll(publication, option),
+    );
+    if (!ok) _replacePublication(publication.id, (_) => publication);
+    _togglingPublications.remove(publication.id);
+  }
+
+  /// Publicaciones con un me gusta o un voto en camino: un segundo toque
+  /// duplicaría la fila.
+  final _togglingPublications = <String>{};
+
+  void _replacePublication(
+    String id,
+    Publication Function(Publication) change,
+  ) {
+    final index = publications.indexWhere((item) => item.id == id);
+    if (index != -1) publications[index] = change(publications[index]);
+  }
+
+  Future<bool> _publicationAction(Future<void> Function() action) async {
+    actionError.value = '';
+    try {
+      await action();
+      return true;
+    } catch (exception) {
+      loggy.error('ProjectDetailController: publication action', exception);
+      actionError.value = errors.errorMessage(exception);
+      return false;
+    }
   }
 
   /// Se llama al aceptar una postulación: quien se postuló entra al equipo

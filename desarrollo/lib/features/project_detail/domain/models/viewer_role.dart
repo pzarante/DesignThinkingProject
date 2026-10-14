@@ -22,5 +22,6 @@ enum ViewerRole {
   bool get canConfigure =>
       this == ViewerRole.creator || this == ViewerRole.coLeader;
 
-  bool get canPublish => this == ViewerRole.creator || this == ViewerRole.coLeader;
+  bool get canPublish =>
+      this == ViewerRole.creator || this == ViewerRole.coLeader;
 }
