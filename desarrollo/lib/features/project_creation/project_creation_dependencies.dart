@@ -13,7 +13,9 @@ import 'ui/viewmodels/project_creation_controller.dart';
 /// (pruebas offline). `main.dart` no pasa nada y usa ROBLE.
 void registerProjectCreation({bool remote = true}) {
   Get.put<IProjectCreationSource>(
-    remote ? RobleProjectCreationSource(Get.find()) : LocalProjectCreationSource(),
+    remote
+        ? RobleProjectCreationSource(Get.find())
+        : LocalProjectCreationSource(),
   );
   Get.put<IProjectCreationRepository>(ProjectCreationRepository(Get.find()));
   Get.put(

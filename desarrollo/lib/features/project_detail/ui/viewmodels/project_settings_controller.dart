@@ -83,11 +83,27 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     coverUrl.value = null;
   }
 
-  /// Primer cupo libre de [role] que nadie del equipo en edición ya tomó.
-  /// Null si no queda ninguno o si el rol todavía no se guardó.
-  String? freeSlotOf(ProjectRole role) => role.openSlotIds
-      .where((id) => !members.any((m) => m.projectRoleId == id))
-      .firstOrNull;
+  /// Primer cupo libre de [role] que nadie del equipo en edición ya tomó: una
+  /// fila guardada o, si no queda, uno de los que se crearán al guardar.
+  /// Null si el rol está lleno.
+  String? freeSlotOf(ProjectRole role) {
+    final saved = role.openSlotIds
+        .where((id) => !members.any((m) => m.projectRoleId == id))
+        .firstOrNull;
+    if (saved != null) return saved;
+    final pending = members
+        .where((m) => m.projectRoleId == role.pendingSlotId)
+        .length;
+    return pending < role.unsavedSlots ? role.pendingSlotId : null;
+  }
+
+  bool _holds(ProjectRole role, String? slotId) =>
+      slotId != null && (role.hasSlot(slotId) || slotId == role.pendingSlotId);
+
+  /// Cupos de [role] ocupados en el equipo en edición, contando a quien se
+  /// sumó o cambió de rol aunque aún no se haya guardado.
+  int filledSlotsOf(ProjectRole role) =>
+      members.where((m) => _holds(role, m.projectRoleId)).length;
 
   /// Roles que se le pueden dar a alguien del equipo: el rol de un integrante
   /// es el cupo que ocupa, así que solo valen los que tienen uno libre.
@@ -99,7 +115,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   void updateMemberRole(String memberId, ProjectRole role) {
     members.value = [
       for (final member in members)
-        if (member.id == memberId && !role.hasSlot(member.projectRoleId ?? ''))
+        if (member.id == memberId && !_holds(role, member.projectRoleId))
           member.copyWith(
             projectRoleId: freeSlotOf(role),
             roleLabel: role.title.toUpperCase(),
@@ -118,6 +134,20 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   void addRole(ProjectRole role) => openRoles.add(role);
 
   void updateRole(int index, ProjectRole role) {
+    // Quien ya tenía un cupo sin guardar lo sigue teniendo tras renombrar.
+    final before = openRoles[index].pendingSlotId;
+    if (before != role.pendingSlotId) {
+      members.value = [
+        for (final m in members)
+          m.projectRoleId == before
+              ? m.copyWith(
+                  projectRoleId: role.pendingSlotId,
+                  roleLabel: role.title.toUpperCase(),
+                  subtitle: role.title,
+                )
+              : m,
+      ];
+    }
     final updated = List.of(openRoles);
     updated[index] = role;
     openRoles.value = updated;

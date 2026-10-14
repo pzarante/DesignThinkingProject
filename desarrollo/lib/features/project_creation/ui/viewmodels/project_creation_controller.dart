@@ -76,15 +76,11 @@ class ProjectCreationController extends GetxController with UiLoggy {
   final RxString scope = ''.obs;
   final RxList<String> tags = <String>[].obs;
   final RxList<String> roles = <String>[].obs;
-  final RxInt maxMembers = 6.obs;
   final RxString availability = 'Part-time'.obs;
   final Rxn<Person> coLeader = Rxn<Person>();
   final RxnString coverUrl = RxnString();
   final RxnString coverName = RxnString();
   final RxList<String> links = <String>[].obs;
-
-  static const int _minMembers = 1;
-  static const int _maxMembers = 20;
 
   @override
   void onInit() {
@@ -157,7 +153,6 @@ class ProjectCreationController extends GetxController with UiLoggy {
     tags.clear();
     roles.clear();
     links.clear();
-    maxMembers.value = 6;
     availability.value = options.availabilityOptions.isEmpty
         ? 'Part-time'
         : options.availabilityOptions.first;
@@ -211,13 +206,9 @@ class ProjectCreationController extends GetxController with UiLoggy {
 
   void removeRole(String role) => roles.remove(role);
 
-  void increaseMembers() {
-    if (maxMembers.value < _maxMembers) maxMembers.value++;
-  }
-
-  void decreaseMembers() {
-    if (maxMembers.value > _minMembers) maxMembers.value--;
-  }
+  /// El equipo lo dan los roles: el creador, el co-líder si hay, y un cupo
+  /// por cada rol buscado.
+  int get maxMembers => 1 + (coLeader.value == null ? 0 : 1) + roles.length;
 
   void setAvailability(String value) => availability.value = value;
 
@@ -259,7 +250,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
     objective: objective.value.trim(),
     scope: scope.value.trim(),
     roles: List.unmodifiable(roles),
-    maxMembers: maxMembers.value,
+    maxMembers: maxMembers,
     availability: availability.value,
     coLeader: coLeader.value,
     coverUrl: coverUrl.value,
@@ -276,7 +267,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
   Future<Project> publish() async {
     loggy.debug('ProjectCreationController: publishing ${name.value}');
     isPublishing.value = true;
- 
+
     // El id es de relleno: ROBLE asigna el real al crear la fila, y
     // `addProject` devuelve el proyecto ya con ese id.
     final draftProject = Project(
@@ -299,7 +290,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
       problem: problem.value.trim(),
       objective: objective.value.trim(),
       scope: scope.value.trim().isEmpty ? null : scope.value.trim(),
-      maxMembers: maxMembers.value,
+      maxMembers: maxMembers,
       availability: availability.value,
       coLeaderId: coLeader.value?.id,
       links: List.unmodifiable(links),
@@ -327,9 +318,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
       creator: currentUser,
       description: project.description,
       problem: problem.value.trim().isEmpty ? null : problem.value.trim(),
-      objective: objective.value.trim().isEmpty
-          ? null
-          : objective.value.trim(),
+      objective: objective.value.trim().isEmpty ? null : objective.value.trim(),
       scope: scope.value.trim().isEmpty ? null : scope.value.trim(),
       links: List.unmodifiable(links),
       members: [
@@ -342,7 +331,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
             isCoLeader: true,
           ),
       ],
-      maxMembers: maxMembers.value,
+      maxMembers: maxMembers,
       openRoles: [for (final role in roles) ProjectRole(title: role)],
       availability: availability.value,
       viewerRole: ViewerRole.creator,

@@ -99,14 +99,28 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               ],
             ),
           ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: () => _addMember(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Agregar miembro'),
-            ),
-          ),
+          // Todo integrante ocupa un cupo: sin cupos libres no entra nadie.
+          Obx(() {
+            final hasFreeSlot = controller.assignableRoles.isNotEmpty;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextButton.icon(
+                  onPressed: hasFreeSlot ? () => _addMember(context) : null,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar miembro'),
+                ),
+                if (!hasFreeSlot)
+                  Text(
+                    'Todos los cupos están ocupados. Agrega una vacante o '
+                    'más cupos para sumar a alguien más.',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            );
+          }),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
@@ -184,9 +198,13 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               children: [
                 for (var i = 0; i < controller.openRoles.length; i++)
                   RoleSettingsTile(
-                    role: controller.openRoles[i],
+                    role: controller.openRoles[i].copyWith(
+                      filledSlots: controller.filledSlotsOf(
+                        controller.openRoles[i],
+                      ),
+                    ),
                     onEdit: () => _editVacancy(context, i),
-                    onDelete: () => controller.removeRole(i),
+                    onDelete: () => _removeVacancy(i),
                   ),
               ],
             ),
@@ -359,6 +377,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                 _RolePicker(
                   roles: roles,
                   value: selectedRole,
+                  allowNone: false,
                   onChanged: (role) =>
                       setDialogState(() => selectedRole = role),
                 ),
@@ -371,21 +390,20 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               child: const Text('Cancelar'),
             ),
             FilledButton(
-              onPressed: () {
-                if (selectedUser == null) return;
-                final role = selectedRole;
-                final member = ProjectMember(
-                  id: selectedUser!.userId,
-                  name: selectedUser!.displayName,
-                  avatarUrl: selectedUser!.avatarUrl,
-                  projectRoleId: role == null
-                      ? null
-                      : controller.freeSlotOf(role),
-                  roleLabel: role?.title.toUpperCase(),
-                  subtitle: role?.title ?? (selectedUser!.career ?? ''),
-                );
-                Navigator.of(context).pop(member);
-              },
+              onPressed: selectedUser == null || selectedRole == null
+                  ? null
+                  : () {
+                      final role = selectedRole!;
+                      final member = ProjectMember(
+                        id: selectedUser!.userId,
+                        name: selectedUser!.displayName,
+                        avatarUrl: selectedUser!.avatarUrl,
+                        projectRoleId: controller.freeSlotOf(role),
+                        roleLabel: role.title.toUpperCase(),
+                        subtitle: role.title,
+                      );
+                      Navigator.of(context).pop(member);
+                    },
               child: const Text('Agregar'),
             ),
           ],
@@ -573,6 +591,21 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     }
   }
 
+  /// Quitar la vacante es bajarla a cero cupos: no mientras alguien la ocupe.
+  void _removeVacancy(int index) {
+    final role = controller.openRoles[index];
+    if (controller.filledSlotsOf(role) > 0) {
+      showErrorSnack(
+        'Vacante ocupada',
+        message:
+            'Cambia de rol o quita a quien ocupa "${role.title}" antes de '
+            'eliminarla.',
+      );
+      return;
+    }
+    controller.removeRole(index);
+  }
+
   Future<void> _editVacancy(BuildContext context, int? index) async {
     final existing = index == null ? null : controller.openRoles[index];
     final titleField = TextEditingController(text: existing?.title ?? '');
@@ -583,7 +616,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       text: existing?.skills.join(', ') ?? '',
     );
     var totalSlots = existing?.totalSlots ?? 1;
-    final minSlots = existing?.filledSlots ?? 0;
+    final minSlots = existing == null ? 0 : controller.filledSlotsOf(existing);
 
     final result = await showDialog<ProjectRole>(
       context: context,
@@ -688,11 +721,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       ),
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      titleField.dispose();
-      descriptionField.dispose();
-      skillsField.dispose();
-    });
+    // Sin dispose: el diálogo sigue animando su salida con estos campos
+    // montados, y liberarlos antes rompe el árbol (pantalla en negro). Sin
+    // oyentes, el recolector se los lleva.
 
     if (result == null) return;
     if (index == null) {

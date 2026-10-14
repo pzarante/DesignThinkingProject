@@ -32,8 +32,7 @@ class _ProjectWizardPageState extends State<ProjectWizardPage> {
     // revisión no pasa por aquí, así que no se pierde lo escrito.
     final arguments = Get.arguments;
     controller.startDraft(
-      fromCommunity:
-          arguments is Map && arguments['fromCommunity'] == true,
+      fromCommunity: arguments is Map && arguments['fromCommunity'] == true,
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import 'features/auth/ui/views/login_page.dart';
@@ -69,26 +70,58 @@ abstract final class AppRoutes {
     GetPage(name: myProjects, page: () => const MyProjectsPage()),
     GetPage(name: profile, page: () => const ProfilePage()),
     GetPage(name: notifications, page: () => const NotificationsPage()),
-    GetPage(name: projectDetail, page: () => const ProjectDetailPage()),
-    GetPage(name: projectSettings, page: () => const ProjectSettingsPage()),
+    GetPage(
+      name: projectDetail,
+      page: () => const ProjectDetailPage(),
+      middlewares: _needsNavigation,
+    ),
+    GetPage(
+      name: projectSettings,
+      page: () => const ProjectSettingsPage(),
+      middlewares: _needsNavigation,
+    ),
     GetPage(name: create, page: () => const CreateEntryPage()),
     GetPage(name: createProject, page: () => const ProjectWizardPage()),
     GetPage(name: createProjectReview, page: () => const ProjectReviewPage()),
-    GetPage(name: createProjectSuccess, page: () => const ProjectCreatedPage()),
+    GetPage(
+      name: createProjectSuccess,
+      page: () => const ProjectCreatedPage(),
+      middlewares: _needsNavigation,
+    ),
     GetPage(name: createCommunity, page: () => const CommunityFormPage()),
     GetPage(
       name: createCommunitySuccess,
       page: () => const CommunityCreatedPage(),
+      middlewares: _needsNavigation,
     ),
     GetPage(name: community, page: () => const CommunityFeedPage()),
     GetPage(name: communitySettings, page: () => const CommunitySettingsPage()),
-    GetPage(name: applyToProject, page: () => const ApplyPage()),
-    GetPage(name: projectApplicants, page: () => const ApplicantsPage()),
+    GetPage(
+      name: applyToProject,
+      page: () => const ApplyPage(),
+      middlewares: _needsNavigation,
+    ),
+    GetPage(
+      name: projectApplicants,
+      page: () => const ApplicantsPage(),
+      middlewares: _needsNavigation,
+    ),
     GetPage(name: login, page: () => const LoginPage()),
     GetPage(name: signup, page: () => const SignUpPage()),
     GetPage(name: signupSuccess, page: () => const SignUpSuccessPage()),
   ];
 
+  static final List<GetMiddleware> _needsNavigation = [_BackHomeOnReload()];
+
   static bool isRegistered(String route) =>
       pages.any((page) => page.name == route);
+}
+
+/// Al recargar en web el navegador reabre la URL sin los argumentos ni el
+/// estado en memoria que estas pantallas necesitan: se vuelve al inicio.
+class _BackHomeOnReload extends GetMiddleware {
+  @override
+  RouteSettings? redirect(String? route) => Get.routing.current.isEmpty
+      ? const RouteSettings(name: AppRoutes.home)
+      : null;
 }

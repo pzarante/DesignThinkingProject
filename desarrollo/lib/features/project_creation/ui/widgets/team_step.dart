@@ -70,29 +70,13 @@ class _TeamStepState extends State<TeamStep> {
           ),
         ),
         const SizedBox(height: AppSpacing.md),
-        Text('Máximo de integrantes', style: theme.textTheme.labelMedium),
+        Text('Integrantes del equipo', style: theme.textTheme.labelMedium),
         const SizedBox(height: AppSpacing.xs),
         Obx(
-          () => Row(
-            children: [
-              IconButton.outlined(
-                onPressed: controller.decreaseMembers,
-                icon: const Icon(Icons.remove),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ),
-                child: Text(
-                  '${controller.maxMembers.value}',
-                  style: theme.textTheme.titleLarge,
-                ),
-              ),
-              IconButton.filledTonal(
-                onPressed: controller.increaseMembers,
-                icon: const Icon(Icons.add),
-              ),
-            ],
+          () => Text(
+            '${controller.maxMembers} · tú, el co-líder si lo eliges y uno '
+            'por cada rol',
+            style: theme.textTheme.bodyMedium,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -241,10 +225,7 @@ class _RolePickerSheetState extends State<_RolePickerSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Agregar rol',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text('Agregar rol', style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.md),
           Wrap(
             spacing: AppSpacing.sm,

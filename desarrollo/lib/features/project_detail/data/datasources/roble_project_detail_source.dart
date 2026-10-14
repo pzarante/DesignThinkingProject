@@ -172,6 +172,11 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           ),
     ];
 
+    final openRoles = _rolesFrom(
+      roleRows,
+      _skillNamesByRoleId(roleSkills, skills),
+    );
+
     return ProjectDetail(
       projectId: projectId,
       name: row['name'] as String,
@@ -193,8 +198,9 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           if (link['project_id'] == projectId) link['url'] as String,
       ],
       members: team,
-      maxMembers: (row['max_members'] as num?)?.toInt() ?? 0,
-      openRoles: _rolesFrom(roleRows, _skillNamesByRoleId(roleSkills, skills)),
+      // El tope sale de las vacantes: crear roles o cupos lo sube.
+      maxMembers: _teamCap(team, openRoles),
+      openRoles: openRoles,
       availability: row['availability'] as String?,
       communityName: linkedCommunities.firstOrNull?.name,
       communities: linkedCommunities,
@@ -235,11 +241,18 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     try {
       // Los roles van primero: si algún cupo no se puede quitar, se avisa
       // antes de haber escrito nada.
-      await _syncRoles(detail.projectId, detail.openRoles);
+      await _syncRoles(
+        detail.projectId,
+        detail.openRoles,
+        taken: {for (final m in detail.members) ?m.projectRoleId},
+      );
       await _db.update(_tableProjects, detail.projectId, {
         'name': detail.name,
         'description': detail.description,
         'cover_url': detail.coverUrl,
+        // Ya no se lee (el tope sale de los cupos), pero la columna queda
+        // al día para quien mire la tabla.
+        'max_members': _teamCap(detail.members, detail.openRoles),
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });
       await _syncTeam(
@@ -275,6 +288,38 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
     final targetUserIds = {for (final m in targetMembers) m.id};
 
+    // Cupos recién creados por [_syncRoles]: quien llega con
+    // [ProjectRole.pendingSlotPrefix] toma una fila libre de ese rol que
+    // nadie más del equipo tenga.
+    final hasPending = targetMembers.any(
+      (m) =>
+          m.projectRoleId?.startsWith(ProjectRole.pendingSlotPrefix) ?? false,
+    );
+    final roleRows = hasPending
+        ? await _db.read(_tableProjectRoles, filters: {'project_id': projectId})
+        : const <Map<String, dynamic>>[];
+    final usedSlots = {for (final m in targetMembers) ?m.projectRoleId};
+    String? slotFor(String? projectRoleId) {
+      if (projectRoleId == null ||
+          !projectRoleId.startsWith(ProjectRole.pendingSlotPrefix)) {
+        return projectRoleId;
+      }
+      final title = projectRoleId.substring(
+        ProjectRole.pendingSlotPrefix.length,
+      );
+      final row = roleRows
+          .where(
+            (r) =>
+                r['name'] == title &&
+                _isOpenSlot(r) &&
+                !usedSlots.contains(r['_id']),
+          )
+          .firstOrNull;
+      if (row == null) return null;
+      usedSlots.add(row['_id'] as String);
+      return row['_id'] as String;
+    }
+
     // 1. Quitar del equipo a quienes se retiró a propósito (salvo el creador).
     for (final row in activeRows) {
       final userId = row['user_id'] as String;
@@ -294,7 +339,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
     // 2. Sumar integrantes o cambiarles el rol. El cupo lo reparte
     // [addMember], igual que al aceptar una postulación.
-    for (final member in targetMembers) {
+    for (final pending in targetMembers) {
+      final member = pending.copyWith(
+        projectRoleId: slotFor(pending.projectRoleId),
+      );
       var existing = activeRows
           .where((r) => r['user_id'] == member.id)
           .firstOrNull;
@@ -431,21 +479,22 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
       // Ya está en ese rol (un reintento): se queda con su cupo. Si no, el
       // cupo pedido o, si otra aceptación ya lo llenó, otro libre del mismo
-      // rol. Sin ninguno libre, quien ya era del equipo conserva el suyo y
-      // quien entra lo hace sin cupo.
+      // rol. Si el rol se quitó, quien entra lo hace sin cupo.
       final sameRole = current != null && current['name'] == requested?['name'];
-      final slot = sameRole
-          ? current
-          : (requested != null && _isOpenSlot(requested)
-                    ? requested
-                    : roleRows
-                          .where(
-                            (r) =>
-                                r['name'] == requested?['name'] &&
-                                _isOpenSlot(r),
-                          )
-                          .firstOrNull) ??
-                current;
+      final free = requested != null && _isOpenSlot(requested)
+          ? requested
+          : roleRows
+                .where((r) => r['name'] == requested?['name'] && _isOpenSlot(r))
+                .firstOrNull;
+      // Un rol vigente sin cupos libres está completo: entrar igual dejaría
+      // al equipo con más gente de la que busca.
+      if (!sameRole &&
+          free == null &&
+          requested != null &&
+          requested['status'] != _slotArchived) {
+        throw StateError('El rol "${requested['name']}" ya está completo.');
+      }
+      final slot = sameRole ? current : free ?? current;
 
       // Primero la fila del equipo y luego el cupo: si falla la primera no
       // queda un cupo ocupado por alguien que no entró. Fila nueva aunque
@@ -1251,7 +1300,16 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   /// todavía no reclamó nadie. Es el caso del asistente de creación, que ya
   /// insertó una fila por rol antes de guardar el detalle: sin esto, cada
   /// proyecto nuevo quedaría con sus roles duplicados.
-  Future<void> _syncRoles(String projectId, List<ProjectRole> roles) async {
+  /// [taken] son los cupos que el equipo editado ocupa: el equipo se guarda
+  /// después, así que un cupo recién asignado aún figura libre en ROBLE.
+  Future<void> _syncRoles(
+    String projectId,
+    List<ProjectRole> roles, {
+    Set<String> taken = const {},
+  }) async {
+    bool isFree(Map<String, dynamic> row) =>
+        _isOpenSlot(row) && !taken.contains(row['_id']);
+
     final now = DateTime.now().toUtc().toIso8601String();
     final rows = await _db.read(
       _tableProjectRoles,
@@ -1289,17 +1347,17 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
       // Nunca menos cupos que los ya ocupados: la configuración no deja
       // bajar de ahí, y aquí se vuelve a asegurar.
-      final filled = mine.where((r) => !_isOpenSlot(r)).length;
+      final filled = mine.where((r) => !isFree(r)).length;
       final target = role.totalSlots < filled ? filled : role.totalSlots;
       plans.add((role: role, mine: mine, target: target));
 
       // Sobran cupos: se quitan libres, primero los que nadie pidió.
-      final open = mine.where(_isOpenSlot).toList().reversed;
+      final open = mine.where(isFree).toList().reversed;
       toDelete.addAll(
         [
           ...open.where((r) => !pending.contains(r['_id'])),
           ...open.where((r) => pending.contains(r['_id'])),
-        ].take(mine.length - target),
+        ].take(mine.length > target ? mine.length - target : 0),
       );
     }
     // Roles quitados en la configuración: los cupos libres se borran.
@@ -1421,6 +1479,20 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         });
       }
     }
+  }
+
+  /// Tope del equipo: un lugar por cupo de cada vacante, más quien no ocupa
+  /// ninguno (creador, co-líder, alguien de un rol que se quitó). Un cupo
+  /// `pendiente:` ya cuenta en `totalSlots` del rol.
+  int _teamCap(List<ProjectMember> members, List<ProjectRole> roles) {
+    final slotIds = {for (final role in roles) ...role.slotIds};
+    final withoutSlot = members.where((m) {
+      final id = m.projectRoleId;
+      return !slotIds.contains(id) &&
+          !(id?.startsWith(ProjectRole.pendingSlotPrefix) ?? false);
+    });
+    return withoutSlot.length +
+        roles.fold(0, (sum, role) => sum + role.totalSlots);
   }
 
   bool _isOpenSlot(Map<String, dynamic> row) =>

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:f_clean_template/features/auth/domain/repositories/i_auth_repository.dart';
 import 'package:f_clean_template/features/project_detail/data/datasources/roble_project_detail_source.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/project_member.dart';
+import 'package:f_clean_template/features/project_detail/domain/models/project_role.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/publication.dart';
 import 'package:f_clean_template/features/project_detail/domain/project_unavailable_exception.dart';
 
@@ -368,6 +369,67 @@ void main() {
       expect(server.rows('project_roles').single['_id'], 'slot-2');
     });
 
+    test('al bajar cupos no borra el que se acaba de asignar', () async {
+      final server = rolesServer([]);
+      final source = _sourceOver(server);
+      final detail = (await source.getDetail('p1'))!;
+
+      await source.saveDetail(
+        detail.copyWith(
+          members: [
+            ...detail.members,
+            const ProjectMember(
+              id: 'ana',
+              name: 'ana',
+              projectRoleId: 'slot-2',
+            ),
+          ],
+          openRoles: [detail.openRoles.single.copyWith(totalSlots: 1)],
+        ),
+      );
+
+      final slot = server.rows('project_roles').single;
+      expect(slot['_id'], 'slot-2');
+      expect(slot['assigned_user_id'], 'ana');
+    });
+
+    test('una vacante sin guardar se asigna al guardar', () async {
+      final server = rolesServer([]);
+      final source = _sourceOver(server);
+      final detail = (await source.getDetail('p1'))!;
+      const design = ProjectRole(title: 'UX');
+
+      await source.saveDetail(
+        detail.copyWith(
+          members: [
+            ...detail.members,
+            ProjectMember(
+              id: 'ana',
+              name: 'ana',
+              projectRoleId: design.pendingSlotId,
+            ),
+          ],
+          openRoles: [...detail.openRoles, design],
+        ),
+      );
+
+      final slot = server
+          .rows('project_roles')
+          .singleWhere((r) => r['name'] == 'UX');
+      expect(slot['assigned_user_id'], 'ana');
+      final ana = server
+          .rows('project_members')
+          .singleWhere((r) => r['user_id'] == 'ana');
+      expect(ana['project_role_id'], slot['_id']);
+    });
+
+    test('el tope del equipo sale de los cupos de las vacantes', () async {
+      final detail = (await _sourceOver(rolesServer([])).getDetail('p1'))!;
+
+      // El creador (sin cupo) más los dos cupos de "Dev".
+      expect(detail.maxMembers, 3);
+    });
+
     test('no deja quitar un cupo con postulación pendiente', () async {
       final server = rolesServer(['slot-1', 'slot-2']);
 
@@ -552,6 +614,88 @@ void main() {
 
       expect(server.rows('polls').single['status'], 'archived');
       expect(await source.getPublications('p1'), isEmpty);
+    });
+  });
+
+  group('equipo completo', () {
+    test(
+      'aceptar en un rol sin cupos libres falla y no suma a nadie',
+      () async {
+        final server = FakeRobleServer({
+          'project_members': [_member('ana', role: 'slot-1')],
+          'project_roles': [
+            {
+              '_id': 'slot-1',
+              'project_id': 'p1',
+              'name': 'Dev',
+              'status': 'assigned',
+              'assigned_user_id': 'ana',
+            },
+          ],
+        });
+
+        await expectLater(
+          _sourceOver(server).addMember(
+            projectId: 'p1',
+            member: const ProjectMember(id: 'luis', name: 'Luis'),
+            projectRoleId: 'slot-1',
+          ),
+          throwsA(
+            isA<StateError>().having(
+              (e) => e.message,
+              'message',
+              contains('completo'),
+            ),
+          ),
+        );
+        expect(server.rows('project_members'), hasLength(1));
+      },
+    );
+
+    test('quien entra sin rol (p. ej. el co-lider) no se rechaza', () async {
+      final server = FakeRobleServer();
+
+      await _sourceOver(server).addMember(
+        projectId: 'p1',
+        member: const ProjectMember(id: 'colider', name: 'Co'),
+        projectRoleId: '',
+      );
+
+      expect(server.rows('project_members').single['user_id'], 'colider');
+    });
+
+    test('guardar deja max_members igual al tope que calcula la app', () async {
+      final server = FakeRobleServer({
+        'projects': [
+          {
+            '_id': 'p1',
+            'name': 'MotionLab',
+            'creator_id': 'owner',
+            'max_members': 2,
+          },
+        ],
+        'project_members': [_member('owner', creator: true)],
+        'project_roles': [
+          {
+            '_id': 'slot-1',
+            'project_id': 'p1',
+            'name': 'Dev',
+            'status': 'open',
+          },
+        ],
+      });
+      final source = _sourceOver(server);
+      final detail = (await source.getDetail('p1'))!;
+
+      await source.saveDetail(
+        detail.copyWith(
+          openRoles: [detail.openRoles.single.copyWith(totalSlots: 3)],
+        ),
+      );
+
+      // El creador sin cupo + 3 cupos de Dev.
+      expect(server.rows('projects').single['max_members'], 4);
+      expect((await source.getDetail('p1'))!.maxMembers, 4);
     });
   });
 }

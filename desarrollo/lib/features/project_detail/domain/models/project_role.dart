@@ -49,6 +49,17 @@ class ProjectRole {
   /// en memoria, donde los roles no tienen filas propias.
   String? get firstOpenSlotId => openSlotIds.isEmpty ? null : openSlotIds.first;
 
+  /// Marca de un cupo que existe en la configuración pero aún no en ROBLE
+  /// (vacante nueva o "+1" sin guardar). Al guardar se cambia por una fila
+  /// libre del rol con ese nombre.
+  static const String pendingSlotPrefix = 'pendiente:';
+
+  String get pendingSlotId => '$pendingSlotPrefix$title';
+
+  /// Cupos que se crearán al guardar: los que pidió la configuración y
+  /// todavía no tienen fila.
+  int get unsavedSlots => (totalSlots - slotIds.length).clamp(0, totalSlots);
+
   /// Si la fila [projectRoleId] es uno de los cupos de este rol.
   bool hasSlot(String projectRoleId) => slotIds.contains(projectRoleId);
 

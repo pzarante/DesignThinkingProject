@@ -107,10 +107,7 @@ class ProjectReviewPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (draft.tags.isEmpty)
-                    Text(
-                      'Sin etiquetas.',
-                      style: theme.textTheme.bodySmall,
-                    )
+                    Text('Sin etiquetas.', style: theme.textTheme.bodySmall)
                   else
                     Wrap(
                       spacing: AppSpacing.sm,
@@ -163,7 +160,7 @@ class ProjectReviewPage extends StatelessWidget {
           onPrimary: controller.isPublishing.value
               ? null
               : () async {
-                  final project = await controller.publish(); 
+                  final project = await controller.publish();
                   Get.offNamed(
                     AppRoutes.createProjectSuccess,
                     arguments: project,
