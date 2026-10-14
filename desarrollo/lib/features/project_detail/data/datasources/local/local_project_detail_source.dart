@@ -445,12 +445,18 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       List.unmodifiable(_comments[projectId] ?? const []);
 
   @override
-  Future<ProjectComment> addComment(String projectId, String content) async {
+  Future<ProjectComment> addComment(
+    String projectId,
+    String content, {
+    String? authorName,
+  }) async {
     final me = await getCurrentUser();
     final comment = ProjectComment(
       id: 'comment${DateTime.now().microsecondsSinceEpoch}',
       authorId: me.id,
-      authorName: me.name,
+      authorName: authorName?.trim().isNotEmpty == true
+          ? authorName!.trim()
+          : (me.name.isEmpty ? 'Invitado' : me.name),
       content: content,
       createdAt: DateTime.now(),
     );

@@ -309,6 +309,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             onReact: (publication) =>
                 controller.togglePublicationReaction(publication.id),
             onComment: _commentPublication,
+            onPollVote: (publication, option) =>
+                controller.votePublicationPoll(publication.id, option),
           ),
         );
       case 2:
@@ -318,7 +320,10 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           detail: detail,
           comments: controller.comments,
           isSendingComment: controller.isSendingComment.value,
-          onSubmitComment: controller.submitComment,
+          isAnonymous: !Get.isRegistered<AuthenticationController>() ||
+              !Get.find<AuthenticationController>().hasAccount,
+          onSubmitComment: (content, authorName) =>
+              controller.submitComment(content, authorName: authorName),
         );
     }
   }

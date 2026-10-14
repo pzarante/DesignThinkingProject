@@ -20,13 +20,15 @@ class DetailsTab extends StatelessWidget {
     required this.detail,
     required this.comments,
     required this.isSendingComment,
+    required this.isAnonymous,
     required this.onSubmitComment,
   });
 
   final ProjectDetail detail;
   final List<ProjectComment> comments;
   final bool isSendingComment;
-  final ValueChanged<String> onSubmitComment;
+  final bool isAnonymous;
+  final void Function(String content, String? authorName) onSubmitComment;
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +123,7 @@ class DetailsTab extends StatelessWidget {
         CommentsSection(
           comments: comments,
           isSending: isSendingComment,
+          isAnonymous: isAnonymous,
           onSubmit: onSubmitComment,
         ),
       ],

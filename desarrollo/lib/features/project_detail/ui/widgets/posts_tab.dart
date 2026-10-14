@@ -16,6 +16,7 @@ class PostsTab extends StatelessWidget {
     required this.onDelete,
     required this.onReact,
     required this.onComment,
+    required this.onPollVote,
   });
 
   final bool canPublish;
@@ -25,6 +26,7 @@ class PostsTab extends StatelessWidget {
   final ValueChanged<Publication> onDelete;
   final ValueChanged<Publication> onReact;
   final ValueChanged<Publication> onComment;
+  final void Function(Publication publication, String option) onPollVote;
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +54,6 @@ class PostsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (canPublish)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: OutlinedButton.icon(
-              onPressed: onCreate,
-              icon: const Icon(Icons.add),
-              label: const Text('Nueva publicación'),
-            ),
-          ),
         const SizedBox(height: AppSpacing.sm),
         for (final publication in publications)
           _PublicationCard(
@@ -70,6 +63,7 @@ class PostsTab extends StatelessWidget {
             onDelete: () => onDelete(publication),
             onReact: () => onReact(publication),
             onComment: () => onComment(publication),
+            onPollVote: (option) => onPollVote(publication, option),
           ),
       ],
     );
@@ -90,6 +84,7 @@ class _PublicationCard extends StatelessWidget {
     required this.onDelete,
     required this.onReact,
     required this.onComment,
+    required this.onPollVote,
   });
 
   final Publication publication;
@@ -98,6 +93,7 @@ class _PublicationCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onReact;
   final VoidCallback onComment;
+  final ValueChanged<String> onPollVote;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +148,65 @@ class _PublicationCard extends StatelessWidget {
             Text(publication.title, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.xs),
             Text(publication.content, style: theme.textTheme.bodyMedium),
+            if (publication.linkUrl != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.link, color: colors.primary),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        publication.linkUrl!,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colors.primary,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+            if (publication.pollOptions.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              for (final option in publication.pollOptions)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                  child: OutlinedButton(
+                    onPressed: () => onPollVote(option),
+                    style: OutlinedButton.styleFrom(
+                      alignment: Alignment.centerLeft,
+                      side: BorderSide(
+                        color: publication.selectedPollOption == option
+                            ? colors.primary
+                            : colors.outline,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          publication.selectedPollOption == option
+                              ? Icons.radio_button_checked
+                              : Icons.radio_button_unchecked,
+                          size: 18,
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(child: Text(option)),
+                        if (publication.pollVotes.containsKey(option))
+                          Text('${publication.pollVotes[option]}'),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
             if (publication.imageUrl != null) ...[
               const SizedBox(height: AppSpacing.sm),
               ClipRRect(

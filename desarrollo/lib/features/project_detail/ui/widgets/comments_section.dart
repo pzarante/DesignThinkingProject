@@ -13,12 +13,14 @@ class CommentsSection extends StatefulWidget {
     super.key,
     required this.comments,
     required this.isSending,
+    required this.isAnonymous,
     required this.onSubmit,
   });
 
   final List<ProjectComment> comments;
   final bool isSending;
-  final ValueChanged<String> onSubmit;
+  final bool isAnonymous;
+  final void Function(String content, String? authorName) onSubmit;
 
   @override
   State<CommentsSection> createState() => _CommentsSectionState();
@@ -26,18 +28,23 @@ class CommentsSection extends StatefulWidget {
 
 class _CommentsSectionState extends State<CommentsSection> {
   final _field = TextEditingController();
+  final _nameField = TextEditingController();
 
   @override
   void dispose() {
     _field.dispose();
+    _nameField.dispose();
     super.dispose();
   }
 
   void _submit() {
     final text = _field.text.trim();
     if (text.isEmpty) return;
-    widget.onSubmit(text);
+    final name = _nameField.text.trim();
+    if (widget.isAnonymous && name.isEmpty) return;
+    widget.onSubmit(text, widget.isAnonymous ? name : null);
     _field.clear();
+    _nameField.clear();
   }
 
   @override
@@ -70,6 +77,19 @@ class _CommentsSectionState extends State<CommentsSection> {
                 ],
               ),
             ),
+        if (widget.isAnonymous)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: TextField(
+              controller: _nameField,
+              textCapitalization: TextCapitalization.words,
+              onChanged: (_) => setState(() {}),
+              decoration: const InputDecoration(
+                labelText: 'Tu nombre',
+                hintText: '¿Cómo quieres aparecer?',
+              ),
+            ),
+          ),
         Row(
           children: [
             Expanded(

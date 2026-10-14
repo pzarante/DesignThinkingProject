@@ -54,6 +54,12 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
   final _imageController = TextEditingController();
+  final _linkController = TextEditingController();
+  final _pollOptionControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
+  String _contentType = 'text';
 
   @override
   void initState() {
@@ -63,6 +69,15 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
       _titleController.text = publication.title;
       _contentController.text = publication.content;
       _imageController.text = publication.imageUrl ?? '';
+      _linkController.text = publication.linkUrl ?? '';
+      _contentType = publication.pollOptions.isNotEmpty
+          ? 'poll'
+          : publication.linkUrl != null
+          ? 'link'
+          : 'text';
+      for (var i = 0; i < publication.pollOptions.length && i < 4; i++) {
+        _pollOptionControllers[i].text = publication.pollOptions[i];
+      }
     }
   }
 
@@ -71,6 +86,10 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
     _titleController.dispose();
     _contentController.dispose();
     _imageController.dispose();
+    _linkController.dispose();
+    for (final controller in _pollOptionControllers) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -88,6 +107,13 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
         imageUrl: _imageController.text.trim().isEmpty
             ? null
             : _imageController.text.trim(),
+        linkUrl: _contentType == 'link' ? _linkController.text.trim() : null,
+        pollOptions: _contentType == 'poll'
+            ? _pollOptionControllers
+                  .map((controller) => controller.text.trim())
+                  .where((option) => option.isNotEmpty)
+                  .toList()
+            : const [],
         createdAt: DateTime.now(),
       ),
     );
@@ -128,6 +154,17 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
               const SizedBox(height: AppSpacing.md),
               Text('¿Qué quieres compartir?', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: AppSpacing.md),
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: 'text', label: Text('Texto')),
+                  ButtonSegment(value: 'link', label: Text('Link')),
+                  ButtonSegment(value: 'poll', label: Text('Encuesta')),
+                ],
+                selected: {_contentType},
+                onSelectionChanged: (selection) =>
+                    setState(() => _contentType = selection.first),
+              ),
+              const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: _titleController,
                 label: 'Título de la publicación',
@@ -138,6 +175,42 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                   ? 'Escribe un título.'
                   : null,
               ),
+              if (_contentType == 'link') ...[
+                const SizedBox(height: AppSpacing.md),
+                AppTextField(
+                  controller: _linkController,
+                  label: 'Enlace',
+                  isRequired: true,
+                  keyboardType: TextInputType.url,
+                  hintText: 'https://...',
+                  validator: (value) {
+                    final text = value?.trim() ?? '';
+                    if (text.isEmpty) return 'Pega un enlace.';
+                    final uri = Uri.tryParse(text);
+                    return uri?.hasScheme == true ? null : 'Usa un enlace válido.';
+                  },
+                ),
+              ],
+              if (_contentType == 'poll') ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Opciones de respuesta',
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                for (var i = 0; i < 4; i++) ...[
+                  AppTextField(
+                    controller: _pollOptionControllers[i],
+                    label: 'Opción ${i + 1}${i < 2 ? ' *' : ''}',
+                    isRequired: i < 2,
+                    validator: (value) => i < 2 &&
+                            (value == null || value.trim().isEmpty)
+                        ? 'Agrega al menos dos opciones.'
+                        : null,
+                  ),
+                  if (i < 3) const SizedBox(height: AppSpacing.sm),
+                ],
+              ],
               const SizedBox(height: AppSpacing.md),
               AppTextField(
                 controller: _contentController,

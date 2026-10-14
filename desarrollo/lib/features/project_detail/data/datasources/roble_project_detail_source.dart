@@ -606,7 +606,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         ProjectComment(
           id: row['_id'] as String,
           authorId: row['author_id'] as String,
-          authorName: nameById[row['author_id']] ?? 'Invitado',
+          authorName:
+              (row['author_name'] as String?) ??
+              nameById[row['author_id']] ??
+              'Invitado',
           content: row['content'] as String,
           createdAt: DateTime.parse('${row['created_at']}').toLocal(),
         ),
@@ -614,11 +617,19 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   }
 
   @override
-  Future<ProjectComment> addComment(String projectId, String content) async {
+  Future<ProjectComment> addComment(
+    String projectId,
+    String content, {
+    String? authorName,
+  }) async {
     final me = await _authRepository.ensureGuestSession();
+    final displayName = authorName?.trim().isNotEmpty == true
+        ? authorName!.trim()
+        : (me.name.isEmpty ? 'Invitado' : me.name);
     final created = await _db.create(_tableComments, {
       'project_id': projectId,
       'author_id': me.id,
+      'author_name': displayName,
       'content': content,
       'status': 'published',
     });
@@ -626,7 +637,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     return ProjectComment(
       id: created['_id'] as String,
       authorId: me.id ?? '',
-      authorName: me.name.isEmpty ? 'Invitado' : me.name,
+      authorName: displayName,
       content: content,
       createdAt: DateTime.now(),
     );

@@ -146,14 +146,20 @@ class ProjectDetailController extends GetxController with UiLoggy {
     }
   }
 
-  Future<void> submitComment(String content) async {
+  Future<void> submitComment(String content, {String? authorName}) async {
     final projectId = detail?.projectId;
     final text = content.trim();
     if (projectId == null || text.isEmpty) return;
 
     isSendingComment.value = true;
     try {
-      comments.add(await _repository.addComment(projectId, text));
+      comments.add(
+        await _repository.addComment(
+          projectId,
+          text,
+          authorName: authorName,
+        ),
+      );
     } catch (exception) {
       loggy.error('ProjectDetailController: error posting comment', exception);
     } finally {
@@ -192,6 +198,23 @@ class ProjectDetailController extends GetxController with UiLoggy {
     publications[index] = publication.copyWith(
       commentCount: publication.commentCount + 1,
       comments: [...publication.comments, comment],
+    );
+  }
+
+  void votePublicationPoll(String publicationId, String option) {
+    final index = publications.indexWhere((item) => item.id == publicationId);
+    if (index == -1) return;
+    final publication = publications[index];
+    final votes = Map<String, int>.of(publication.pollVotes);
+    if (publication.selectedPollOption == option) return;
+    if (publication.selectedPollOption != null) {
+      final previous = publication.selectedPollOption!;
+      votes[previous] = (votes[previous] ?? 1) - 1;
+    }
+    votes[option] = (votes[option] ?? 0) + 1;
+    publications[index] = publication.copyWith(
+      selectedPollOption: option,
+      pollVotes: votes,
     );
   }
 
