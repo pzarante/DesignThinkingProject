@@ -17,10 +17,17 @@ class _FakeClient extends http.BaseClient {
 
   final List<String> requestedTables = [];
 
+  /// Los filtros de cada petición, sin el nombre de la tabla.
+  final List<Map<String, String>> requestedFilters = [];
+
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     final table = request.url.queryParameters['tableName'] ?? '';
     requestedTables.add(table);
+    requestedFilters.add({
+      for (final entry in request.url.queryParameters.entries)
+        if (entry.key != 'tableName') entry.key: entry.value,
+    });
     if (delay > Duration.zero) await Future<void>.delayed(delay);
 
     final status = statusByTable[table] ?? 200;
@@ -159,6 +166,51 @@ void main() {
           isA<TimeoutException>(),
         ),
       ),
+    );
+  });
+
+  test('los filtros viajan al servidor y cada combinación se guarda aparte', () async {
+    final client = _FakeClient();
+    final cache = _cacheWith(client);
+
+    await cache.read('project_saved', filters: {'user_id': 'ana'});
+    await cache.read('project_saved', filters: {'user_id': 'ana'});
+    await cache.read('project_saved', filters: {'user_id': 'luis'});
+    await cache.read('project_saved');
+
+    expect(client.requestedTables, ['project_saved', 'project_saved', 'project_saved']);
+    expect(client.requestedFilters, [
+      {'user_id': 'ana'},
+      {'user_id': 'luis'},
+      <String, String>{},
+    ]);
+  });
+
+  test('invalidar una tabla olvida también sus lecturas filtradas', () async {
+    final client = _FakeClient();
+    final cache = _cacheWith(client);
+
+    await cache.read('project_members', filters: {'status': 'active'});
+    await cache.read('tags');
+    cache.invalidate(['project_members']);
+    await cache.read('project_members', filters: {'status': 'active'});
+    await cache.read('tags');
+
+    expect(client.requestedTables, ['project_members', 'tags', 'project_members']);
+  });
+
+  test('readQueries respeta el orden pedido aunque terminen desordenadas', () async {
+    final client = _FakeClient(delay: const Duration(milliseconds: 5));
+    final cache = _cacheWith(client);
+
+    final rows = await cache.readQueries([
+      for (final name in ['a', 'b', 'c', 'd', 'e', 'f', 'g'])
+        RobleQuery(name, {'x': name}),
+    ]);
+
+    expect(
+      [for (final table in rows) table.single['name']],
+      ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
     );
   });
 }

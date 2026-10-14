@@ -38,28 +38,49 @@ class RobleHomeSource implements IHomeSource {
     final me = await _authRepository.getLoggedUser();
     final myUserId = _authRepository.isAnonymous ? null : me?.id;
 
-    // Todo de una vez: antes eran seis lecturas encadenadas y el feed no
-    // aparecía hasta que volvía la última.
-    final tables = await _cache.readAll([
-      _tableStages,
-      _tableTags,
-      _tableProjectTags,
-      _tableProjectMembers,
-      _tableProjects,
-      _tableProjectSaved,
-      _tableCommunityMembers,
-      _tableCommunities,
-      _tableProjectCommunities,
-    ]);
-    final stages = tables[0];
-    final tags = tables[1];
-    final tagLinks = tables[2];
-    final memberRows = tables[3];
-    final projectRows = tables[4];
-    final savedRows = tables[5];
-    final communityMembers = tables[6];
-    final communities = tables[7];
-    final projectCommunities = tables[8];
+    // Todo de una vez, y filtrado en el servidor lo que se pueda: ROBLE solo
+    // admite igualdad, pero eso basta para no bajar las filas de todo el
+    // mundo (guardados, membresías y postulaciones de otras personas) ni los
+    // proyectos sin publicar. Las postulaciones salen en la misma tanda en
+    // vez de esperar a que termine la anterior.
+    final applicationsFuture = myUserId == null
+        ? Future.value(const <Map<String, dynamic>>[])
+        : _pendingApplications(myUserId);
+    final queries = <String, RobleQuery>{
+      _tableStages: const RobleQuery(_tableStages),
+      _tableTags: const RobleQuery(_tableTags),
+      _tableProjectTags: const RobleQuery(_tableProjectTags),
+      _tableProjectMembers: const RobleQuery(_tableProjectMembers, {
+        'status': 'active',
+      }),
+      _tableProjects: const RobleQuery(_tableProjects, {'status': 'published'}),
+      _tableCommunities: const RobleQuery(_tableCommunities),
+      _tableProjectCommunities: const RobleQuery(_tableProjectCommunities),
+      // Sin sesión no hay guardados ni comunidades propias que pedir.
+      if (myUserId != null) ...{
+        _tableProjectSaved: RobleQuery(_tableProjectSaved, {
+          'user_id': myUserId,
+        }),
+        _tableCommunityMembers: RobleQuery(_tableCommunityMembers, {
+          'user_id': myUserId,
+        }),
+      },
+    };
+    final results = await _cache.readQueries(queries.values.toList());
+    final tables = {
+      for (final (index, name) in queries.keys.indexed) name: results[index],
+    };
+    const none = <Map<String, dynamic>>[];
+    final stages = tables[_tableStages]!;
+    final tags = tables[_tableTags]!;
+    final tagLinks = tables[_tableProjectTags]!;
+    final memberRows = tables[_tableProjectMembers]!;
+    final projectRows = tables[_tableProjects]!;
+    final savedRows = tables[_tableProjectSaved] ?? none;
+    final communityMembers = tables[_tableCommunityMembers] ?? none;
+    final communities = tables[_tableCommunities]!;
+    final projectCommunities = tables[_tableProjectCommunities]!;
+    final applications = await applicationsFuture;
 
     final stageNameById = {
       for (final row in stages) row['_id'] as String: row['name'] as String,
@@ -92,7 +113,7 @@ class RobleHomeSource implements IHomeSource {
 
     final relationByProject = myUserId == null
         ? const <String, MyProjectRelation>{}
-        : await _myRelations(myUserId, memberRows);
+        : await _myRelations(myUserId, memberRows, applications);
 
     final myProjects = <Project>[];
     final recommendedProjects = <Project>[];
@@ -400,6 +421,19 @@ class RobleHomeSource implements IHomeSource {
     ];
   }
 
+  /// Las postulaciones pendientes de [userId]. Sin permiso (p. ej. invitado)
+  /// no hay postulaciones que mostrar; eso no debe tumbar el resto del feed.
+  Future<List<Map<String, dynamic>>> _pendingApplications(String userId) async {
+    try {
+      return await _cache.read(
+        _tableProjectApplications,
+        filters: {'applicant_id': userId, 'status': 'pending'},
+      );
+    } on RobleTableReadException {
+      return const [];
+    }
+  }
+
   /// Qué es [userId] en cada proyecto: líder o integrante según su fila
   /// activa de `project_members`, o postulante si tiene una postulación
   /// pendiente a alguno de sus cupos (`project_roles.project_id`). Una
@@ -408,6 +442,7 @@ class RobleHomeSource implements IHomeSource {
   Future<Map<String, MyProjectRelation>> _myRelations(
     String userId,
     List<Map<String, dynamic>> memberRows,
+    List<Map<String, dynamic>> applications,
   ) async {
     final relations = <String, MyProjectRelation>{};
     for (final row in memberRows) {
@@ -417,17 +452,6 @@ class RobleHomeSource implements IHomeSource {
           : MyProjectRelation.member;
     }
 
-    final List<Map<String, dynamic>> applications;
-    try {
-      applications = await _db.read(
-        _tableProjectApplications,
-        filters: {'applicant_id': userId, 'status': 'pending'},
-      );
-    } on RobleApiHttpException {
-      // Sin permiso (p. ej. invitado) no hay postulaciones que mostrar; no
-      // debe tumbar el resto del feed.
-      return relations;
-    }
     if (applications.isEmpty) return relations;
     final roleRows = await _cache.read(_tableProjectRoles);
     final projectByRole = {

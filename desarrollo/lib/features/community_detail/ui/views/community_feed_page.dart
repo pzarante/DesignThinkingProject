@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../home/domain/models/community.dart';
@@ -95,7 +96,20 @@ class _CommunityFeedPageState extends State<CommunityFeedPage> {
           ),
         );
       }),
+      bottomNavigationBar: AppBottomNavBar(
+        currentIndex: 0,
+        onDestinationSelected: _openDestination,
+      ),
     );
+  }
+
+  void _openDestination(int index) {
+    final route = AppRoutes.mainDestinations[index];
+    if (!AppRoutes.isRegistered(route)) {
+      showAppSnack('Sección aún no disponible.');
+      return;
+    }
+    Get.offAllNamed(route);
   }
 
   Widget _shortState() {
