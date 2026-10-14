@@ -31,10 +31,7 @@ class ProjectDetailHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AppProjectCover(
-          projectId: detail.projectId,
-          projectName: detail.name,
-        ),
+        AppProjectCover(projectId: detail.projectId, projectName: detail.name),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,

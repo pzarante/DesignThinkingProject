@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:f_clean_template/features/auth/domain/repositories/i_auth_repository.dart';
 import 'package:f_clean_template/features/project_detail/data/datasources/roble_project_detail_source.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/project_member.dart';
+import 'package:f_clean_template/features/project_detail/domain/models/publication.dart';
 import 'package:f_clean_template/features/project_detail/domain/project_unavailable_exception.dart';
 
 import '../../support/fake_auth_repository.dart';
@@ -110,7 +111,7 @@ void main() {
           '_id': 'slot-1',
           'project_id': 'p1',
           'name': 'Dev',
-          'status': 'filled',
+          'status': 'assigned',
         },
       ],
     });
@@ -261,6 +262,296 @@ void main() {
       expect(slots.where((r) => r['assigned_user_id'] == 'ana').length, 1);
       expect(slots.last['status'], 'open');
       expect(fake.rows('project_members'), hasLength(1));
+    });
+  });
+
+  group('addMember a medias o con cambio de rol', () {
+    test('si falla llenar el cupo, reintentar lo llena', () async {
+      final fake = FakeRobleServer({
+        'project_roles': [
+          {
+            '_id': 'slot-1',
+            'project_id': 'p1',
+            'name': 'Dev',
+            'status': 'open',
+          },
+          {
+            '_id': 'slot-2',
+            'project_id': 'p1',
+            'name': 'Dev',
+            'status': 'open',
+          },
+        ],
+      });
+      final source = _sourceOver(fake);
+      Future<void> accept() => source.addMember(
+        projectId: 'p1',
+        member: const ProjectMember(id: 'ana', name: 'Ana'),
+        projectRoleId: 'slot-1',
+      );
+
+      fake.failOnce.add('update:project_roles');
+      await expectLater(accept(), throwsA(anything));
+      await accept();
+
+      final slots = {for (final r in fake.rows('project_roles')) r['_id']: r};
+      expect(slots['slot-1']!['assigned_user_id'], 'ana');
+      expect(slots['slot-1']!['status'], 'assigned');
+      expect(slots['slot-2']!['status'], 'open');
+      expect(fake.rows('project_members'), hasLength(1));
+    });
+
+    test('aceptar en otro rol a quien ya está le cambia el cupo', () async {
+      final fake = FakeRobleServer({
+        'project_members': [_member('ana', role: 'slot-1')],
+        'project_roles': [
+          {
+            '_id': 'slot-1',
+            'project_id': 'p1',
+            'name': 'Dev',
+            'status': 'assigned',
+            'assigned_user_id': 'ana',
+          },
+          {'_id': 'slot-3', 'project_id': 'p1', 'name': 'UX', 'status': 'open'},
+        ],
+      });
+
+      await _sourceOver(fake).addMember(
+        projectId: 'p1',
+        member: const ProjectMember(id: 'ana', name: 'Ana'),
+        projectRoleId: 'slot-3',
+      );
+
+      final slots = {for (final r in fake.rows('project_roles')) r['_id']: r};
+      expect(fake.rows('project_members').single['project_role_id'], 'slot-3');
+      expect(slots['slot-3']!['assigned_user_id'], 'ana');
+      expect(slots['slot-1']!['status'], 'open');
+      expect(slots['slot-1']!['assigned_user_id'], isNull);
+    });
+  });
+
+  group('guardar roles con postulaciones pendientes', () {
+    FakeRobleServer rolesServer(List<String> pendingSlots) => FakeRobleServer({
+      'projects': [
+        {'_id': 'p1', 'name': 'MotionLab', 'creator_id': 'owner'},
+      ],
+      'project_members': [_member('owner', creator: true)],
+      'project_roles': [
+        {'_id': 'slot-1', 'project_id': 'p1', 'name': 'Dev', 'status': 'open'},
+        {'_id': 'slot-2', 'project_id': 'p1', 'name': 'Dev', 'status': 'open'},
+      ],
+      'project_applications': [
+        for (final slot in pendingSlots)
+          {'_id': 'a-$slot', 'project_role_id': slot, 'status': 'pending'},
+      ],
+    });
+
+    Future<void> saveWithSlots(FakeRobleServer server, int slots) async {
+      final source = _sourceOver(server);
+      final detail = (await source.getDetail('p1'))!;
+      await source.saveDetail(
+        detail.copyWith(
+          name: 'Nuevo nombre',
+          openRoles: [
+            for (final role in detail.openRoles)
+              if (slots > 0) role.copyWith(totalSlots: slots),
+          ],
+        ),
+      );
+    }
+
+    test('al bajar cupos se borra el que nadie pidió', () async {
+      final server = rolesServer(['slot-2']);
+
+      await saveWithSlots(server, 1);
+
+      expect(server.rows('project_roles').single['_id'], 'slot-2');
+    });
+
+    test('no deja quitar un cupo con postulación pendiente', () async {
+      final server = rolesServer(['slot-1', 'slot-2']);
+
+      await expectLater(
+        saveWithSlots(server, 0),
+        throwsA(
+          isA<StateError>().having(
+            (e) => e.message,
+            'message',
+            contains('postulaciones pendientes'),
+          ),
+        ),
+      );
+      expect(server.rows('project_roles'), hasLength(2));
+      expect(server.rows('projects').single['name'], 'MotionLab');
+    });
+  });
+
+  test('quitar a alguien cuyo rol se archivó no reabre la vacante', () async {
+    final server = FakeRobleServer({
+      'projects': [
+        {'_id': 'p1', 'name': 'MotionLab', 'creator_id': 'owner'},
+      ],
+      'project_members': [
+        _member('owner', creator: true),
+        _member('ana', role: 'slot-1'),
+      ],
+      'project_roles': [
+        {
+          '_id': 'slot-1',
+          'project_id': 'p1',
+          'name': 'Dev',
+          'status': 'assigned',
+          'assigned_user_id': 'ana',
+        },
+      ],
+    });
+    final source = _sourceOver(server);
+    final detail = (await source.getDetail('p1'))!;
+
+    // En un mismo guardado: se quita el rol y a quien lo ocupaba.
+    await source.saveDetail(
+      detail.copyWith(
+        openRoles: const [],
+        members: [
+          for (final m in detail.members)
+            if (m.id != 'ana') m,
+        ],
+      ),
+      originalMemberIds: {'owner', 'ana'},
+    );
+
+    expect(server.rows('project_roles').single['status'], 'closed');
+    expect((await source.getDetail('p1'))!.openRoles, isEmpty);
+  });
+
+  group('publicaciones en ROBLE', () {
+    FakeRobleServer wall() => FakeRobleServer({
+      'projects': [
+        {
+          '_id': 'p1',
+          'name': 'MotionLab',
+          'creator_id': 'owner',
+          'progress_percent': 40,
+        },
+      ],
+      'users': [
+        {'user_id': 'owner', 'user_name': 'Natalia'},
+      ],
+    });
+
+    test(
+      'un avance con imagen y enlace se guarda y se vuelve a leer',
+      () async {
+        final server = wall();
+        final source = _sourceOver(server);
+
+        await source.createPublication(
+          const Publication(
+            id: '',
+            projectId: 'p1',
+            authorName: 'Natalia',
+            title: 'Primer prototipo',
+            content: 'Ya se puede probar.',
+            imageUrl: 'https://x.test/proto.png',
+            linkUrl: 'https://figma.com/file/abc',
+          ),
+        );
+
+        final update = server.rows('project_updates').single;
+        expect(update['progress_percent'], 40);
+        expect(
+          {
+            for (final m in server.rows('project_media'))
+              m['media_type']: m['file_url'],
+          },
+          {
+            'image': 'https://x.test/proto.png',
+            'document': 'https://figma.com/file/abc',
+          },
+        );
+
+        final read = (await source.getPublications('p1')).single;
+        expect(read.title, 'Primer prototipo');
+        expect(read.authorName, 'Natalia');
+        expect(read.imageUrl, 'https://x.test/proto.png');
+        expect(read.linkUrl, 'https://figma.com/file/abc');
+      },
+    );
+
+    test('una encuesta se vota, y votar otra vez cambia el voto', () async {
+      final server = wall();
+      final source = _sourceOver(server);
+
+      final poll = await source.createPublication(
+        const Publication(
+          id: '',
+          projectId: 'p1',
+          authorName: 'Natalia',
+          title: '¿Qué color?',
+          content: '',
+          pollOptions: ['Azul', 'Verde'],
+        ),
+      );
+      await source.votePoll(poll, 'Azul');
+      await source.votePoll(poll, 'Verde');
+
+      expect(server.rows('poll_responses'), hasLength(1));
+      final read = (await source.getPublications('p1')).single;
+      expect(read.pollOptions, ['Azul', 'Verde']);
+      expect(read.pollVotes, {'Azul': 0, 'Verde': 1});
+      expect(read.selectedPollOption, 'Verde');
+    });
+
+    test(
+      'me gusta y comentarios de una publicación no cuentan como del proyecto',
+      () async {
+        final server = wall();
+        final source = _sourceOver(server);
+        final post = await source.createPublication(
+          const Publication(
+            id: '',
+            projectId: 'p1',
+            authorName: 'Natalia',
+            title: 'Avance',
+            content: 'Texto',
+          ),
+        );
+
+        expect(await source.togglePublicationReaction(post), 1);
+        await source.addComment('p1', 'Bien', publicationId: post.id);
+
+        expect((await source.getLikeStatus('p1')).count, 0);
+        expect(await source.getComments('p1'), isEmpty);
+        final read = (await source.getPublications('p1')).single;
+        expect(read.reactionCount, 1);
+        expect(read.viewerReacted, isTrue);
+        expect(read.comments.single.content, 'Bien');
+
+        // Dar me gusta al proyecto no borra el de la publicación.
+        await source.toggleLike('p1');
+        await source.toggleLike('p1');
+        expect((await source.getPublications('p1')).single.reactionCount, 1);
+      },
+    );
+
+    test('borrar una encuesta la archiva y deja de verse', () async {
+      final server = wall();
+      final source = _sourceOver(server);
+      final poll = await source.createPublication(
+        const Publication(
+          id: '',
+          projectId: 'p1',
+          authorName: 'Natalia',
+          title: 'Encuesta',
+          content: '',
+          pollOptions: ['Sí', 'No'],
+        ),
+      );
+
+      await source.deletePublication(poll);
+
+      expect(server.rows('polls').single['status'], 'archived');
+      expect(await source.getPublications('p1'), isEmpty);
     });
   });
 }

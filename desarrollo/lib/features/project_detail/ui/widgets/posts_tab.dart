@@ -220,54 +220,58 @@ class _PublicationCard extends StatelessWidget {
                 ),
               ),
             ],
-            const Divider(height: AppSpacing.lg),
-            Row(
-              children: [
-                _ActionButton(
-                  icon: publication.viewerReacted
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  label: '${publication.reactionCount}',
-                  tooltip: publication.viewerReacted
-                      ? 'Quitar reacción'
-                      : 'Reaccionar',
-                  highlighted: publication.viewerReacted,
-                  onPressed: onReact,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                _ActionButton(
-                  icon: Icons.chat_bubble_outline,
-                  label: '${publication.commentCount}',
-                  tooltip: 'Comentar',
-                  onPressed: onComment,
-                ),
-              ],
-            ),
-            if (publication.comments.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sm),
-              for (final comment in publication.comments)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.subdirectory_arrow_right,
-                        size: 14,
-                        color: colors.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Expanded(
-                        child: Text(
-                          comment,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colors.onSurfaceVariant,
+            // Una encuesta se responde votando; me gusta y comentarios son de
+            // los avances (la tabla `polls` no los admite).
+            if (!publication.isPoll) ...[
+              const Divider(height: AppSpacing.lg),
+              Row(
+                children: [
+                  _ActionButton(
+                    icon: publication.viewerReacted
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    label: '${publication.reactionCount}',
+                    tooltip: publication.viewerReacted
+                        ? 'Quitar reacción'
+                        : 'Reaccionar',
+                    highlighted: publication.viewerReacted,
+                    onPressed: onReact,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _ActionButton(
+                    icon: Icons.chat_bubble_outline,
+                    label: '${publication.commentCount}',
+                    tooltip: 'Comentar',
+                    onPressed: onComment,
+                  ),
+                ],
+              ),
+              if (publication.comments.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.sm),
+                for (final comment in publication.comments)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.subdirectory_arrow_right,
+                          size: 14,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Expanded(
+                          child: Text(
+                            '${comment.authorName}: ${comment.content}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
+              ],
             ],
           ],
         ),

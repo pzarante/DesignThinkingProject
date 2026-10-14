@@ -73,7 +73,8 @@ class RobleTableCache {
     }
 
     final stopwatch = Stopwatch()..start();
-    final request = readPublicOrPrivate(db, table, filters: filters)
+    late final Future<List<Map<String, dynamic>>> request;
+    request = readPublicOrPrivate(db, table, filters: filters)
         // Tope propio además del que trae el paquete: sobre web una petición
         // que se queda a medias deja la pantalla girando sin decir nada.
         // Mejor un error que se pueda leer.
@@ -86,7 +87,11 @@ class RobleTableCache {
         )
         .then((rows) {
           _logRead(key, rows, stopwatch);
-          _tables[key] = _CachedTable(rows);
+          // Si se invalidó mientras viajaba, lo leído puede ser de antes de
+          // la escritura (o de otra sesión): se entrega pero no se guarda.
+          if (identical(_inFlight[key], request)) {
+            _tables[key] = _CachedTable(rows);
+          }
           return List.of(rows);
         })
         // Cualquier fallo sale con el nombre de la tabla pegado: sin esto, el
@@ -100,7 +105,7 @@ class RobleTableCache {
         // queda esperando el futuro que le devuelva la función. Con la
         // flecha, la petición se esperaba a sí misma y no terminaba nunca.
         .whenComplete(() {
-          _inFlight.remove(key);
+          if (identical(_inFlight[key], request)) _inFlight.remove(key);
         });
 
     _inFlight[key] = request;
@@ -212,13 +217,14 @@ class RobleTableCache {
   void invalidate([List<String>? tables]) {
     if (tables == null) {
       _tables.clear();
+      _inFlight.clear();
       return;
     }
     for (final table in tables) {
       // Tanto la tabla entera como cualquiera de sus lecturas filtradas.
-      _tables.removeWhere(
-        (key, _) => key == table || key.startsWith('$table?'),
-      );
+      bool matches(String key) => key == table || key.startsWith('$table?');
+      _tables.removeWhere((key, _) => matches(key));
+      _inFlight.removeWhere((key, _) => matches(key));
     }
   }
 }

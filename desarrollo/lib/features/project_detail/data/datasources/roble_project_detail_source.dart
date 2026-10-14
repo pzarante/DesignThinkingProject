@@ -8,6 +8,7 @@ import '../../domain/models/project_community.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
+import '../../domain/models/publication.dart';
 import '../../domain/models/viewer_role.dart';
 import '../../domain/project_unavailable_exception.dart';
 import 'i_project_detail_source.dart';
@@ -46,15 +47,32 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   static const _tableComments = 'comments';
   static const _tableSaved = 'project_saved';
   static const _tableFollowers = 'project_followers';
+  static const _tableApplications = 'project_applications';
+  static const _applicationPending = 'pending';
   static const _likeType = 'like';
 
+  static const _tableUpdates = 'project_updates';
+  static const _tableMedia = 'project_media';
+  static const _tablePolls = 'polls';
+  static const _tablePollQuestions = 'poll_questions';
+  static const _tablePollOptions = 'poll_options';
+  static const _tablePollResponses = 'poll_responses';
+  static const _mediaImage = 'image';
+
+  /// shortcut: el CHECK de `media_type` no admite 'link'; los enlaces van
+  /// como 'document'. Agregar 'link' a la restricción si se necesitan
+  /// documentos de verdad.
+  static const _mediaLink = 'document';
+  static const _pollActive = 'active';
+  static const _pollArchived = 'archived';
+
   static const _slotOpen = 'open';
-  static const _slotFilled = 'filled';
+  static const _slotFilled = 'assigned';
 
   /// Cupo de un rol que se quitó desde la configuración pero que alguien
   /// ocupa: no se borra (su integrante sigue apuntando a él), solo deja de
   /// mostrarse como vacante.
-  static const _slotArchived = 'archived';
+  static const _slotArchived = 'closed';
 
   static const _memberLeft = 'left';
 
@@ -188,46 +206,52 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     Set<String> originalMemberIds = const {},
   }) async {
     final me = (await _authRepository.getLoggedUser())?.id;
-    if (me != null) {
-      final active = await _db.read(
-        _tableProjectMembers,
-        filters: {
-          'project_id': detail.projectId,
-          'status': ProjectMember.activeStatus,
-        },
-      );
-      final myMembership = active.where((m) => m['user_id'] == me).firstOrNull;
-      final isAllowed =
-          myMembership != null &&
-          (myMembership['is_creator'] == true ||
-              myMembership['is_co_leader'] == true);
-      if (!isAllowed && active.isNotEmpty) {
-        final proj = await _cache.getById(_tableProjects, detail.projectId);
-        if (proj?['creator_id'] != me) {
-          throw StateError(
-            'Solo el creador o co-líder pueden modificar el proyecto.',
-          );
-        }
+    if (me == null) {
+      throw StateError('Inicia sesión para modificar el proyecto.');
+    }
+    final active = await _db.read(
+      _tableProjectMembers,
+      filters: {
+        'project_id': detail.projectId,
+        'status': ProjectMember.activeStatus,
+      },
+    );
+    final myMembership = active.where((m) => m['user_id'] == me).firstOrNull;
+    final isAllowed =
+        myMembership != null &&
+        (myMembership['is_creator'] == true ||
+            myMembership['is_co_leader'] == true);
+    if (!isAllowed) {
+      final proj = await _cache.getById(_tableProjects, detail.projectId);
+      if (proj?['creator_id'] != me) {
+        throw StateError(
+          'Solo el creador o co-líder pueden modificar el proyecto.',
+        );
       }
     }
 
-    await _db.update(_tableProjects, detail.projectId, {
-      'name': detail.name,
-      'description': detail.description,
-      'cover_url': detail.coverUrl,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
-    });
-    await _syncRoles(detail.projectId, detail.openRoles);
-    await _syncTeam(
-      detail.projectId,
-      detail.members,
-      originalMemberIds: originalMemberIds,
-    );
-    _cache.invalidate([
-      _tableProjects,
-      _tableProjectMembers,
-      _tableProjectRoles,
-    ]);
+    try {
+      // Los roles van primero: si algún cupo no se puede quitar, se avisa
+      // antes de haber escrito nada.
+      await _syncRoles(detail.projectId, detail.openRoles);
+      await _db.update(_tableProjects, detail.projectId, {
+        'name': detail.name,
+        'description': detail.description,
+        'cover_url': detail.coverUrl,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+      await _syncTeam(
+        detail.projectId,
+        detail.members,
+        originalMemberIds: originalMemberIds,
+      );
+    } finally {
+      _cache.invalidate([
+        _tableProjects,
+        _tableProjectMembers,
+        _tableProjectRoles,
+      ]);
+    }
   }
 
   /// Lleva el equipo guardado a lo que quedó en la configuración.
@@ -262,42 +286,56 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           'is_co_leader': false,
         });
 
-        // Liberar su cupo en vacantes si ocupaba uno.
-        final slotId = row['project_role_id'] as String?;
-        if (slotId != null) {
-          await _db.update(_tableProjectRoles, slotId, {
-            'status': _slotOpen,
-            'assigned_user_id': null,
-            'updated_at': now,
-          });
-        }
+        await _releaseSlot(row['project_role_id'] as String?, now);
       }
     }
 
-    // 2. Actualizar o sumar integrantes.
+    // 2. Sumar integrantes o cambiarles el rol. El cupo lo reparte
+    // [addMember], igual que al aceptar una postulación.
     for (final member in targetMembers) {
-      final existing = activeRows
+      var existing = activeRows
           .where((r) => r['user_id'] == member.id)
           .firstOrNull;
-      if (existing != null) {
-        final currentCoLeader = existing['is_co_leader'] == true;
-        if (currentCoLeader != member.isCoLeader) {
-          await _db.update(_tableProjectMembers, existing['_id'] as String, {
-            'is_co_leader': member.isCoLeader,
-          });
-        }
-      } else {
-        await _db.create(_tableProjectMembers, {
-          'project_id': projectId,
-          'user_id': member.id,
-          'project_role_id': member.projectRoleId,
-          'is_creator': false,
+      final roleChanged =
+          member.projectRoleId != null &&
+          member.projectRoleId != existing?['project_role_id'];
+      if (existing == null || roleChanged) {
+        await addMember(
+          projectId: projectId,
+          member: member,
+          projectRoleId: member.projectRoleId ?? '',
+        );
+      }
+      if ((existing?['is_co_leader'] == true) != member.isCoLeader) {
+        existing ??= (await _db.read(
+          _tableProjectMembers,
+          filters: {
+            'project_id': projectId,
+            'user_id': member.id,
+            'status': ProjectMember.activeStatus,
+          },
+        )).first;
+        await _db.update(_tableProjectMembers, existing['_id'] as String, {
           'is_co_leader': member.isCoLeader,
-          'status': ProjectMember.activeStatus,
-          'joined_at': now,
         });
       }
     }
+  }
+
+  /// Deja libre el cupo de quien sale del equipo. Un cupo archivado (su rol
+  /// se quitó en la configuración) no se reabre: volvería como vacante.
+  Future<void> _releaseSlot(String? slotId, String now) async {
+    if (slotId == null) return;
+    final row = (await _db.read(
+      _tableProjectRoles,
+      filters: {'_id': slotId},
+    )).firstOrNull;
+    if (row == null || row['status'] == _slotArchived) return;
+    await _db.update(_tableProjectRoles, slotId, {
+      'status': _slotOpen,
+      'assigned_user_id': null,
+      'updated_at': now,
+    });
   }
 
   @override
@@ -376,9 +414,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           'status': ProjectMember.activeStatus,
         },
       );
-      // Reintento (p. ej. falló marcar la postulación como aceptada): ya es
-      // del equipo, y buscarle otro cupo se llevaría uno más.
-      if (active.isNotEmpty) return;
+      final mine = active.firstOrNull;
 
       final roleRows = await _db.read(
         _tableProjectRoles,
@@ -387,33 +423,65 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       final requested = roleRows
           .where((r) => r['_id'] == projectRoleId)
           .firstOrNull;
+      final current = roleRows
+          .where((r) => r['_id'] == mine?['project_role_id'])
+          .firstOrNull;
 
-      // El cupo pedido, o si otra aceptación ya lo llenó, cualquier otro libre
-      // del mismo rol. Si el rol se borró, la persona entra sin cupo.
-      final slot = requested != null && _isOpenSlot(requested)
-          ? requested
-          : roleRows
-                .where((r) => r['name'] == requested?['name'] && _isOpenSlot(r))
-                .firstOrNull;
+      // Ya está en ese rol (un reintento): se queda con su cupo. Si no, el
+      // cupo pedido o, si otra aceptación ya lo llenó, otro libre del mismo
+      // rol. Sin ninguno libre, quien ya era del equipo conserva el suyo y
+      // quien entra lo hace sin cupo.
+      final sameRole = current != null && current['name'] == requested?['name'];
+      final slot = sameRole
+          ? current
+          : (requested != null && _isOpenSlot(requested)
+                    ? requested
+                    : roleRows
+                          .where(
+                            (r) =>
+                                r['name'] == requested?['name'] &&
+                                _isOpenSlot(r),
+                          )
+                          .firstOrNull) ??
+                current;
 
       // Primero la fila del equipo y luego el cupo: si falla la primera no
       // queda un cupo ocupado por alguien que no entró. Fila nueva aunque
       // haya estado antes: la vieja queda como historial con su `left_at`.
-      await _db.create(_tableProjectMembers, {
-        'project_id': projectId,
-        'user_id': userId,
-        'project_role_id': slot?['_id'],
-        'is_creator': false,
-        'is_co_leader': false,
-        'status': ProjectMember.activeStatus,
-        'joined_at': now,
-      });
-      if (slot != null) {
+      if (mine == null) {
+        await _db.create(_tableProjectMembers, {
+          'project_id': projectId,
+          'user_id': userId,
+          'project_role_id': slot?['_id'],
+          'is_creator': false,
+          'is_co_leader': false,
+          'status': ProjectMember.activeStatus,
+          'joined_at': now,
+        });
+      } else if (mine['project_role_id'] != slot?['_id']) {
+        await _db.update(_tableProjectMembers, mine['_id'] as String, {
+          'project_role_id': slot?['_id'],
+        });
+      }
+      if (slot != null && _isOpenSlot(slot)) {
         await _db.update(_tableProjectRoles, slot['_id'] as String, {
           'status': _slotFilled,
           'assigned_user_id': userId,
           'updated_at': now,
         });
+      }
+      // Cupos a su nombre que ya no son el suyo: el del rol que deja, o uno
+      // que quedó tomado en un intento anterior a medias.
+      for (final row in roleRows) {
+        if (row['assigned_user_id'] == userId &&
+            row['_id'] != slot?['_id'] &&
+            row['status'] == _slotFilled) {
+          await _db.update(_tableProjectRoles, row['_id'] as String, {
+            'status': _slotOpen,
+            'assigned_user_id': null,
+            'updated_at': now,
+          });
+        }
       }
     } finally {
       _cache.invalidate([_tableProjectRoles, _tableProjectMembers]);
@@ -483,15 +551,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       });
     }
 
-    // Su cupo vuelve a quedar libre para otra postulación.
-    final slotId = mine['project_role_id'] as String?;
-    if (slotId != null) {
-      await _db.update(_tableProjectRoles, slotId, {
-        'status': _slotOpen,
-        'assigned_user_id': null,
-        'updated_at': now,
-      });
-    }
+    await _releaseSlot(mine['project_role_id'] as String?, now);
     _cache.invalidate([
       _tableProjectMembers,
       _tableProjectRoles,
@@ -506,7 +566,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       filters: {'project_id': projectId},
     );
     final likes = rows.where(
-      (r) => r['project_id'] == projectId && r['reaction_type'] == _likeType,
+      (r) =>
+          r['project_id'] == projectId &&
+          r['update_id'] == null &&
+          r['reaction_type'] == _likeType,
     );
     final me = (await _authRepository.getLoggedUser())?.id;
     return (
@@ -518,16 +581,20 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   @override
   Future<int> toggleLike(String projectId) async {
     final me = await _authRepository.ensureGuestSession();
-    final existing = await _db.read(
+    // Sin los de sus publicaciones, que comparten `project_id`.
+    final existing = (await _db.read(
       _tableReactions,
       filters: {
         'project_id': projectId,
         'user_id': me.id,
         'reaction_type': _likeType,
       },
-    );
+    )).where((r) => r['update_id'] == null).toList();
     if (existing.isNotEmpty) {
-      await _db.delete(_tableReactions, existing.first['_id'] as String);
+      // Todas: un doble toque de antes pudo dejar más de una.
+      for (final row in existing) {
+        await _db.delete(_tableReactions, row['_id'] as String);
+      }
     } else {
       await _db.create(_tableReactions, {
         'project_id': projectId,
@@ -623,24 +690,35 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       RobleQuery(_tableComments, {'project_id': projectId}),
       const RobleQuery(_tableUsers),
     ]);
-    final mine = tables[0].where((r) => r['project_id'] == projectId).toList()
-      ..sort((a, b) => '${a['created_at']}'.compareTo('${b['created_at']}'));
+    // Los de una publicación (`update_id`) van en su tarjeta, no aquí.
+    final mine = tables[0]
+        .where((r) => r['project_id'] == projectId && r['update_id'] == null)
+        .toList();
     if (mine.isEmpty) return const [];
+    return _toComments(mine, _usersById(tables[1]));
+  }
 
-    final nameById = {
-      for (final user in tables[1])
-        user['user_id'] as String: (user['user_name'] as String?) ?? 'Invitado',
-    };
+  Map<String, Map<String, dynamic>> _usersById(
+    List<Map<String, dynamic>> users,
+  ) => {for (final user in users) user['user_id'] as String: user};
 
+  /// Del más antiguo al más nuevo.
+  List<ProjectComment> _toComments(
+    Iterable<Map<String, dynamic>> rows,
+    Map<String, Map<String, dynamic>> userById,
+  ) {
+    final sorted = rows.toList()
+      ..sort((a, b) => '${a['created_at']}'.compareTo('${b['created_at']}'));
     return [
-      for (final row in mine)
+      for (final row in sorted)
         ProjectComment(
           id: row['_id'] as String,
           authorId: row['author_id'] as String,
-          authorName:
-              (row['author_name'] as String?) ??
-              nameById[row['author_id']] ??
-              'Invitado',
+          // Con cuenta manda su perfil (si cambia de nombre, cambia aquí
+          // también); el nombre escrito a mano es solo para invitados.
+          authorName: userById[row['author_id']] != null
+              ? _displayName(userById[row['author_id']])
+              : (row['author_name'] as String?) ?? 'Invitado',
           content: row['content'] as String,
           createdAt: DateTime.parse('${row['created_at']}').toLocal(),
         ),
@@ -652,6 +730,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     String projectId,
     String content, {
     String? authorName,
+    String? publicationId,
   }) async {
     final me = await _authRepository.ensureGuestSession();
     final displayName = authorName?.trim().isNotEmpty == true
@@ -661,8 +740,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       'project_id': projectId,
       'author_id': me.id,
       'author_name': displayName,
+      'update_id': ?publicationId,
       'content': content,
       'status': 'published',
+      'created_at': DateTime.now().toUtc().toIso8601String(),
     });
     _cache.invalidate([_tableComments]);
     return ProjectComment(
@@ -673,6 +754,354 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       createdAt: DateTime.now(),
     );
   }
+
+  @override
+  Future<List<Publication>> getPublications(String projectId) async {
+    final byProject = {'project_id': projectId};
+    final [
+      updates,
+      media,
+      polls,
+      questions,
+      options,
+      responses,
+      reactions,
+      comments,
+      users,
+    ] = await _cache.readQueries([
+      RobleQuery(_tableUpdates, byProject),
+      RobleQuery(_tableMedia, byProject),
+      RobleQuery(_tablePolls, byProject),
+      // shortcut: las tablas de encuestas no guardan el proyecto y se leen
+      // enteras; filtrar por `poll_id` cuando haya muchas encuestas.
+      const RobleQuery(_tablePollQuestions),
+      const RobleQuery(_tablePollOptions),
+      const RobleQuery(_tablePollResponses),
+      RobleQuery(_tableReactions, byProject),
+      RobleQuery(_tableComments, byProject),
+      const RobleQuery(_tableUsers),
+    ]);
+    final me = (await _authRepository.getLoggedUser())?.id;
+    final userById = _usersById(users);
+
+    String? mediaUrl(Object? updateId, String type) =>
+        media
+                .where(
+                  (m) => m['update_id'] == updateId && m['media_type'] == type,
+                )
+                .firstOrNull?['file_url']
+            as String?;
+
+    final result = <Publication>[
+      for (final update in updates)
+        () {
+          final id = update['_id'];
+          final likes = reactions.where(
+            (r) => r['update_id'] == id && r['reaction_type'] == _likeType,
+          );
+          final own = _toComments(
+            comments.where((c) => c['update_id'] == id),
+            userById,
+          );
+          return Publication(
+            id: id as String,
+            projectId: projectId,
+            authorName: _displayName(userById[update['author_id']]),
+            title: update['title'] as String,
+            content: update['description'] as String,
+            imageUrl: mediaUrl(id, _mediaImage),
+            linkUrl: mediaUrl(id, _mediaLink),
+            createdAt: _parseDate(update['created_at']),
+            reactionCount: likes.length,
+            viewerReacted: me != null && likes.any((r) => r['user_id'] == me),
+            commentCount: own.length,
+            comments: own,
+          );
+        }(),
+      for (final poll in polls)
+        if (poll['status'] != _pollArchived)
+          () {
+            final id = poll['_id'];
+            final question = questions
+                .where((q) => q['poll_id'] == id)
+                .firstOrNull;
+            final pollOptions =
+                options
+                    .where((o) => o['question_id'] == question?['_id'])
+                    .toList()
+                  ..sort(
+                    (a, b) => (a['display_order'] as num).compareTo(
+                      b['display_order'] as num,
+                    ),
+                  );
+            final textById = {
+              for (final o in pollOptions) o['_id']: o['option_text'] as String,
+            };
+            final votes = responses.where((r) => r['poll_id'] == id);
+            return Publication(
+              id: id as String,
+              projectId: projectId,
+              authorName: _displayName(userById[poll['created_by']]),
+              title: poll['title'] as String,
+              content: (poll['description'] as String?) ?? '',
+              pollOptions: textById.values.toList(),
+              pollVotes: {
+                for (final text in textById.values)
+                  text: votes
+                      .where((v) => textById[v['option_id']] == text)
+                      .length,
+              },
+              selectedPollOption:
+                  textById[votes
+                      .where((v) => v['respondent_id'] == me)
+                      .firstOrNull?['option_id']],
+              createdAt: _parseDate(poll['created_at']),
+            );
+          }(),
+    ];
+    return result..sort(
+      (a, b) =>
+          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+    );
+  }
+
+  @override
+  Future<Publication> createPublication(Publication publication) async {
+    final me = await _accountId();
+    if (me == null) {
+      throw const AccountRequiredException('Inicia sesión para publicar.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      if (publication.isPoll) return await _createPoll(publication, me, now);
+
+      final project = await _cache.getById(
+        _tableProjects,
+        publication.projectId,
+      );
+      final created = await _db.create(_tableUpdates, {
+        'project_id': publication.projectId,
+        'author_id': me,
+        'title': publication.title,
+        'description': publication.content,
+        // Obligatorio en la tabla: el avance queda con el progreso de hoy.
+        'progress_percent': (project?['progress_percent'] as num?) ?? 0,
+        'created_at': now,
+      });
+      final id = created['_id'] as String;
+      await _syncMedia(id, publication, me, now);
+      return publication.copyWith(id: id);
+    } finally {
+      _cache.invalidate(_publicationTables);
+    }
+  }
+
+  /// Una encuesta es `polls` + una pregunta de opción única + sus opciones.
+  Future<Publication> _createPoll(
+    Publication publication,
+    String me,
+    String now,
+  ) async {
+    final poll = await _db.create(_tablePolls, {
+      'project_id': publication.projectId,
+      'created_by': me,
+      'title': publication.title,
+      'description': publication.content,
+      'status': _pollActive,
+      'created_at': now,
+      'updated_at': now,
+    });
+    final pollId = poll['_id'] as String;
+    try {
+      final question = await _db.create(_tablePollQuestions, {
+        'poll_id': pollId,
+        'question_text': publication.title,
+        'question_type': 'single_choice',
+        'display_order': 0,
+      });
+      for (var i = 0; i < publication.pollOptions.length; i++) {
+        await _db.create(_tablePollOptions, {
+          'question_id': question['_id'],
+          'option_text': publication.pollOptions[i],
+          'display_order': i,
+        });
+      }
+    } catch (_) {
+      // Sin transacciones: una encuesta a medias se archiva para que no se
+      // vea con opciones de menos.
+      await _db.update(_tablePolls, pollId, {'status': _pollArchived});
+      rethrow;
+    }
+    return publication.copyWith(id: pollId);
+  }
+
+  /// Deja en `project_media` la imagen y el enlace de [publication]: borra lo
+  /// que cambió y crea lo nuevo.
+  Future<void> _syncMedia(
+    String updateId,
+    Publication publication,
+    String me,
+    String now,
+  ) async {
+    final current = await _db.read(
+      _tableMedia,
+      filters: {'update_id': updateId},
+    );
+    final wanted = {
+      _mediaImage: publication.imageUrl,
+      _mediaLink: publication.linkUrl,
+    };
+    for (final MapEntry(key: type, value: url) in wanted.entries) {
+      final row = current.where((m) => m['media_type'] == type).firstOrNull;
+      if (row?['file_url'] == url) continue;
+      if (row != null) await _db.delete(_tableMedia, row['_id'] as String);
+      if (url == null || url.isEmpty) continue;
+      final name = Uri.tryParse(url)?.pathSegments.lastOrNull ?? '';
+      await _db.create(_tableMedia, {
+        'project_id': publication.projectId,
+        'update_id': updateId,
+        'uploaded_by': me,
+        'file_url': url,
+        'file_name': name.isEmpty ? url : name,
+        'media_type': type,
+        'created_at': now,
+      });
+    }
+  }
+
+  @override
+  Future<void> updatePublication(Publication publication) async {
+    final me = await _accountId();
+    if (me == null) {
+      throw const AccountRequiredException('Inicia sesión para editar.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      if (publication.isPoll) {
+        await _db.update(_tablePolls, publication.id, {
+          'title': publication.title,
+          'description': publication.content,
+          'updated_at': now,
+        });
+        final question = (await _db.read(
+          _tablePollQuestions,
+          filters: {'poll_id': publication.id},
+        )).firstOrNull;
+        if (question != null) {
+          await _db.update(_tablePollQuestions, question['_id'] as String, {
+            'question_text': publication.title,
+          });
+        }
+        return;
+      }
+      await _db.update(_tableUpdates, publication.id, {
+        'title': publication.title,
+        'description': publication.content,
+      });
+      await _syncMedia(publication.id, publication, me, now);
+    } finally {
+      _cache.invalidate(_publicationTables);
+    }
+  }
+
+  @override
+  Future<void> deletePublication(Publication publication) async {
+    try {
+      if (publication.isPoll) {
+        // Archivada y no borrada: conserva sus votos.
+        await _db.update(_tablePolls, publication.id, {
+          'status': _pollArchived,
+          'updated_at': DateTime.now().toUtc().toIso8601String(),
+        });
+        return;
+      }
+      // Comentarios y me gusta de otros se quedan (cada quien solo puede
+      // borrar lo suyo); sin el avance ya no se muestran.
+      final media = await _db.read(
+        _tableMedia,
+        filters: {'update_id': publication.id},
+      );
+      for (final row in media) {
+        await _db.delete(_tableMedia, row['_id'] as String);
+      }
+      await _db.delete(_tableUpdates, publication.id);
+    } finally {
+      _cache.invalidate(_publicationTables);
+    }
+  }
+
+  @override
+  Future<int> togglePublicationReaction(Publication publication) async {
+    final me = await _authRepository.ensureGuestSession();
+    final likes = {'update_id': publication.id, 'reaction_type': _likeType};
+    final existing = await _db.read(
+      _tableReactions,
+      filters: {...likes, 'user_id': me.id},
+    );
+    if (existing.isNotEmpty) {
+      for (final row in existing) {
+        await _db.delete(_tableReactions, row['_id'] as String);
+      }
+    } else {
+      await _db.create(_tableReactions, {
+        // La restricción pide `project_id` (y no `comment_id`).
+        'project_id': publication.projectId,
+        ...likes,
+        'user_id': me.id,
+        'created_at': DateTime.now().toUtc().toIso8601String(),
+      });
+    }
+    _cache.invalidate([_tableReactions]);
+    return (await _db.read(_tableReactions, filters: likes)).length;
+  }
+
+  @override
+  Future<void> votePoll(Publication publication, String option) async {
+    final me = await _authRepository.ensureGuestSession();
+    final question = (await _db.read(
+      _tablePollQuestions,
+      filters: {'poll_id': publication.id},
+    )).firstOrNull;
+    final chosen = question == null
+        ? null
+        : (await _db.read(
+            _tablePollOptions,
+            filters: {'question_id': question['_id']},
+          )).where((o) => o['option_text'] == option).firstOrNull;
+    if (question == null || chosen == null) {
+      throw StateError('Esa opción ya no existe en la encuesta.');
+    }
+
+    final mine = await _db.read(
+      _tablePollResponses,
+      filters: {'poll_id': publication.id, 'respondent_id': me.id},
+    );
+    try {
+      if (mine.isEmpty) {
+        await _db.create(_tablePollResponses, {
+          'poll_id': publication.id,
+          'question_id': question['_id'],
+          'option_id': chosen['_id'],
+          'respondent_id': me.id,
+          'created_at': DateTime.now().toUtc().toIso8601String(),
+        });
+      } else {
+        await _db.update(_tablePollResponses, mine.first['_id'] as String, {
+          'option_id': chosen['_id'],
+        });
+      }
+    } finally {
+      _cache.invalidate([_tablePollResponses]);
+    }
+  }
+
+  static const _publicationTables = [
+    _tableUpdates,
+    _tableMedia,
+    _tablePolls,
+    _tablePollQuestions,
+    _tablePollOptions,
+  ];
 
   /// El id de quien tiene sesión, solo si es una cuenta de verdad: un
   /// invitado no sirve para guardar ni seguir.
@@ -825,23 +1254,78 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       _tableProjectRoles,
       filters: {'project_id': projectId},
     );
+    // Las postulaciones no guardan el proyecto, solo el cupo: borrar un cupo
+    // con una pendiente la dejaría sin dueño, invisible para el equipo.
+    // shortcut: lee las pendientes de todos los proyectos, filtrar por cupo
+    // cuando ROBLE admita "id en esta lista".
+    final pending = {
+      for (final a in await _db.read(
+        _tableApplications,
+        filters: {'status': _applicationPending},
+      ))
+        a['project_role_id'],
+    };
+
+    // 1. Planear sin escribir, para poder avisar antes de tocar nada.
     final claimed = <String>{};
+    final plans =
+        <({ProjectRole role, List<Map<String, dynamic>> mine, int target})>[];
+    final toDelete = <Map<String, dynamic>>[];
+    for (final role in roles) {
+      final mine = role.slotIds.isNotEmpty
+          ? rows.where((r) => role.hasSlot(r['_id'] as String)).toList()
+          : rows
+                .where(
+                  (r) =>
+                      r['name'] == role.title &&
+                      r['status'] != _slotArchived &&
+                      !claimed.contains(r['_id']),
+                )
+                .toList();
+      claimed.addAll(mine.map((r) => r['_id'] as String));
 
+      // Nunca menos cupos que los ya ocupados: la configuración no deja
+      // bajar de ahí, y aquí se vuelve a asegurar.
+      final filled = mine.where((r) => !_isOpenSlot(r)).length;
+      final target = role.totalSlots < filled ? filled : role.totalSlots;
+      plans.add((role: role, mine: mine, target: target));
+
+      // Sobran cupos: se quitan libres, primero los que nadie pidió.
+      final open = mine.where(_isOpenSlot).toList().reversed;
+      toDelete.addAll(
+        [
+          ...open.where((r) => !pending.contains(r['_id'])),
+          ...open.where((r) => pending.contains(r['_id'])),
+        ].take(mine.length - target),
+      );
+    }
+    // Roles quitados en la configuración: los cupos libres se borran.
+    final removed = rows
+        .where(
+          (r) => !claimed.contains(r['_id']) && r['status'] != _slotArchived,
+        )
+        .toList();
+    toDelete.addAll(removed.where(_isOpenSlot));
+
+    final blocked = toDelete
+        .where((r) => pending.contains(r['_id']))
+        .firstOrNull;
+    if (blocked != null) {
+      throw StateError(
+        'El rol "${blocked['name']}" tiene postulaciones pendientes. '
+        'Acéptalas o recházalas antes de quitarle cupos.',
+      );
+    }
+
+    // 2. Escribir. Habilidades y vínculos se leen una vez para todos los roles.
     try {
-      for (final role in roles) {
-        final mine = role.slotIds.isNotEmpty
-            ? rows.where((r) => role.hasSlot(r['_id'] as String)).toList()
-            : rows
-                  .where(
-                    (r) =>
-                        r['name'] == role.title &&
-                        r['status'] != _slotArchived &&
-                        !claimed.contains(r['_id']),
-                  )
-                  .toList();
-        claimed.addAll(mine.map((r) => r['_id'] as String));
+      final links = await _db.read(_tableProjectRoleSkills);
+      final skills = List.of(await _db.read(_tableSkills));
+      final deleteIds = {for (final r in toDelete) r['_id']};
 
+      for (final (:role, :mine, :target) in plans) {
         for (final row in mine) {
+          if (deleteIds.contains(row['_id'])) continue;
           if (row['name'] != role.title ||
               row['description'] != role.description) {
             await _db.update(_tableProjectRoles, row['_id'] as String, {
@@ -852,12 +1336,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           }
         }
 
-        // Nunca menos cupos que los ya ocupados: la configuración no deja
-        // bajar de ahí, y aquí se vuelve a asegurar.
-        final filled = mine.where((r) => !_isOpenSlot(r)).length;
-        final target = role.totalSlots < filled ? filled : role.totalSlots;
-        final slotIds = [for (final r in mine) r['_id'] as String];
-
+        final slotIds = [
+          for (final r in mine)
+            if (!deleteIds.contains(r['_id'])) r['_id'] as String,
+        ];
         for (var i = mine.length; i < target; i++) {
           final created = await _db.create(_tableProjectRoles, {
             'project_id': projectId,
@@ -870,31 +1352,17 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           slotIds.add(created['_id'] as String);
         }
 
-        final surplus = mine.length - target;
-        if (surplus > 0) {
-          final openRows = mine.where(_isOpenSlot).toList().reversed;
-          for (final row in openRows.take(surplus)) {
-            await _db.delete(_tableProjectRoles, row['_id'] as String);
-            slotIds.remove(row['_id']);
-          }
-        }
-
-        await _syncSkills(slotIds, role.skills);
+        await _syncSkills(slotIds, role.skills, links, skills);
       }
 
-      // Roles quitados en la configuración.
-      for (final row in rows) {
-        if (claimed.contains(row['_id']) || row['status'] == _slotArchived) {
-          continue;
-        }
-        if (_isOpenSlot(row)) {
-          await _db.delete(_tableProjectRoles, row['_id'] as String);
-        } else {
-          await _db.update(_tableProjectRoles, row['_id'] as String, {
-            'status': _slotArchived,
-            'updated_at': now,
-          });
-        }
+      for (final row in toDelete) {
+        await _db.delete(_tableProjectRoles, row['_id'] as String);
+      }
+      for (final row in removed.where((r) => !_isOpenSlot(r))) {
+        await _db.update(_tableProjectRoles, row['_id'] as String, {
+          'status': _slotArchived,
+          'updated_at': now,
+        });
       }
     } finally {
       _cache.invalidate([
@@ -905,15 +1373,29 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     }
   }
 
+  /// [links] y [skills] son las tablas ya leídas; las habilidades nuevas se
+  /// agregan a [skills] para que el siguiente rol no las vuelva a crear.
   Future<void> _syncSkills(
     List<String> roleIds,
     List<String> skillNames,
+    List<Map<String, dynamic>> links,
+    List<Map<String, dynamic>> skills,
   ) async {
     if (roleIds.isEmpty) return;
-    final links = await _db.read(_tableProjectRoleSkills);
     final wanted = <String>{};
     for (final name in skillNames) {
-      wanted.add(await _findOrCreateSkill(name));
+      final trimmed = name.trim();
+      var skill = skills
+          .where(
+            (s) =>
+                (s['name'] as String?)?.toLowerCase() == trimmed.toLowerCase(),
+          )
+          .firstOrNull;
+      if (skill == null) {
+        skill = await _db.create(_tableSkills, {'name': trimmed});
+        skills.add(skill);
+      }
+      wanted.add(skill['_id'] as String);
     }
 
     for (final roleId in roleIds) {
@@ -936,19 +1418,6 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         });
       }
     }
-  }
-
-  Future<String> _findOrCreateSkill(String name) async {
-    final trimmed = name.trim();
-    final all = await _db.read(_tableSkills);
-    final existing = all
-        .where(
-          (s) => (s['name'] as String?)?.toLowerCase() == trimmed.toLowerCase(),
-        )
-        .firstOrNull;
-    if (existing != null) return existing['_id'] as String;
-    final created = await _db.create(_tableSkills, {'name': trimmed});
-    return created['_id'] as String;
   }
 
   bool _isOpenSlot(Map<String, dynamic> row) =>

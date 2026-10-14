@@ -7,6 +7,9 @@ import 'package:roble/roble.dart';
 String errorMessage(Object error, {String? fallback}) {
   if (fallback != null) return fallback;
 
+  // Las reglas de la app (permisos, cupos) ya traen su mensaje para la persona.
+  if (error is StateError) return error.message;
+
   if (error is RobleApiForbiddenException) {
     return 'Tu cuenta no tiene permiso para hacer esto.';
   }

@@ -54,7 +54,9 @@ class CommunityDetailController extends GetxController with UiLoggy {
   /// la misma tabla que se acaba de tocar.
   Future<void> toggleFollowing() async {
     final current = community.value;
-    if (current == null) return;
+    if (current == null || _toggling) return;
+    // Un segundo toque antes de que termine el primero crearía la fila dos veces.
+    _toggling = true;
 
     final wasFollowing = current.isFollowing;
     community.value = current.copyWith(
@@ -81,6 +83,10 @@ class CommunityDetailController extends GetxController with UiLoggy {
       loggy.error('CommunityDetailController: toggle failed', exception);
       community.value = current;
       actionError.value = errors.errorMessage(exception);
+    } finally {
+      _toggling = false;
     }
   }
+
+  bool _toggling = false;
 }

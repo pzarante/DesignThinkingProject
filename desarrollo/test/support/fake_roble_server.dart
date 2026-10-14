@@ -34,6 +34,9 @@ class FakeRobleServer extends http.BaseClient {
 
   final Map<String, List<Map<String, dynamic>>> tables;
   final List<FakeRobleRequest> requests = [];
+
+  /// Peticiones que fallan una vez con 500, como `'update:project_roles'`.
+  final Set<String> failOnce = {};
   int _nextId = 1;
 
   late final RobleApiDataBase db = RobleApiDataBase(
@@ -66,6 +69,15 @@ class FakeRobleServer extends http.BaseClient {
     final body = request is http.Request && request.body.isNotEmpty
         ? jsonDecode(request.body) as Map<String, dynamic>
         : const <String, dynamic>{};
+
+    final table = query['tableName'] ?? body['tableName'];
+    if (failOnce.remove('$endpoint:$table')) {
+      return http.StreamedResponse(
+        Stream.value(utf8.encode('{"message":"falla de prueba"}')),
+        500,
+        request: request,
+      );
+    }
 
     final Object result;
     switch (endpoint) {

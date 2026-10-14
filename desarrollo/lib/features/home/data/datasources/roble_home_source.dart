@@ -361,7 +361,8 @@ class RobleHomeSource implements IHomeSource {
       'name': community.name,
       'description': community.description,
       'cover_url': community.coverUrl,
-      'status': community.isPublic ? 'published' : 'private',
+      // El CHECK de `communities.status` no tiene 'private'.
+      'status': community.isPublic ? 'published' : 'draft',
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
 

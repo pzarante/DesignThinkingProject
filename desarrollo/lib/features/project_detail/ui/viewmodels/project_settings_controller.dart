@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import '../../../../core/error_message.dart';
 import '../../../home/domain/repositories/i_home_repository.dart';
 import '../../../home/ui/viewmodels/home_controller.dart';
 import '../../domain/models/project_detail.dart';
@@ -42,6 +43,9 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   /// se actualice al volver.
   ProjectDetail? saved;
 
+  /// Por qué falló el último guardado, para enseñarlo tal cual.
+  String? saveError;
+
   @override
   void onClose() {
     nameField.dispose();
@@ -79,14 +83,27 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     coverUrl.value = null;
   }
 
-  void updateMemberRole(String memberId, String roleLabel) {
-    final clean = roleLabel.trim();
+  /// Primer cupo libre de [role] que nadie del equipo en edición ya tomó.
+  /// Null si no queda ninguno o si el rol todavía no se guardó.
+  String? freeSlotOf(ProjectRole role) => role.openSlotIds
+      .where((id) => !members.any((m) => m.projectRoleId == id))
+      .firstOrNull;
+
+  /// Roles que se le pueden dar a alguien del equipo: el rol de un integrante
+  /// es el cupo que ocupa, así que solo valen los que tienen uno libre.
+  List<ProjectRole> get assignableRoles => [
+    for (final role in openRoles)
+      if (freeSlotOf(role) != null) role,
+  ];
+
+  void updateMemberRole(String memberId, ProjectRole role) {
     members.value = [
       for (final member in members)
-        if (member.id == memberId)
+        if (member.id == memberId && !role.hasSlot(member.projectRoleId ?? ''))
           member.copyWith(
-            roleLabel: clean.isEmpty ? null : clean.toUpperCase(),
-            subtitle: clean.isEmpty ? null : clean,
+            projectRoleId: freeSlotOf(role),
+            roleLabel: role.title.toUpperCase(),
+            subtitle: role.title,
           )
         else
           member,
@@ -149,6 +166,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     if (!canSave) return false;
     loggy.debug('ProjectSettingsController: saving ${_original.projectId}');
     isSaving.value = true;
+    saveError = null;
 
     try {
       final category = categoryField.text.trim();
@@ -202,6 +220,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
         exception,
         stackTrace,
       );
+      saveError = errorMessage(exception);
       return false;
     } finally {
       isSaving.value = false;

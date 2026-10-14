@@ -5,6 +5,7 @@ import 'package:f_clean_template/features/home/domain/models/project.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/project_comment.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/project_detail.dart';
 import 'package:f_clean_template/features/project_detail/domain/models/project_member.dart';
+import 'package:f_clean_template/features/project_detail/domain/models/publication.dart';
 import 'package:f_clean_template/features/project_detail/domain/project_unavailable_exception.dart';
 import 'package:f_clean_template/features/project_detail/domain/repositories/i_project_detail_repository.dart';
 import 'package:f_clean_template/features/project_detail/ui/viewmodels/project_detail_controller.dart';
@@ -33,6 +34,10 @@ class _Repository implements IProjectDetailRepository {
   Future<({bool saved, bool following})> getViewerFlags(
     String projectId,
   ) async => (saved: true, following: true);
+
+  @override
+  Future<List<Publication>> getPublications(String projectId) async =>
+      const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

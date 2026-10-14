@@ -1,6 +1,7 @@
 import '../models/project_comment.dart';
 import '../models/project_detail.dart';
 import '../models/project_member.dart';
+import '../models/publication.dart';
 
 abstract class IProjectDetailRepository {
   /// Detalle guardado de un proyecto, o null si todavía no tiene uno.
@@ -61,7 +62,26 @@ abstract class IProjectDetailRepository {
     String projectId,
     String content, {
     String? authorName,
+    String? publicationId,
   });
+
+  /// Publicaciones del muro, de la más nueva a la más vieja.
+  Future<List<Publication>> getPublications(String projectId);
+
+  /// Publica [publication] y la devuelve con el id que le dio el servidor.
+  Future<Publication> createPublication(Publication publication);
+
+  /// Guarda título, texto, imagen y enlace. Las opciones de una encuesta no
+  /// se tocan: ya puede tener votos.
+  Future<void> updatePublication(Publication publication);
+
+  Future<void> deletePublication(Publication publication);
+
+  /// Da o quita el "me gusta" de quien mira. Devuelve el total ya actualizado.
+  Future<int> togglePublicationReaction(Publication publication);
+
+  /// Vota [option] en la encuesta; si ya había votado, cambia su voto.
+  Future<void> votePoll(Publication publication, String option);
 
   /// Elimina o archiva lógicamente el proyecto.
   Future<void> deleteProject(String projectId);

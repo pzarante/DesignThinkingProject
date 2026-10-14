@@ -37,9 +37,7 @@ Future<ProjectMember?> showMemberPickerSheet(
           for (final member in ordered)
             ListTile(
               title: Text(member.name),
-              subtitle: member.subtitle == null
-                  ? null
-                  : Text(member.subtitle!),
+              subtitle: member.subtitle == null ? null : Text(member.subtitle!),
               trailing: (isSelected?.call(member) ?? false)
                   ? const Icon(Icons.check)
                   : (suggested(member)

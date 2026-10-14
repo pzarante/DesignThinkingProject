@@ -88,6 +88,8 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
     }
     final now = DateTime.now().toUtc().toIso8601String();
     final created = await _db.create(_tableApplications, {
+      // Obligatorio en la tabla.
+      'project_id': application.projectId,
       'applicant_id': me,
       'project_role_id': application.projectRoleId,
       'motivation': application.motivation,

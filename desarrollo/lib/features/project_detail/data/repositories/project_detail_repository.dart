@@ -1,6 +1,7 @@
 import '../../domain/models/project_comment.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
+import '../../domain/models/publication.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 import '../datasources/i_project_detail_source.dart';
 
@@ -71,11 +72,37 @@ class ProjectDetailRepository implements IProjectDetailRepository {
     String projectId,
     String content, {
     String? authorName,
+    String? publicationId,
   }) async => await source.addComment(
     projectId,
     content,
     authorName: authorName,
+    publicationId: publicationId,
   );
+
+  @override
+  Future<List<Publication>> getPublications(String projectId) =>
+      source.getPublications(projectId);
+
+  @override
+  Future<Publication> createPublication(Publication publication) =>
+      source.createPublication(publication);
+
+  @override
+  Future<void> updatePublication(Publication publication) =>
+      source.updatePublication(publication);
+
+  @override
+  Future<void> deletePublication(Publication publication) =>
+      source.deletePublication(publication);
+
+  @override
+  Future<int> togglePublicationReaction(Publication publication) =>
+      source.togglePublicationReaction(publication);
+
+  @override
+  Future<void> votePoll(Publication publication, String option) =>
+      source.votePoll(publication, option);
 
   @override
   Future<void> deleteProject(String projectId) async =>

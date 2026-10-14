@@ -49,10 +49,8 @@ class DetailsTab extends StatelessWidget {
                 ActionChip(
                   avatar: const Icon(Icons.groups_outlined, size: 18),
                   label: Text(community.name),
-                  onPressed: () => Get.toNamed(
-                    AppRoutes.community,
-                    arguments: community.id,
-                  ),
+                  onPressed: () =>
+                      Get.toNamed(AppRoutes.community, arguments: community.id),
                 ),
             ],
           ),

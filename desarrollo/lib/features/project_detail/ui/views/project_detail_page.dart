@@ -50,6 +50,7 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   void initState() {
     super.initState();
     controller.load(Get.arguments as Project).then((_) {
+      _reportPublicationError();
       final detail = controller.detail;
       final applicant = controller.currentUser.value;
       if (detail == null) return;
@@ -65,6 +66,14 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         applicantId: applicant.id,
       );
     });
+  }
+
+  /// Las acciones del muro escriben en ROBLE; si algo falla, se dice por qué.
+  void _reportPublicationError() {
+    final error = controller.actionError.value;
+    if (!mounted || error.isEmpty) return;
+    controller.actionError.value = '';
+    showErrorSnack('Publicaciones', message: error);
   }
 
   void _notifyPending(String message) {
@@ -161,7 +170,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       projectId: detail.projectId,
       authorName: controller.currentUser.value?.name ?? 'Equipo del proyecto',
     );
-    if (publication != null) controller.addPublication(publication);
+    if (publication == null) return;
+    await controller.addPublication(publication);
+    _reportPublicationError();
   }
 
   Future<void> _editPublication(Publication publication) async {
@@ -169,7 +180,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       context,
       publication: publication,
     );
-    if (updated != null) controller.updatePublication(updated);
+    if (updated == null) return;
+    await controller.updatePublication(updated);
+    _reportPublicationError();
   }
 
   Future<void> _deletePublication(Publication publication) async {
@@ -190,7 +203,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
         ],
       ),
     );
-    if (confirmed ?? false) controller.deletePublication(publication.id);
+    if (!(confirmed ?? false)) return;
+    await controller.deletePublication(publication);
+    _reportPublicationError();
   }
 
   Future<void> _commentPublication(Publication publication) async {
@@ -224,7 +239,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
     final comment = commentController.text.trim();
     commentController.dispose();
     if (submitted ?? false) {
-      controller.addPublicationComment(publication.id, comment);
+      await controller.addPublicationComment(publication, comment);
+      _reportPublicationError();
     }
   }
 
@@ -306,11 +322,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
             onCreate: () => _createPublication(detail),
             onEdit: _editPublication,
             onDelete: _deletePublication,
-            onReact: (publication) =>
-                controller.togglePublicationReaction(publication.id),
+            onReact: (publication) => controller
+                .togglePublicationReaction(publication)
+                .then((_) => _reportPublicationError()),
             onComment: _commentPublication,
-            onPollVote: (publication, option) =>
-                controller.votePublicationPoll(publication.id, option),
+            onPollVote: (publication, option) => controller
+                .votePublicationPoll(publication, option)
+                .then((_) => _reportPublicationError()),
           ),
         );
       case 2:
@@ -320,7 +338,8 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
           detail: detail,
           comments: controller.comments,
           isSendingComment: controller.isSendingComment.value,
-          isAnonymous: !Get.isRegistered<AuthenticationController>() ||
+          isAnonymous:
+              !Get.isRegistered<AuthenticationController>() ||
               !Get.find<AuthenticationController>().hasAccount,
           onSubmitComment: (content, authorName) =>
               controller.submitComment(content, authorName: authorName),

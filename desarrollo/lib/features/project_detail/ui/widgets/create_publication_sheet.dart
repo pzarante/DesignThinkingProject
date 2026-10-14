@@ -12,10 +12,8 @@ Future<Publication?> showCreatePublicationSheet(
   return showModalBottomSheet<Publication>(
     context: context,
     isScrollControlled: true,
-    builder: (context) => _CreatePublicationSheet(
-      projectId: projectId,
-      authorName: authorName,
-    ),
+    builder: (context) =>
+        _CreatePublicationSheet(projectId: projectId, authorName: authorName),
   );
 }
 
@@ -46,7 +44,8 @@ class _CreatePublicationSheet extends StatefulWidget {
   final Publication? initialPublication;
 
   @override
-  State<_CreatePublicationSheet> createState() => _CreatePublicationSheetState();
+  State<_CreatePublicationSheet> createState() =>
+      _CreatePublicationSheetState();
 }
 
 class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
@@ -93,12 +92,15 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
     super.dispose();
   }
 
+  bool get _isEditing => widget.initialPublication != null;
+
   void _publish() {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     Navigator.of(context).pop(
       Publication(
-        id: widget.initialPublication?.id ??
+        id:
+            widget.initialPublication?.id ??
             'publication-${DateTime.now().microsecondsSinceEpoch}',
         projectId: widget.projectId,
         authorName: widget.authorName,
@@ -108,7 +110,9 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
             ? null
             : _imageController.text.trim(),
         linkUrl: _contentType == 'link' ? _linkController.text.trim() : null,
-        pollOptions: _contentType == 'poll'
+        pollOptions: _isEditing && _contentType == 'poll'
+            ? widget.initialPublication!.pollOptions
+            : _contentType == 'poll'
             ? _pollOptionControllers
                   .map((controller) => controller.text.trim())
                   .where((option) => option.isNotEmpty)
@@ -152,7 +156,10 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                 ],
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('¿Qué quieres compartir?', style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                '¿Qué quieres compartir?',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: AppSpacing.md),
               SegmentedButton<String>(
                 segments: const [
@@ -161,8 +168,12 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                   ButtonSegment(value: 'poll', label: Text('Encuesta')),
                 ],
                 selected: {_contentType},
-                onSelectionChanged: (selection) =>
-                    setState(() => _contentType = selection.first),
+                // Al editar no cambia: un avance y una encuesta son tablas
+                // distintas en ROBLE.
+                onSelectionChanged: _isEditing
+                    ? null
+                    : (selection) =>
+                          setState(() => _contentType = selection.first),
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -172,8 +183,8 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                 maxLength: 80,
                 hintText: 'Ej. Avances del prototipo',
                 validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Escribe un título.'
-                  : null,
+                    ? 'Escribe un título.'
+                    : null,
               ),
               if (_contentType == 'link') ...[
                 const SizedBox(height: AppSpacing.md),
@@ -187,11 +198,23 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                     final text = value?.trim() ?? '';
                     if (text.isEmpty) return 'Pega un enlace.';
                     final uri = Uri.tryParse(text);
-                    return uri?.hasScheme == true ? null : 'Usa un enlace válido.';
+                    return uri?.hasScheme == true
+                        ? null
+                        : 'Usa un enlace válido.';
                   },
                 ),
               ],
-              if (_contentType == 'poll') ...[
+              if (_contentType == 'poll' && _isEditing) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Opciones: ${widget.initialPublication!.pollOptions.join(' · ')}',
+                ),
+                Text(
+                  'No se pueden cambiar: la encuesta ya puede tener votos.',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (_contentType == 'poll' && !_isEditing) ...[
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   'Opciones de respuesta',
@@ -203,8 +226,8 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                     controller: _pollOptionControllers[i],
                     label: 'Opción ${i + 1}${i < 2 ? ' *' : ''}',
                     isRequired: i < 2,
-                    validator: (value) => i < 2 &&
-                            (value == null || value.trim().isEmpty)
+                    validator: (value) =>
+                        i < 2 && (value == null || value.trim().isEmpty)
                         ? 'Agrega al menos dos opciones.'
                         : null,
                   ),
@@ -220,8 +243,8 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                 maxLines: 7,
                 hintText: 'Comparte un avance, pregunta o recurso...',
                 validator: (value) => value == null || value.trim().isEmpty
-                  ? 'Escribe el contenido.'
-                  : null,
+                    ? 'Escribe el contenido.'
+                    : null,
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
@@ -235,7 +258,9 @@ class _CreatePublicationSheetState extends State<_CreatePublicationSheet> {
                 child: FilledButton(
                   onPressed: _publish,
                   child: Text(
-                    widget.initialPublication == null ? 'Publicar' : 'Guardar cambios',
+                    widget.initialPublication == null
+                        ? 'Publicar'
+                        : 'Guardar cambios',
                   ),
                 ),
               ),
