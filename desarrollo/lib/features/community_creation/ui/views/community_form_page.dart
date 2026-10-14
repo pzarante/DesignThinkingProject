@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_tag_input.dart';
@@ -94,15 +93,18 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Imagen de portada', style: theme.textTheme.labelMedium),
+          Text('Identidad visual', style: theme.textTheme.labelMedium),
           const SizedBox(height: AppSpacing.xs),
-          Obx(
-            () => AppCoverPicker(
-              imageUrl: controller.coverUrl.value,
-              fileName: controller.coverName.value,
-              label: 'Haz click para subir portada',
-              onTap: controller.pickPlaceholderCover,
-              onRemove: controller.removeCover,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: const Text(
+              'La comunidad usará un color plano asignado automáticamente. '
+              'No necesitas cargar una imagen.',
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

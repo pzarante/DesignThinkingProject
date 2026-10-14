@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_community_cover.dart';
 import '../../domain/models/community_detail.dart';
 
 /// Portada, nombre, descripción y el botón de seguir.
@@ -22,7 +23,10 @@ class CommunityHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Cover(coverUrl: community.coverUrl),
+        AppCommunityCover(
+          communityId: community.id,
+          communityName: community.name,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
@@ -88,62 +92,6 @@ class CommunityHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Cover extends StatelessWidget {
-  const _Cover({this.coverUrl});
-
-  final String? coverUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    final isValidUrl = coverUrl != null && coverUrl!.trim().isNotEmpty;
-
-    if (!isValidUrl) {
-      return Container(
-        height: 120,
-        width: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [colors.primary, colors.primaryContainer],
-          ),
-        ),
-        alignment: Alignment.center,
-        child: Icon(
-          Icons.groups_outlined,
-          color: colors.onPrimary.withValues(alpha: 0.5),
-          size: 40,
-        ),
-      );
-    }
-
-    return AspectRatio(
-      aspectRatio: 16 / 7,
-      child: Image.network(
-        coverUrl!.trim(),
-        fit: BoxFit.cover,
-        errorBuilder: (_, _, _) => Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [colors.primary, colors.primaryContainer],
-            ),
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.groups_outlined,
-            color: colors.onPrimary.withValues(alpha: 0.5),
-            size: 40,
-          ),
-        ),
-      ),
     );
   }
 }

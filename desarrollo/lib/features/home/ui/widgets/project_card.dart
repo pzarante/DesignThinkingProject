@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/app_project_cover.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../domain/models/project.dart';
 
@@ -25,7 +26,11 @@ class ProjectCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _Cover(imageUrl: project.imageUrl, isNew: project.isNew),
+            AppProjectCover(
+              projectId: project.id,
+              projectName: project.name,
+              isNew: project.isNew,
+            ),
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -70,99 +75,6 @@ class ProjectCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Cover extends StatelessWidget {
-  const _Cover({this.imageUrl, this.isNew = false});
-
-  final String? imageUrl;
-  final bool isNew;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    return Stack(
-      children: [
-        if (imageUrl == null || imageUrl!.trim().isEmpty)
-          _placeholder(colors)
-        else
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Image.network(
-              imageUrl!,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, progress) {
-                if (progress == null) return child;
-                return Container(
-                  color: colors.surfaceContainerHighest,
-                  child: const Center(child: CircularProgressIndicator()),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) =>
-                  _placeholder(colors),
-            ),
-          ),
-        if (isNew)
-          Positioned(
-            top: AppSpacing.sm,
-            left: AppSpacing.sm,
-            child: _NewBadge(),
-          ),
-      ],
-    );
-  }
-
-  Widget _placeholder(ColorScheme colors) {
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colors.surfaceContainerHighest,
-              colors.surfaceContainerHigh,
-            ],
-          ),
-        ),
-        child: Center(
-          child: Icon(
-            Icons.lightbulb_outline_rounded,
-            size: AppSpacing.xl,
-            color: colors.primary.withValues(alpha: 0.7),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NewBadge extends StatelessWidget {
-  const _NewBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: colors.tertiaryContainer,
-        borderRadius: BorderRadius.circular(AppSpacing.xs),
-      ),
-      child: Text(
-        'NUEVO',
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: colors.onTertiaryContainer,
-          fontWeight: FontWeight.bold,
         ),
       ),
     );

@@ -236,16 +236,6 @@ class ProjectCreationController extends GetxController with UiLoggy {
         .toList();
   }
 
-  /// Selector de archivos pendiente: sin backend ni plugin de imágenes, se
-  /// asigna una portada de ejemplo para que la revisión tenga qué mostrar.
-  void pickPlaceholderCover() {
-    final slug = name.value.trim().isEmpty
-        ? 'proyecto'
-        : name.value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    coverUrl.value = 'https://picsum.photos/seed/$slug/400/225';
-    coverName.value = 'portada_$slug.png';
-  }
-
   void removeCover() {
     coverUrl.value = null;
     coverName.value = null;
@@ -299,7 +289,7 @@ class ProjectCreationController extends GetxController with UiLoggy {
       // Los roles del paso de equipo también viajan en la entidad del feed:
       // es lo que lee el flujo de postulación.
       requiredRoles: List.unmodifiable(roles),
-      imageUrl: coverUrl.value,
+      imageUrl: null,
       createdAt: DateTime.now(),
       description: description.value.trim(),
     );

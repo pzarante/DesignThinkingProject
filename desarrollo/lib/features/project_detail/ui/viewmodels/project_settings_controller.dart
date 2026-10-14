@@ -70,13 +70,6 @@ class ProjectSettingsController extends GetxController with UiLoggy {
 
   bool get isCreator => _original.viewerRole == ViewerRole.creator;
 
-  /// Selector de archivos pendiente: se rota a otra portada de ejemplo.
-  void changeCover() {
-    coverUrl.value =
-        'https://picsum.photos/seed/${_original.projectId}'
-        '${DateTime.now().second}/400/225';
-  }
-
   void removeCover() {
     coverUrl.value = null;
   }
@@ -136,7 +129,11 @@ class ProjectSettingsController extends GetxController with UiLoggy {
       await homeController.getFeed();
       return true;
     } catch (exception, stackTrace) {
-      loggy.error('ProjectSettingsController: delete failed', exception, stackTrace);
+      loggy.error(
+        'ProjectSettingsController: delete failed',
+        exception,
+        stackTrace,
+      );
       return false;
     } finally {
       isSaving.value = false;
@@ -191,7 +188,11 @@ class ProjectSettingsController extends GetxController with UiLoggy {
       _original = updated;
       return true;
     } catch (exception, stackTrace) {
-      loggy.error('ProjectSettingsController: save failed', exception, stackTrace);
+      loggy.error(
+        'ProjectSettingsController: save failed',
+        exception,
+        stackTrace,
+      );
       return false;
     } finally {
       isSaving.value = false;

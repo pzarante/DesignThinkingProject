@@ -46,7 +46,9 @@ class CommunitySettingsController extends GetxController with UiLoggy {
     description.value = community.description ?? '';
     tags.value = List.of(community.tags);
     coverUrl.value = community.coverUrl;
-    coverName.value = community.coverUrl == null ? null : 'cover_${community.id}.jpg';
+    coverName.value = community.coverUrl == null
+        ? null
+        : 'cover_${community.id}.jpg';
     isPublic.value = community.isPublic;
     selectedProjectIds.value = List.of(community.projectIds);
 
@@ -76,14 +78,6 @@ class CommunitySettingsController extends GetxController with UiLoggy {
       return;
     }
     selectedProjectIds.add(projectId);
-  }
-
-  void changeCover() {
-    final slug = name.value.trim().isEmpty
-        ? 'comunidad'
-        : name.value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    coverUrl.value = 'https://picsum.photos/seed/$slug/400/225';
-    coverName.value = 'cover_$slug.jpg';
   }
 
   void removeCover() {
@@ -116,7 +110,11 @@ class CommunitySettingsController extends GetxController with UiLoggy {
       );
       return true;
     } catch (exception, stackTrace) {
-      loggy.error('CommunitySettingsController: save failed', exception, stackTrace);
+      loggy.error(
+        'CommunitySettingsController: save failed',
+        exception,
+        stackTrace,
+      );
       showErrorSnack(
         'No se pudo guardar',
         message: 'Revisa los datos e inténtalo de nuevo.',
