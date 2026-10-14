@@ -88,7 +88,7 @@ class _Cover extends StatelessWidget {
 
     return Stack(
       children: [
-        if (imageUrl == null)
+        if (imageUrl == null || imageUrl!.trim().isEmpty)
           _placeholder(colors)
         else
           AspectRatio(
@@ -121,11 +121,22 @@ class _Cover extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 16 / 9,
       child: Container(
-        color: colors.surfaceContainerHighest,
-        child: Icon(
-          Icons.image_outlined,
-          size: AppSpacing.xl,
-          color: colors.onSurfaceVariant,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.surfaceContainerHighest,
+              colors.surfaceContainerHigh,
+            ],
+          ),
+        ),
+        child: Center(
+          child: Icon(
+            Icons.lightbulb_outline_rounded,
+            size: AppSpacing.xl,
+            color: colors.primary.withValues(alpha: 0.7),
+          ),
         ),
       ),
     );

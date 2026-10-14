@@ -68,4 +68,8 @@ class ProjectDetailRepository implements IProjectDetailRepository {
   @override
   Future<ProjectComment> addComment(String projectId, String content) async =>
       await source.addComment(projectId, content);
+
+  @override
+  Future<void> deleteProject(String projectId) async =>
+      await source.deleteProject(projectId);
 }

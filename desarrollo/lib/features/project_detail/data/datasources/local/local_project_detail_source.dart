@@ -457,4 +457,13 @@ class LocalProjectDetailSource implements IProjectDetailSource {
     (_comments[projectId] ??= []).add(comment);
     return comment;
   }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    _details.remove(projectId);
+    _comments.remove(projectId);
+    _likedBy.remove(projectId);
+    _saved.remove(projectId);
+    _following.remove(projectId);
+  }
 }

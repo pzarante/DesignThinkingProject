@@ -7,6 +7,7 @@ import '../../../home/ui/viewmodels/home_controller.dart';
 import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
+import '../../domain/models/viewer_role.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
 /// Estado de la configuración de un proyecto: edita una copia de trabajo y
@@ -65,6 +66,10 @@ class ProjectSettingsController extends GetxController with UiLoggy {
     return coverUrl.value == null ? 'Sin portada' : 'cover_$slug.jpg';
   }
 
+  bool get canSave => name.value.trim().isNotEmpty && !isSaving.value;
+
+  bool get isCreator => _original.viewerRole == ViewerRole.creator;
+
   /// Selector de archivos pendiente: se rota a otra portada de ejemplo.
   void changeCover() {
     coverUrl.value =
@@ -72,11 +77,27 @@ class ProjectSettingsController extends GetxController with UiLoggy {
         '${DateTime.now().second}/400/225';
   }
 
+  void removeCover() {
+    coverUrl.value = null;
+  }
+
   void updateMemberRole(String memberId, String roleLabel) {
+    final clean = roleLabel.trim();
     members.value = [
       for (final member in members)
-        member.copyWith(isCoLeader: member.id == memberId),
+        if (member.id == memberId)
+          member.copyWith(
+            roleLabel: clean.isEmpty ? null : clean.toUpperCase(),
+            subtitle: clean.isEmpty ? null : clean,
+          )
+        else
+          member,
     ];
+  }
+
+  void addMember(ProjectMember member) {
+    if (members.any((m) => m.id == member.id)) return;
+    members.add(member);
   }
 
   void addRole(ProjectRole role) => openRoles.add(role);
@@ -98,60 +119,82 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   void removeMember(String memberId) =>
       members.removeWhere((member) => member.id == memberId);
 
-  void setCoLeader(String memberId) {
+  void setCoLeader(String? memberId) {
     members.value = [
       for (final member in members)
-        member.copyWith(isCoLeader: member.id == memberId),
+        member.copyWith(isCoLeader: memberId != null && member.id == memberId),
     ];
   }
 
   void unlinkCommunity() => communityName.value = null;
 
-  Future<void> save() async {
+  Future<bool> deleteProject() async {
+    isSaving.value = true;
+    try {
+      await _repository.deleteProject(_original.projectId);
+      final homeController = Get.find<HomeController>();
+      await homeController.getFeed();
+      return true;
+    } catch (exception, stackTrace) {
+      loggy.error('ProjectSettingsController: delete failed', exception, stackTrace);
+      return false;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
+  Future<bool> save() async {
+    if (!canSave) return false;
     loggy.debug('ProjectSettingsController: saving ${_original.projectId}');
     isSaving.value = true;
 
-    final category = categoryField.text.trim();
-    final tags = <String>[
-      if (category.isNotEmpty) category,
-      ..._original.tags.skip(1),
-    ];
-    final description = descriptionField.text.trim();
+    try {
+      final category = categoryField.text.trim();
+      final tags = <String>[
+        if (category.isNotEmpty) category,
+        ..._original.tags.skip(1),
+      ];
+      final description = descriptionField.text.trim();
 
-    final updated = _original.copyWith(
-      name: nameField.text.trim(),
-      description: description,
-      tags: tags,
-      members: List.of(members),
-      openRoles: List.of(openRoles),
-      coverUrl: coverUrl.value,
-      communityName: communityName.value,
-      clearCommunity: communityName.value == null,
-    );
-
-    await _repository.saveDetail(updated);
-
-    // El feed guarda su propia versión resumida del proyecto: se sincroniza
-    // lo que ambas pantallas comparten.
-    final homeController = Get.find<HomeController>();
-    for (final project in [
-      ...homeController.feed.myProjects,
-      ...homeController.feed.recommendedProjects,
-    ]) {
-      if (project.id != updated.projectId) continue;
-      await _homeRepository.updateProject(
-        project.copyWith(
-          name: updated.name,
-          description: description.isEmpty ? null : description,
-          tags: tags,
-        ),
+      final updated = _original.copyWith(
+        name: nameField.text.trim(),
+        description: description,
+        tags: tags,
+        members: List.of(members),
+        openRoles: List.of(openRoles),
+        coverUrl: coverUrl.value,
+        communityName: communityName.value,
+        clearCommunity: communityName.value == null,
       );
-      await homeController.getFeed();
-      break;
-    }
 
-    saved = updated;
-    _original = updated;
-    isSaving.value = false;
+      await _repository.saveDetail(updated);
+
+      final homeController = Get.find<HomeController>();
+      for (final project in [
+        ...homeController.feed.myProjects,
+        ...homeController.feed.recommendedProjects,
+      ]) {
+        if (project.id != updated.projectId) continue;
+        await _homeRepository.updateProject(
+          project.copyWith(
+            name: updated.name,
+            description: description.isEmpty ? null : description,
+            tags: tags,
+            imageUrl: updated.coverUrl,
+          ),
+        );
+        await homeController.getFeed();
+        break;
+      }
+
+      saved = updated;
+      _original = updated;
+      return true;
+    } catch (exception, stackTrace) {
+      loggy.error('ProjectSettingsController: save failed', exception, stackTrace);
+      return false;
+    } finally {
+      isSaving.value = false;
+    }
   }
 }

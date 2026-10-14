@@ -101,7 +101,9 @@ class _Cover extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
 
-    if (coverUrl == null) {
+    final isValidUrl = coverUrl != null && coverUrl!.trim().isNotEmpty;
+
+    if (!isValidUrl) {
       return Container(
         height: 120,
         width: double.infinity,
@@ -112,16 +114,35 @@ class _Cover extends StatelessWidget {
             colors: [colors.primary, colors.primaryContainer],
           ),
         ),
+        alignment: Alignment.center,
+        child: Icon(
+          Icons.groups_outlined,
+          color: colors.onPrimary.withValues(alpha: 0.5),
+          size: 40,
+        ),
       );
     }
 
     return AspectRatio(
       aspectRatio: 16 / 7,
       child: Image.network(
-        coverUrl!,
+        coverUrl!.trim(),
         fit: BoxFit.cover,
-        errorBuilder: (_, _, _) =>
-            Container(color: colors.surfaceContainerHighest),
+        errorBuilder: (_, _, _) => Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [colors.primary, colors.primaryContainer],
+            ),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.groups_outlined,
+            color: colors.onPrimary.withValues(alpha: 0.5),
+            size: 40,
+          ),
+        ),
       ),
     );
   }

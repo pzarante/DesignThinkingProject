@@ -43,4 +43,7 @@ abstract class IProjectDetailSource {
   Future<List<ProjectComment>> getComments(String projectId);
 
   Future<ProjectComment> addComment(String projectId, String content);
+
+  /// Elimina o archiva lógicamente el proyecto.
+  Future<void> deleteProject(String projectId);
 }

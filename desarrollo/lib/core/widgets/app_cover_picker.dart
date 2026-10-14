@@ -27,7 +27,9 @@ class AppCoverPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    if (imageUrl != null) {
+    final hasValidImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
+
+    if (hasValidImage) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,7 +37,20 @@ class AppCoverPicker extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppSpacing.sm),
             child: AspectRatio(
               aspectRatio: 16 / 9,
-              child: Image.network(imageUrl!, fit: BoxFit.cover),
+              child: Image.network(
+                imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  child: Center(
+                    child: Icon(
+                      Icons.broken_image_outlined,
+                      size: AppSpacing.xl,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
           if (fileName != null)

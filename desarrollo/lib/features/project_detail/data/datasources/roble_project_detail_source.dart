@@ -172,19 +172,142 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
   @override
   Future<void> saveDetail(ProjectDetail detail) async {
-    // Nombre, descripción y portada, igual que `RobleHomeSource.updateProject`,
-    // más las vacantes. El equipo (quitar integrantes, co-líder) todavía no
-    // se escribe desde aquí: la configuración trabaja sobre una copia que no
-    // ve a quien entra mientras está abierta, y guardarla sacaría a esa
-    // persona.
+    final me = (await _authRepository.getLoggedUser())?.id;
+    if (me != null) {
+      final active = await _db.read(
+        _tableProjectMembers,
+        filters: {
+          'project_id': detail.projectId,
+          'status': ProjectMember.activeStatus,
+        },
+      );
+      final myMembership = active.where((m) => m['user_id'] == me).firstOrNull;
+      final isAllowed = myMembership != null &&
+          (myMembership['is_creator'] == true ||
+              myMembership['is_co_leader'] == true);
+      if (!isAllowed && active.isNotEmpty) {
+        final proj = await _cache.getById(_tableProjects, detail.projectId);
+        if (proj?['creator_id'] != me) {
+          throw StateError('Solo el creador o co-líder pueden modificar el proyecto.');
+        }
+      }
+    }
+
     await _db.update(_tableProjects, detail.projectId, {
       'name': detail.name,
       'description': detail.description,
       'cover_url': detail.coverUrl,
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
-    _cache.invalidate([_tableProjects]);
     await _syncRoles(detail.projectId, detail.openRoles);
+    await _syncTeam(detail.projectId, detail.members);
+    _cache.invalidate([
+      _tableProjects,
+      _tableProjectMembers,
+      _tableProjectRoles,
+    ]);
+  }
+
+  Future<void> _syncTeam(
+    String projectId,
+    List<ProjectMember> targetMembers,
+  ) async {
+    final now = DateTime.now().toUtc().toIso8601String();
+    final activeRows = await _db.read(
+      _tableProjectMembers,
+      filters: {
+        'project_id': projectId,
+        'status': ProjectMember.activeStatus,
+      },
+    );
+
+    final targetUserIds = {for (final m in targetMembers) m.id};
+
+    // 1. Quitar del equipo integrantes retirados (salvo el creador).
+    for (final row in activeRows) {
+      final userId = row['user_id'] as String;
+      final isCreator = row['is_creator'] == true;
+      if (!targetUserIds.contains(userId) && !isCreator) {
+        await _db.update(_tableProjectMembers, row['_id'] as String, {
+          'status': 'removed',
+          'left_at': now,
+          'is_co_leader': false,
+        });
+
+        // Liberar su cupo en vacantes si ocupaba uno.
+        final slotId = row['project_role_id'] as String?;
+        if (slotId != null) {
+          await _db.update(_tableProjectRoles, slotId, {
+            'status': _slotOpen,
+            'assigned_user_id': null,
+            'updated_at': now,
+          });
+        }
+      }
+    }
+
+    // 2. Actualizar o sumar integrantes.
+    for (final member in targetMembers) {
+      final existing =
+          activeRows.where((r) => r['user_id'] == member.id).firstOrNull;
+      if (existing != null) {
+        final currentCoLeader = existing['is_co_leader'] == true;
+        if (currentCoLeader != member.isCoLeader) {
+          await _db.update(_tableProjectMembers, existing['_id'] as String, {
+            'is_co_leader': member.isCoLeader,
+          });
+        }
+      } else {
+        await _db.create(_tableProjectMembers, {
+          'project_id': projectId,
+          'user_id': member.id,
+          'project_role_id': member.projectRoleId,
+          'is_creator': false,
+          'is_co_leader': member.isCoLeader,
+          'status': ProjectMember.activeStatus,
+          'joined_at': now,
+        });
+      }
+    }
+  }
+
+  @override
+  Future<void> deleteProject(String projectId) async {
+    final me = (await _authRepository.getLoggedUser())?.id;
+    if (me == null) {
+      throw StateError('Inicia sesión para eliminar el proyecto.');
+    }
+
+    final project = await _cache.getById(_tableProjects, projectId);
+    if (project == null) throw StateError('El proyecto no existe.');
+
+    final active = await _db.read(
+      _tableProjectMembers,
+      filters: {
+        'project_id': projectId,
+        'status': ProjectMember.activeStatus,
+      },
+    );
+    final creatorMember =
+        active.where((m) => m['is_creator'] == true).firstOrNull;
+    final creatorId = (creatorMember?['user_id'] as String?) ??
+        (project['creator_id'] as String?);
+
+    if (creatorId != me) {
+      throw StateError('Solo quien creó el proyecto puede eliminarlo.');
+    }
+
+    final now = DateTime.now().toUtc().toIso8601String();
+    await _db.update(_tableProjects, projectId, {
+      'status': 'archived',
+      'deleted_at': now,
+      'updated_at': now,
+    });
+    _cache.invalidate([
+      _tableProjects,
+      _tableProjectMembers,
+      _tableProjectRoles,
+    ]);
   }
 
   @override

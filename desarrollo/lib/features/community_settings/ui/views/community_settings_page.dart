@@ -160,7 +160,7 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
   }
 }
 
-class _ProjectPickerSheet extends StatelessWidget {
+class _ProjectPickerSheet extends StatefulWidget {
   const _ProjectPickerSheet({
     required this.projects,
     required this.initialSelection,
@@ -170,33 +170,114 @@ class _ProjectPickerSheet extends StatelessWidget {
   final List<String> initialSelection;
 
   @override
+  State<_ProjectPickerSheet> createState() => _ProjectPickerSheetState();
+}
+
+class _ProjectPickerSheetState extends State<_ProjectPickerSheet> {
+  late final Set<String> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = Set<String>.from(widget.initialSelection);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final selected = <String>{...initialSelection};
+    final theme = Theme.of(context);
 
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: ListView(
-          shrinkWrap: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('Seleccionar proyectos vinculados'),
-            const SizedBox(height: AppSpacing.sm),
-            for (final project in projects)
-              CheckboxListTile(
-                value: selected.contains(project.id),
-                title: Text(project.name),
-                onChanged: (value) {
-                  final current = List<String>.from(selected);
-                  if (value == true) {
-                    current.add(project.id);
-                  } else {
-                    current.remove(project.id);
-                  }
-                  selected.clear();
-                  selected.addAll(current);
-                  Navigator.of(context).pop(current);
-                },
+            Text(
+              'Vincular proyectos a la comunidad',
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              'Selecciona los proyectos de tu portafolio que pertenecen a esta comunidad.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (widget.projects.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                child: Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.folder_off_outlined,
+                        size: 40,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(
+                        'No tienes proyectos disponibles para vincular.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxHeight: 350),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: widget.projects.length,
+                  itemBuilder: (context, index) {
+                    final project = widget.projects[index];
+                    final isChecked = _selected.contains(project.id);
+                    return CheckboxListTile(
+                      value: isChecked,
+                      title: Text(project.name),
+                      subtitle: project.tags.isNotEmpty
+                          ? Text(
+                              project.tags.join(' • '),
+                              style: theme.textTheme.bodySmall,
+                            )
+                          : null,
+                      onChanged: (value) {
+                        setState(() {
+                          if (value == true) {
+                            _selected.add(project.id);
+                          } else {
+                            _selected.remove(project.id);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                FilledButton(
+                  onPressed: () => Navigator.of(context).pop(_selected.toList()),
+                  child: Text(
+                    widget.projects.isEmpty
+                        ? 'Cerrar'
+                        : 'Aplicar (${_selected.length})',
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

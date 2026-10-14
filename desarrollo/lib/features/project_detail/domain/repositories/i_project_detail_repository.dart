@@ -48,4 +48,7 @@ abstract class IProjectDetailRepository {
 
   /// Publica un comentario propio y lo devuelve ya creado.
   Future<ProjectComment> addComment(String projectId, String content);
+
+  /// Elimina o archiva lógicamente el proyecto.
+  Future<void> deleteProject(String projectId);
 }

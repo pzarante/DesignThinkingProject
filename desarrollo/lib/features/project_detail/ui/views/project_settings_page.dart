@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_text_field.dart';
+import '../../../profile/domain/models/user_profile.dart';
+import '../../../profile/ui/viewmodels/user_search_controller.dart';
 import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
 import '../viewmodels/project_settings_controller.dart';
 import '../widgets/applications_list.dart';
-import '../widgets/member_picker_sheet.dart';
+
 import '../widgets/project_member_tile.dart';
 import '../widgets/role_settings_tile.dart';
 
@@ -74,6 +77,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               imageUrl: controller.coverUrl.value,
               fileName: controller.coverName,
               onTap: controller.changeCover,
+              onRemove: controller.removeCover,
             ),
           ),
           Align(
@@ -118,11 +122,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
           Align(
             alignment: Alignment.centerLeft,
             child: TextButton.icon(
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Invitar integrantes llegará en otra entrega.'),
-                ),
-              ),
+              onPressed: () => _addMember(context),
               icon: const Icon(Icons.add),
               label: const Text('Agregar miembro'),
             ),
@@ -246,24 +246,235 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               ),
             );
           }),
+
+          if (controller.isCreator) ...[
+            const AppSectionHeader(title: 'Zona de peligro'),
+            Card(
+              color: theme.colorScheme.errorContainer.withValues(alpha: 0.15),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Eliminar proyecto',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: theme.colorScheme.error,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Esta acción archivará el proyecto de forma permanente. '
+                      'Ya no se mostrará en el feed, ni en búsquedas ni en Mis Proyectos.',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: theme.colorScheme.error,
+                        side: BorderSide(color: theme.colorScheme.error),
+                      ),
+                      onPressed: controller.isSaving.value
+                          ? null
+                          : () => _confirmDelete(context),
+                      icon: const Icon(Icons.delete_forever_outlined),
+                      label: const Text('Eliminar este proyecto'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
       bottomNavigationBar: Obx(
         () => AppFormActions(
           primaryLabel: 'Guardar cambios',
-          onPrimary: controller.isSaving.value
-              ? null
-              : () async {
-                  await controller.save();
-                  Get.back();
-                  showSuccessSnack(
-                    'Cambios guardados',
-                    message: 'La configuración del proyecto se actualizó.',
-                  );
-                },
+          onPrimary: controller.canSave
+              ? () async {
+                  final saved = await controller.save();
+                  if (saved && mounted) {
+                    Get.back();
+                    showSuccessSnack(
+                      'Cambios guardados',
+                      message: 'La configuración del proyecto se actualizó.',
+                    );
+                  } else if (mounted) {
+                    showErrorSnack(
+                      'No se pudo guardar',
+                      message: 'Verifica los campos obligatorios y permisos.',
+                    );
+                  }
+                }
+              : null,
         ),
       ),
     );
+  }
+
+  Future<void> _addMember(BuildContext context) async {
+    final userSearchController = Get.find<UserSearchController>();
+    if (userSearchController.users.isEmpty) {
+      await userSearchController.load();
+    }
+    final existingUserIds = controller.members.map((m) => m.id).toSet();
+    final availableUsers = userSearchController.users
+        .where((u) => !existingUserIds.contains(u.userId))
+        .toList();
+
+    if (availableUsers.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No hay más usuarios registrados disponibles para agregar.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    final roleField = TextEditingController();
+    UserSummary? selectedUser = availableUsers.first;
+
+    final added = await showDialog<ProjectMember>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Agregar integrante'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Seleccionar usuario',
+                  style: Theme.of(context).textTheme.labelMedium,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                DropdownButtonFormField<UserSummary>(
+                  initialValue: selectedUser,
+                  isExpanded: true,
+                  items: [
+                    for (final user in availableUsers)
+                      DropdownMenuItem(
+                        value: user,
+                        child: Text(
+                          user.fullName?.isNotEmpty == true
+                              ? '${user.fullName} (@${user.userName})'
+                              : user.userName,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (val) => setDialogState(() => selectedUser = val),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: roleField,
+                  decoration: const InputDecoration(
+                    labelText: 'Rol en el proyecto',
+                    hintText: 'Ej. FRONTEND, DISEÑADOR UI/UX',
+                  ),
+                ),
+                if (controller.openRoles.isNotEmpty) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    'Vacantes del proyecto:',
+                    style: Theme.of(context).textTheme.labelSmall,
+                  ),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    children: [
+                      for (final openRole in controller.openRoles)
+                        ActionChip(
+                          label: Text(openRole.title),
+                          onPressed: () {
+                            roleField.text = openRole.title;
+                          },
+                        ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (selectedUser == null) return;
+                final roleText = roleField.text.trim();
+                final member = ProjectMember(
+                  id: selectedUser!.userId,
+                  name: selectedUser!.displayName,
+                  avatarUrl: selectedUser!.avatarUrl,
+                  roleLabel: roleText.isEmpty ? null : roleText.toUpperCase(),
+                  subtitle: roleText.isEmpty ? (selectedUser!.career ?? '') : roleText,
+                );
+                Navigator.of(context).pop(member);
+              },
+              child: const Text('Agregar'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    roleField.dispose();
+    if (added != null) {
+      controller.addMember(added);
+      if (mounted) {
+        showSuccessSnack(
+          'Integrante agregado',
+          message: '${added.name} se sumó al equipo.',
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('¿Eliminar proyecto?'),
+        content: const Text(
+          'Esta acción archivará el proyecto de forma permanente y '
+          'no se mostrará más en el feed. ¿Estás seguro de continuar?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final success = await controller.deleteProject();
+      if (success) {
+        Get.until(
+          (route) => route.settings.name == AppRoutes.home || route.isFirst,
+        );
+        showSuccessSnack(
+          'Proyecto eliminado',
+          message: 'El proyecto fue archivado correctamente.',
+        );
+      } else {
+        showErrorSnack('Error', message: 'No se pudo eliminar el proyecto.');
+      }
+    }
   }
 
   Future<void> _editRole(BuildContext context, ProjectMember member) async {
@@ -292,7 +503,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     );
 
     field.dispose();
-    if (role != null && role.isNotEmpty) {
+    if (role != null) {
       controller.updateMemberRole(member.id, role.toUpperCase());
     }
   }
@@ -339,14 +550,49 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
       return;
     }
 
-    final selected = await showMemberPickerSheet(
-      context,
-      label: 'Elegir co-líder',
-      candidates: candidates,
-      isSelected: (member) => member.isCoLeader,
+    final selection = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: const Text('Co-liderazgo del proyecto'),
+        children: [
+          SimpleDialogOption(
+            onPressed: () => Navigator.of(context).pop('none'),
+            child: const Row(
+              children: [
+                Icon(Icons.remove_circle_outline, color: Colors.grey),
+                SizedBox(width: AppSpacing.sm),
+                Text('Dejar sin co-líder'),
+              ],
+            ),
+          ),
+          const Divider(),
+          for (final member in candidates)
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(member.id),
+              child: Row(
+                children: [
+                  Icon(
+                    member.isCoLeader
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: member.isCoLeader
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.grey,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(child: Text(member.name)),
+                ],
+              ),
+            ),
+        ],
+      ),
     );
 
-    if (selected != null) controller.setCoLeader(selected.id);
+    if (selection == 'none') {
+      controller.setCoLeader(null);
+    } else if (selection != null) {
+      controller.setCoLeader(selection);
+    }
   }
 
   Future<void> _editVacancy(BuildContext context, int? index) async {
