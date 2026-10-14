@@ -19,10 +19,8 @@ class ProjectApplicationRepository implements IProjectApplicationRepository {
   Future<bool> hasApplied({
     required String projectId,
     required String applicantId,
-  }) async => await source.hasApplied(
-    projectId: projectId,
-    applicantId: applicantId,
-  );
+  }) async =>
+      await source.hasApplied(projectId: projectId, applicantId: applicantId);
 
   @override
   Future<ProjectApplication?> getOwnApplication({

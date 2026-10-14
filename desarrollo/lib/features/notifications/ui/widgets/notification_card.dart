@@ -46,11 +46,12 @@ class NotificationCard extends StatelessWidget {
   }
 
   IconData _iconFor(NotificationType type) => switch (type) {
-    NotificationType.newApplication => Icons.person_add_alt_1_outlined,
+    NotificationType.applicationReceived => Icons.person_add_alt_1_outlined,
     NotificationType.applicationAccepted => Icons.check_circle_outline,
     NotificationType.applicationRejected => Icons.cancel_outlined,
-    NotificationType.memberJoined => Icons.group_add_outlined,
-    NotificationType.memberLeft => Icons.logout_outlined,
+    NotificationType.projectComment => Icons.chat_bubble_outline,
+    NotificationType.projectUpdate => Icons.campaign_outlined,
+    NotificationType.pollActivity => Icons.poll_outlined,
   };
 
   String _timeAgo(DateTime date) {

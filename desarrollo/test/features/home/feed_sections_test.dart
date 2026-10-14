@@ -96,7 +96,7 @@ Future<void> _pumpHome(
   );
   Get.put(HomeController(Get.find()));
   Get.put(AuthenticationController(Get.find<IAuthRepository>()));
-  registerNotifications();
+  registerNotifications(remote: false);
 
   await tester.pumpWidget(
     GetMaterialApp(theme: AppTheme.light, home: const HomePage()),

@@ -1,6 +1,9 @@
 import 'package:get/get.dart';
 import 'package:loggy/loggy.dart';
 
+import '../../../notifications/domain/models/app_notification.dart';
+import '../../../notifications/ui/viewmodels/notifications_controller.dart';
+
 import '../../../../core/error_message.dart' as errors;
 import '../../../project_detail/domain/models/project_role.dart';
 import '../../domain/models/project_application.dart';
@@ -129,6 +132,12 @@ class ApplyController extends GetxController with UiLoggy {
         ),
       );
       alreadyApplied.value = true;
+      await notify(
+        type: NotificationType.applicationReceived,
+        message: '$applicantName se postuló como ${role.title}.',
+        projectId: projectId,
+        applicationId: existing.value?.id,
+      );
       loggy.debug('ApplyController: postulación enviada a $projectId');
       return true;
     } catch (exception) {

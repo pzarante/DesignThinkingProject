@@ -211,9 +211,13 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
     isSendingComment.value = true;
     try {
-      comments.add(
-        await _repository.addComment(projectId, text, authorName: authorName),
+      final comment = await _repository.addComment(
+        projectId,
+        text,
+        authorName: authorName,
       );
+      comments.add(comment);
+      await _notifyComment(comment, projectId);
     } catch (exception) {
       loggy.error('ProjectDetailController: error posting comment', exception);
     } finally {
@@ -223,10 +227,21 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   /// Publica y la pone arriba del muro. False si no se pudo (el motivo
   /// queda en [actionError]).
-  Future<bool> addPublication(Publication publication) => _publicationAction(
-    () async =>
-        publications.insert(0, await _repository.createPublication(publication)),
-  );
+  Future<bool> addPublication(Publication publication) =>
+      _publicationAction(() async {
+        final created = await _repository.createPublication(publication);
+        publications.insert(0, created);
+        await notify(
+          type: created.isPoll
+              ? NotificationType.pollActivity
+              : NotificationType.projectUpdate,
+          message:
+              '${_projectName(created.projectId)} publicó "${created.title}".',
+          projectId: created.projectId,
+          // `polls` no es un avance: solo los avances van en `update_id`.
+          updateId: created.isPoll ? null : created.id,
+        );
+      });
 
   Future<bool> updatePublication(Publication publication) =>
       _publicationAction(() async {
@@ -254,7 +269,31 @@ class ProjectDetailController extends GetxController with UiLoggy {
             commentCount: p.commentCount + 1,
           ),
         );
+        await _notifyComment(
+          comment,
+          publication.projectId,
+          updateId: publication.id,
+        );
       });
+
+  Future<void> _notifyComment(
+    ProjectComment comment,
+    String projectId, {
+    String? updateId,
+  }) {
+    final text = comment.content.length > 80
+        ? '${comment.content.substring(0, 80)}…'
+        : comment.content;
+    return notify(
+      type: NotificationType.projectComment,
+      message:
+          '${comment.authorName} comentó en ${_projectName(projectId)}: '
+          '"$text"',
+      projectId: projectId,
+      commentId: comment.id,
+      updateId: updateId,
+    );
+  }
 
   /// Optimista: cambia en pantalla y, si el servidor lo rechaza, lo deshace.
   Future<void> togglePublicationReaction(Publication publication) async {
@@ -277,7 +316,10 @@ class ProjectDetailController extends GetxController with UiLoggy {
     _togglingPublications.remove(publication.id);
   }
 
-  Future<void> votePublicationPoll(Publication publication, String option) async {
+  Future<void> votePublicationPoll(
+    Publication publication,
+    String option,
+  ) async {
     if (publication.selectedPollOption == option ||
         !_togglingPublications.add(publication.id)) {
       return;
@@ -334,6 +376,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
     required String applicantName,
     String? applicantEmail,
     required String roleTitle,
+    String? applicationId,
   }) async {
     await _repository.addMember(
       projectId: projectId,
@@ -349,28 +392,12 @@ class ProjectDetailController extends GetxController with UiLoggy {
       if (fresh != null) _detail.value = fresh;
     }
 
-    await _push(
+    await notify(
       type: NotificationType.applicationAccepted,
-      title: 'Postulación aceptada',
-      message:
-          '$applicantName ahora es parte de $roleTitle en '
-          '${_projectName(projectId)}.',
+      recipientId: applicantId,
+      message: 'Te aceptaron como $roleTitle en ${_projectName(projectId)}.',
       projectId: projectId,
-    );
-  }
-
-  /// Se llama al rechazar una postulación.
-  Future<void> onApplicationRejected({
-    required String projectId,
-    required String applicantName,
-  }) async {
-    await _push(
-      type: NotificationType.applicationRejected,
-      title: 'Postulación rechazada',
-      message:
-          'La postulación de $applicantName a ${_projectName(projectId)} '
-          'fue rechazada.',
-      projectId: projectId,
+      applicationId: applicationId,
     );
   }
 
@@ -395,7 +422,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
   }
 
   /// Sale del equipo del proyecto abierto. Si lidera, [newLeader] es quien
-  /// queda a cargo. Avisa al equipo y refresca "Mis Proyectos".
+  /// queda a cargo. Refresca "Mis Proyectos".
   ///
   /// Devuelve null si salió bien, o el mensaje de error para mostrar.
   Future<String?> leaveProject({ProjectMember? newLeader}) async {
@@ -416,45 +443,11 @@ class ProjectDetailController extends GetxController with UiLoggy {
           : errors.errorMessage(exception);
     }
 
-    final whoLeft = currentUser.value?.name;
-    await _push(
-      type: NotificationType.memberLeft,
-      title: 'Un integrante salió del proyecto',
-      message: [
-        '${whoLeft == null || whoLeft.isEmpty ? 'Un integrante' : whoLeft} '
-            'salió de ${current.name}.',
-        if (newLeader != null) '${newLeader.name} ahora lo lidera.',
-      ].join(' '),
-      projectId: current.projectId,
-    );
-
     if (Get.isRegistered<HomeController>()) {
       await Get.find<HomeController>().getFeed();
     }
     isLeaving.value = false;
     return null;
-  }
-
-  /// Avisa sin arriesgar la operación que lo provocó: aceptar o rechazar
-  /// ya ocurrió, y un aviso que no llega no debe mostrarse como si eso
-  /// hubiera fallado.
-  Future<void> _push({
-    required NotificationType type,
-    required String title,
-    required String message,
-    String? projectId,
-  }) async {
-    if (!Get.isRegistered<NotificationsController>()) return;
-    try {
-      await Get.find<NotificationsController>().push(
-        type: type,
-        title: title,
-        message: message,
-        projectId: projectId,
-      );
-    } catch (exception) {
-      loggy.error('ProjectDetailController: could not notify', exception);
-    }
   }
 
   String _projectName(String projectId) =>

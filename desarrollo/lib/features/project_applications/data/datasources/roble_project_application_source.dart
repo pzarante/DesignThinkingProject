@@ -119,10 +119,13 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
     ProjectApplicationStatus status,
   ) async {
     final me = (await _authRepository.getLoggedUser())?.id;
+    final now = DateTime.now().toUtc().toIso8601String();
     await _db.update(_tableApplications, applicationId, {
       'status': status.name,
       'reviewed_by': me,
-      'updated_at': DateTime.now().toUtc().toIso8601String(),
+      // La bandeja de quien se postuló fecha el rechazo con esto.
+      'reviewed_at': now,
+      'updated_at': now,
     });
     _cache.invalidate([_tableApplications]);
     return _byId(applicationId);
@@ -206,10 +209,10 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
   String _displayName(Map<String, dynamic>? user) {
     final userName = user?['user_name'] as String?;
     if (userName != null && userName.isNotEmpty) return userName;
-    final full = [user?['first_name'], user?['last_name']]
-        .whereType<String>()
-        .where((part) => part.isNotEmpty)
-        .join(' ');
+    final full = [
+      user?['first_name'],
+      user?['last_name'],
+    ].whereType<String>().where((part) => part.isNotEmpty).join(' ');
     return full.isEmpty ? 'Sin nombre' : full;
   }
 }

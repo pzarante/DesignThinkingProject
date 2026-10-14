@@ -57,6 +57,7 @@ class ApplicantsController extends GetxController with UiLoggy {
         applicantName: application.applicantName,
         applicantEmail: application.applicantEmail,
         roleTitle: application.roleTitle ?? 'Rol no especificado',
+        applicationId: application.id,
       );
       await repository.updateStatus(
         application.id,
@@ -81,10 +82,7 @@ class ApplicantsController extends GetxController with UiLoggy {
         application.id,
         ProjectApplicationStatus.rejected,
       );
-      await Get.find<ProjectDetailController>().onApplicationRejected(
-        projectId: application.projectId,
-        applicantName: application.applicantName,
-      );
+      // Sin aviso propio: la bandeja de quien se postuló lo deriva del estado.
       return null;
     } catch (exception) {
       loggy.error('ApplicantsController: error rejecting', exception);

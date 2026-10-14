@@ -35,7 +35,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg),
             child: AppEmptyState(
               icon: Icons.notifications_none_outlined,
-              title: 'Sin notificaciones',
+              title: 'No hay nada nuevo',
               message:
                   'Cuando pase algo relevante en tus proyectos, aparecerá '
                   'aquí.',

@@ -28,6 +28,9 @@ class AuthenticationController extends GetxController with UiLoggy {
   bool get hasAccount => isLogged && !repoAuthentication.isAnonymous;
   String get loggedEmail => _loggedUser.value?.email ?? '';
 
+  /// Quién tiene sesión, para quien deba recargar al cambiar de cuenta.
+  Rxn<AuthenticationUser> get loggedUser => _loggedUser;
+
   @override
   void onInit() {
     super.onInit();

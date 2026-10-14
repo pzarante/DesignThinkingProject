@@ -19,7 +19,7 @@ void main() {
     // tienen que existir.
     Get.testMode = true;
     registerFakeAuth();
-    registerNotifications();
+    registerNotifications(remote: false);
     registerHome(remote: false);
     registerProjectDetail(remote: false);
   });

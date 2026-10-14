@@ -1,11 +1,8 @@
 import '../../domain/models/app_notification.dart';
 import '../../domain/repositories/i_notification_repository.dart';
 
-/// Notificaciones en memoria mientras no haya backend/push real.
-///
-/// Registrado como singleton `permanent: true`: cualquier feature (
-/// postulaciones, configuración de proyecto) escribe aquí, y la pantalla de
-/// notificaciones lee de la misma instancia.
+/// Notificaciones en memoria, para pruebas sin red. La app usa
+/// `RobleNotificationRepository`.
 class LocalNotificationRepository implements INotificationRepository {
   final List<AppNotification> _items = [];
 
@@ -16,9 +13,26 @@ class LocalNotificationRepository implements INotificationRepository {
   @override
   Future<int> getUnreadCount() async => _items.where((n) => !n.isRead).length;
 
+  /// Sin destinatarios: en memoria solo hay un teléfono, y todo queda aquí.
   @override
-  Future<void> push(AppNotification notification) async {
-    _items.add(notification);
+  Future<void> send({
+    required NotificationType type,
+    required String message,
+    required String projectId,
+    String? recipientId,
+    String? applicationId,
+    String? updateId,
+    String? commentId,
+  }) async {
+    _items.add(
+      AppNotification(
+        id: '${DateTime.now().microsecondsSinceEpoch}',
+        type: type,
+        message: message,
+        createdAt: DateTime.now(),
+        projectId: projectId,
+      ),
+    );
   }
 
   @override
