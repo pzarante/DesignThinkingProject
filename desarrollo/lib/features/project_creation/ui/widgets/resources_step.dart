@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_cover_picker.dart';
 import '../viewmodels/project_creation_controller.dart';
 
 /// Paso 6: portada y enlaces de referencia.
@@ -18,14 +16,21 @@ class ResourcesStep extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Imagen de portada', style: theme.textTheme.labelMedium),
+        Text(
+          'Identidad visual',
+          style: Theme.of(context).textTheme.labelMedium,
+        ),
         const SizedBox(height: AppSpacing.xs),
-        Obx(
-          () => AppCoverPicker(
-            imageUrl: controller.coverUrl.value,
-            fileName: controller.coverName.value,
-            onTap: controller.pickPlaceholderCover,
-            onRemove: controller.removeCover,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(AppSpacing.sm),
+          ),
+          child: const Text(
+            'El proyecto usará un color plano asignado automáticamente. '
+            'No necesitas cargar una imagen.',
           ),
         ),
         const SizedBox(height: AppSpacing.md),

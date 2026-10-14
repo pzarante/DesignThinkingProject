@@ -7,6 +7,10 @@ class Publication {
     required this.title,
     required this.content,
     this.imageUrl,
+    this.linkUrl,
+    this.pollOptions = const [],
+    this.pollVotes = const {},
+    this.selectedPollOption,
     this.createdAt,
     this.reactionCount = 0,
     this.commentCount = 0,
@@ -20,6 +24,10 @@ class Publication {
   final String title;
   final String content;
   final String? imageUrl;
+  final String? linkUrl;
+  final List<String> pollOptions;
+  final Map<String, int> pollVotes;
+  final String? selectedPollOption;
   final DateTime? createdAt;
   final int reactionCount;
   final int commentCount;
@@ -30,6 +38,10 @@ class Publication {
     String? title,
     String? content,
     String? imageUrl,
+    String? linkUrl,
+    List<String>? pollOptions,
+    Map<String, int>? pollVotes,
+    String? selectedPollOption,
     int? reactionCount,
     int? commentCount,
     bool? viewerReacted,
@@ -42,6 +54,10 @@ class Publication {
       title: title ?? this.title,
       content: content ?? this.content,
       imageUrl: imageUrl ?? this.imageUrl,
+      linkUrl: linkUrl ?? this.linkUrl,
+      pollOptions: pollOptions ?? this.pollOptions,
+      pollVotes: pollVotes ?? this.pollVotes,
+      selectedPollOption: selectedPollOption ?? this.selectedPollOption,
       createdAt: createdAt,
       reactionCount: reactionCount ?? this.reactionCount,
       commentCount: commentCount ?? this.commentCount,

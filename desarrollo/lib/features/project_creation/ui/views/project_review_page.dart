@@ -125,27 +125,10 @@ class ProjectReviewPage extends StatelessWidget {
                       ],
                     ),
                   const SizedBox(height: AppSpacing.sm),
-                  if (draft.coverUrl == null)
-                    Text(
-                      'Sin portada.',
-                      style: theme.textTheme.bodySmall,
-                    )
-                  else
-                    Row(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(AppSpacing.xs),
-                          child: Image.network(
-                            draft.coverUrl!,
-                            width: 72,
-                            height: 48,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(child: Text(draft.coverName ?? '')),
-                      ],
-                    ),
+                  Text(
+                    'Color plano asignado automáticamente.',
+                    style: theme.textTheme.bodySmall,
+                  ),
                 ],
               ),
             ),

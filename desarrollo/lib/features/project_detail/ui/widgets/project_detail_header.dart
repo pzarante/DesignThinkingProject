@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_avatar.dart';
+import '../../../../core/widgets/app_project_cover.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../domain/models/project_detail.dart';
 
@@ -30,7 +31,10 @@ class ProjectDetailHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _Cover(imageUrl: detail.coverUrl),
+        AppProjectCover(
+          projectId: detail.projectId,
+          projectName: detail.name,
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             AppSpacing.md,
@@ -109,50 +113,6 @@ class ProjectDetailHeader extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _Cover extends StatelessWidget {
-  const _Cover({this.imageUrl});
-
-  final String? imageUrl;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-
-    Widget placeholder() => Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceContainerHighest,
-            colors.surfaceContainerHigh,
-          ],
-        ),
-      ),
-      child: Center(
-        child: Icon(
-          Icons.lightbulb_outline_rounded,
-          size: 40,
-          color: colors.primary.withValues(alpha: 0.7),
-        ),
-      ),
-    );
-
-    final hasValidImage = imageUrl != null && imageUrl!.trim().isNotEmpty;
-
-    return AspectRatio(
-      aspectRatio: 16 / 9,
-      child: !hasValidImage
-          ? placeholder()
-          : Image.network(
-              imageUrl!,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => placeholder(),
-            ),
     );
   }
 }

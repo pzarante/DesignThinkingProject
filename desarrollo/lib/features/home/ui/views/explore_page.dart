@@ -9,6 +9,7 @@ import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_search_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../notifications/ui/widgets/notifications_action.dart';
+import '../../domain/models/project.dart';
 import '../../../profile/ui/viewmodels/user_search_controller.dart';
 import '../../../profile/ui/widgets/user_result_tile.dart';
 import '../viewmodels/home_controller.dart';
@@ -112,10 +113,14 @@ class _ProjectResults extends StatelessWidget {
 
       final query = controller.searchQuery.value.trim().toLowerCase();
       final tag = controller.selectedTag.value;
-      final filtered = [
-        ...controller.feed.recommendedProjects,
-        ...controller.feed.myProjects,
-      ].where((project) {
+      final projectsById = <String, Project>{
+        for (final project in [
+          ...controller.feed.recommendedProjects,
+          ...controller.feed.myProjects,
+        ])
+          project.id: project,
+      };
+      final filtered = projectsById.values.where((project) {
         final matchesQuery =
             query.isEmpty || project.name.toLowerCase().contains(query);
         final matchesTag = tag == null || project.tags.contains(tag);
@@ -143,7 +148,8 @@ class _ProjectResults extends StatelessWidget {
                     child: AppEmptyState(
                       icon: Icons.travel_explore_outlined,
                       title: 'No se encontraron proyectos',
-                      message: 'Prueba con otra palabra o quita el filtro de '
+                      message:
+                          'Prueba con otra palabra o quita el filtro de '
                           'categoría.',
                     ),
                   )

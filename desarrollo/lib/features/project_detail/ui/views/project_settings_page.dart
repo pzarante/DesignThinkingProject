@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
-import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_text_field.dart';
@@ -70,25 +69,6 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
             controller: controller.categoryField,
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Imagen de portada', style: theme.textTheme.labelMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Obx(
-            () => AppCoverPicker(
-              imageUrl: controller.coverUrl.value,
-              fileName: controller.coverName,
-              onTap: controller.changeCover,
-              onRemove: controller.removeCover,
-            ),
-          ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              onPressed: controller.changeCover,
-              icon: const Icon(Icons.edit_outlined),
-              label: const Text('Cambiar portada'),
-            ),
-          ),
-
           const AppSectionHeader(title: 'Equipo y roles'),
           Obx(
             () => Column(

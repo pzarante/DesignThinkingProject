@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/widgets/app_cover_picker.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_tag_input.dart';
 import '../../../../core/widgets/app_text_field.dart';
@@ -87,15 +86,17 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          Text('Imagen de portada', style: theme.textTheme.labelMedium),
+          Text('Identidad visual', style: theme.textTheme.labelMedium),
           const SizedBox(height: AppSpacing.xs),
-          Obx(
-            () => AppCoverPicker(
-              imageUrl: controller.coverUrl.value,
-              fileName: controller.coverName.value,
-              label: 'Cambiar portada',
-              onTap: controller.changeCover,
-              onRemove: controller.removeCover,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(AppSpacing.sm),
+            ),
+            child: const Text(
+              'La comunidad usa un color plano asignado automáticamente.',
             ),
           ),
           const SizedBox(height: AppSpacing.sm),

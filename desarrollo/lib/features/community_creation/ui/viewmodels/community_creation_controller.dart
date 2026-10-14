@@ -78,16 +78,6 @@ class CommunityCreationController extends GetxController with UiLoggy {
 
   void setPublic(bool value) => isPublic.value = value;
 
-  /// Selector de archivos pendiente: sin backend ni plugin de imágenes se
-  /// asigna una portada de ejemplo.
-  void pickPlaceholderCover() {
-    final slug = name.value.trim().isEmpty
-        ? 'comunidad'
-        : name.value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-    coverUrl.value = 'https://picsum.photos/seed/$slug/400/225';
-    coverName.value = 'portada_$slug.png';
-  }
-
   void removeCover() {
     coverUrl.value = null;
     coverName.value = null;
