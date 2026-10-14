@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
+import '../../../auth/ui/viewmodels/authentication_controller.dart';
 import '../../../home/domain/models/project.dart';
 import '../../../project_applications/ui/viewmodels/apply_controller.dart';
 import '../../../project_applications/ui/viewmodels/applicants_controller.dart';
@@ -82,6 +83,16 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
   /// Postularse usa el flujo que ya existe en la feature home; aquí solo se
   /// abre desde la pantalla nueva.
   Future<void> _apply(ProjectDetail detail) async {
+    // Postularse exige una cuenta real: un invitado puede explorar y
+    // comentar, pero el equipo necesita saber a quién responde.
+    if (!Get.find<AuthenticationController>().hasAccount) {
+      showInfoSnack(
+        'Necesitas una cuenta',
+        message: 'Inicia sesión o crea una cuenta para postularte.',
+      );
+      Get.toNamed(AppRoutes.login);
+      return;
+    }
     final applicant = controller.currentUser.value;
 
     final submitted = await showApplicationForm(

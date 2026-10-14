@@ -36,12 +36,18 @@ class HomeController extends GetxController with UiLoggy {
     super.onInit();
   }
 
+  /// Ya hubo un feed bueno. A partir de ahí, volver a pedirlo no tapa la
+  /// pantalla con un spinner: se sigue viendo lo anterior mientras llega lo
+  /// nuevo (entrar a Mis Proyectos relee el feed cada vez).
+  bool _loadedOnce = false;
+
   Future<void> getFeed() async {
     loggy.debug('HomeController: Getting home feed');
-    isLoading.value = true;
+    if (!_loadedOnce) isLoading.value = true;
     errorMessage.value = null;
     try {
       _feed.value = await repository.getFeed();
+      _loadedOnce = true;
     } catch (exception, stackTrace) {
       loggy.error('HomeController: error getting feed', exception, stackTrace);
       // El mensaje de verdad, no uno genérico: si la causa es que una tabla

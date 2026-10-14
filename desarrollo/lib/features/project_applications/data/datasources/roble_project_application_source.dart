@@ -81,7 +81,9 @@ class RobleProjectApplicationSource implements IProjectApplicationSource {
   @override
   Future<ProjectApplication> submit(ProjectApplication application) async {
     final me = (await _authRepository.getLoggedUser())?.id;
-    if (me == null) {
+    // Un invitado tiene sesión, pero no es alguien a quien el equipo pueda
+    // responder: postularse pide una cuenta de verdad.
+    if (me == null || _authRepository.isAnonymous) {
       throw StateError('Inicia sesión para postularte a un proyecto.');
     }
     final now = DateTime.now().toUtc().toIso8601String();

@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 
 import 'package:f_clean_template/app_routes.dart';
 import 'package:f_clean_template/core/app_theme.dart';
+import 'package:f_clean_template/features/auth/domain/repositories/i_auth_repository.dart';
+import 'package:f_clean_template/features/auth/ui/viewmodels/authentication_controller.dart';
 import 'package:f_clean_template/features/home/data/datasources/local/local_home_source.dart';
 import 'package:f_clean_template/features/home/domain/models/project.dart';
 import 'package:f_clean_template/features/home/home_dependencies.dart';
@@ -53,6 +55,7 @@ void main() {
     useFakeNetworkImages();
     Get.testMode = true;
     registerFakeAuth();
+    Get.put(AuthenticationController(Get.find<IAuthRepository>()));
     registerHome(remote: false);
     registerProjectDetail(remote: false);
   });
@@ -131,6 +134,30 @@ void main() {
     expect(applicants.applications, hasLength(1));
     expect(applicants.applications.first.applicantName, 'María García');
     expect(applicants.applications.first.projectId, 'r1');
+  });
+
+  testWidgets('a guest is asked for an account as soon as they tap apply', (
+    tester,
+  ) async {
+    Get.reset();
+    registerFakeAuth(isAnonymous: true);
+    Get.put(AuthenticationController(Get.find<IAuthRepository>()));
+    registerHome(remote: false);
+    registerProjectDetail(remote: false);
+
+    await _openDetail(tester, await _projectById('r1'));
+
+    await tester.tap(find.text('Postularme'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Necesitas una cuenta'), findsOneWidget);
+    expect(find.text('Enviar postulación'), findsNothing);
+    expect(Get.currentRoute, AppRoutes.login);
+
+    // Deja correr el temporizador del aviso para que la prueba no lo deje
+    // pendiente.
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('the posts tab stays empty on purpose', (tester) async {
