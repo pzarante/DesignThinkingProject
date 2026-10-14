@@ -332,14 +332,20 @@ class LocalProjectDetailSource implements IProjectDetailSource {
       _details[projectId];
 
   @override
-  Future<void> saveDetail(ProjectDetail detail) async =>
-      _details[detail.projectId] = detail;
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  }) async => _details[detail.projectId] = detail;
 
   @override
   Future<ProjectMember> getCurrentUser() async {
     final user = await _authRepository.getLoggedUser();
     if (user == null) return _currentUser;
-    return ProjectMember(id: user.id ?? _currentUser.id, name: user.name, email: user.email);
+    return ProjectMember(
+      id: user.id ?? _currentUser.id,
+      name: user.name,
+      email: user.email,
+    );
   }
 
   /// En memoria los roles no tienen filas propias: [projectRoleId] es el

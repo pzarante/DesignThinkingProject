@@ -329,7 +329,31 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       final detail = controller.detail;
 
       if (controller.isLoading.value) {
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        final preview = controller.preview.value;
+        if (preview == null) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        // Lo que trae la tarjeta ya se puede mostrar: la cabecera sale al
+        // instante y el resto aparece cuando llega el detalle.
+        return Scaffold(
+          appBar: AppBar(title: const AppTagChip(label: 'Proyecto')),
+          body: ListView(
+            children: [
+              ProjectDetailHeader(
+                detail: preview,
+                likeCount: 0,
+                likedByMe: false,
+                onToggleLike: () {},
+              ),
+              const Padding(
+                padding: EdgeInsets.all(AppSpacing.lg),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          ),
+        );
       }
 
       if (controller.errorMessage.value != null || detail == null) {
@@ -349,11 +373,20 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  FilledButton.icon(
-                    onPressed: () => controller.load(Get.arguments as Project),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Reintentar'),
-                  ),
+                  // Un proyecto borrado no vuelve con reintentar: se sale.
+                  if (controller.isUnavailable.value)
+                    FilledButton.icon(
+                      onPressed: Get.back,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const Text('Volver'),
+                    )
+                  else
+                    FilledButton.icon(
+                      onPressed: () =>
+                          controller.load(Get.arguments as Project),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                    ),
                 ],
               ),
             ),

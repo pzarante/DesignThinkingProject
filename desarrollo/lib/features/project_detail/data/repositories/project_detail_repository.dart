@@ -14,8 +14,11 @@ class ProjectDetailRepository implements IProjectDetailRepository {
       await source.getDetail(projectId);
 
   @override
-  Future<void> saveDetail(ProjectDetail detail) async =>
-      await source.saveDetail(detail);
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  }) async =>
+      await source.saveDetail(detail, originalMemberIds: originalMemberIds);
 
   @override
   Future<ProjectMember> getCurrentUser() async => await source.getCurrentUser();
@@ -35,10 +38,8 @@ class ProjectDetailRepository implements IProjectDetailRepository {
   Future<void> leaveProject({
     required String projectId,
     String? newLeaderId,
-  }) async => await source.leaveProject(
-    projectId: projectId,
-    newLeaderId: newLeaderId,
-  );
+  }) async =>
+      await source.leaveProject(projectId: projectId, newLeaderId: newLeaderId);
 
   @override
   Future<({int count, bool likedByMe})> getLikeStatus(String projectId) async =>

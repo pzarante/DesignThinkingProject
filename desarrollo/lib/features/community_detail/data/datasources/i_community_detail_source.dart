@@ -7,5 +7,5 @@ abstract class ICommunityDetailSource {
   /// Sigue o deja de seguir la comunidad. Devuelve si quedó siguiéndola.
   ///
   /// Quien la creó no puede dejar de seguirla: perdería su propia comunidad.
-  Future<bool> toggleMembership(String communityId);
+  Future<bool> toggleFollowing(String communityId);
 }

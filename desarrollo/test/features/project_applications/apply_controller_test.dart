@@ -1,5 +1,7 @@
 import 'package:f_clean_template/features/home/home_dependencies.dart';
 import 'package:f_clean_template/features/project_applications/domain/models/project_application.dart';
+import 'package:f_clean_template/features/project_applications/ui/viewmodels/apply_controller.dart';
+import 'package:f_clean_template/features/project_detail/domain/models/project_role.dart';
 import 'package:f_clean_template/features/project_applications/domain/repositories/i_project_application_repository.dart';
 import 'package:f_clean_template/features/project_applications/ui/viewmodels/applicants_controller.dart';
 import 'package:f_clean_template/features/notifications/notifications_dependencies.dart';
@@ -24,42 +26,45 @@ void main() {
 
   tearDown(Get.reset);
 
-  test('accepting an application updates its status and joins the team', () async {
-    final repository = Get.find<IProjectApplicationRepository>();
-    final controller = Get.find<ApplicantsController>();
+  test(
+    'accepting an application updates its status and joins the team',
+    () async {
+      final repository = Get.find<IProjectApplicationRepository>();
+      final controller = Get.find<ApplicantsController>();
 
-    await repository.submit(
-      ProjectApplication(
-        id: 'application-test',
-        projectId: 'p1',
-        projectRoleId: 'Diseñador UX',
-        roleTitle: 'Diseñador UX',
-        applicantId: 'u-test',
-        applicantName: 'Mariana Vergara',
-        applicantEmail: 'mariana@uni.edu',
-        motivation: 'Quiero aportar al proyecto.',
-        availability: '4 horas por semana',
-        createdAt: DateTime.now(),
-      ),
-    );
+      await repository.submit(
+        ProjectApplication(
+          id: 'application-test',
+          projectId: 'p1',
+          projectRoleId: 'Diseñador UX',
+          roleTitle: 'Diseñador UX',
+          applicantId: 'u-test',
+          applicantName: 'Mariana Vergara',
+          applicantEmail: 'mariana@uni.edu',
+          motivation: 'Quiero aportar al proyecto.',
+          availability: '4 horas por semana',
+          createdAt: DateTime.now(),
+        ),
+      );
 
-    await controller.load('p1');
-    final mine = controller.applications.singleWhere(
-      (a) => a.id == 'application-test',
-    );
-    expect(mine.status, ProjectApplicationStatus.pending);
+      await controller.load('p1');
+      final mine = controller.applications.singleWhere(
+        (a) => a.id == 'application-test',
+      );
+      expect(mine.status, ProjectApplicationStatus.pending);
 
-    expect(await controller.accept(mine), isNull);
-    expect(
-      controller.applications
-          .singleWhere((a) => a.id == 'application-test')
-          .status,
-      ProjectApplicationStatus.accepted,
-    );
+      expect(await controller.accept(mine), isNull);
+      expect(
+        controller.applications
+            .singleWhere((a) => a.id == 'application-test')
+            .status,
+        ProjectApplicationStatus.accepted,
+      );
 
-    final detail = await Get.find<IProjectDetailRepository>().getDetail('p1');
-    expect(detail!.members.map((m) => m.id), contains('u-test'));
-  });
+      final detail = await Get.find<IProjectDetailRepository>().getDetail('p1');
+      expect(detail!.members.map((m) => m.id), contains('u-test'));
+    },
+  );
 
   test('a rejected application no longer counts as pending', () async {
     final repository = Get.find<IProjectApplicationRepository>();
@@ -83,5 +88,27 @@ void main() {
       ),
       isFalse,
     );
+  });
+
+  test('un rol sin cupos libres no deja enviar la postulación', () async {
+    final controller = Get.put(
+      ApplyController(Get.find<IProjectApplicationRepository>()),
+    );
+    controller.motivation.value = 'Quiero aportar.';
+    controller.availability.value = '4 horas';
+    controller.desiredRole.value = const ProjectRole(
+      title: 'Dev',
+      slotIds: ['slot-1'],
+    );
+
+    final sent = await controller.submit(
+      projectId: 'p1',
+      applicantId: 'u-test',
+      applicantName: 'Ana',
+      applicantEmail: 'ana@uni.edu',
+    );
+
+    expect(sent, isFalse);
+    expect(controller.errorMessage.value, contains('cupos libres'));
   });
 }

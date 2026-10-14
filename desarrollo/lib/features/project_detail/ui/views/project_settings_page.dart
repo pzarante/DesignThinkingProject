@@ -317,6 +317,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
     final userSearchController = Get.find<UserSearchController>();
     if (userSearchController.users.isEmpty) {
       await userSearchController.load();
+      if (!context.mounted) return;
     }
     final existingUserIds = controller.members.map((m) => m.id).toSet();
     final availableUsers = userSearchController.users

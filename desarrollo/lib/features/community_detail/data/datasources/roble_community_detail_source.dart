@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:roble/roble.dart';
 
 import '../../../../core/roble_cache.dart';
@@ -27,25 +29,40 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
   static const _tableStages = 'project_stages';
   static const _tableTags = 'tags';
   static const _tableProjectTags = 'project_tags';
+  static const _tableUsers = 'users';
+  static const _tableProjectRoleSkills = 'project_role_skills';
+  static const _tableSkills = 'skills';
 
   @override
   Future<CommunityDetail?> getDetail(String communityId) async {
-    final tables = await _cache.readAll([
-      _tableCommunities,
-      _tableCommunityMembers,
-      _tableProjectCommunities,
-      _tableProjects,
-      _tableProjectMembers,
-      _tableStages,
-      _tableTags,
-      _tableProjectTags,
+    // Filtrado en el servidor lo que ROBLE deja filtrar por esta comunidad.
+    // `projects`, `project_members` y `project_tags` se bajan enteras porque
+    // el servidor no admite "id en esta lista" y una petición por proyecto
+    // sería más lenta; en Dart se recorta a los proyectos de la comunidad.
+    // `project_members` va con `status=active`, la misma lectura que ya hace
+    // el feed, así que se comparte en el caché. Etapas y tags son catálogos
+    // pequeños.
+    final byCommunity = {'community_id': communityId};
+    final tables = await _cache.readQueries([
+      RobleQuery(_tableCommunities, {'_id': communityId}),
+      RobleQuery(_tableCommunityMembers, byCommunity),
+      RobleQuery(_tableProjectCommunities, byCommunity),
+      const RobleQuery(_tableProjects),
+      const RobleQuery(_tableProjectMembers, {'status': 'active'}),
+      const RobleQuery(_tableStages),
+      const RobleQuery(_tableTags),
+      const RobleQuery(_tableProjectTags),
     ]);
 
     final row = tables[0].where((c) => c['_id'] == communityId).firstOrNull;
     if (row == null) return null;
 
-    final members = tables[1]
-        .where((m) => m['community_id'] == communityId && m['status'] == 'active')
+    _warmProjectDetail();
+
+    final followers = tables[1]
+        .where(
+          (m) => m['community_id'] == communityId && m['status'] == 'active',
+        )
         .toList();
     final myUserId = await _accountId();
 
@@ -57,11 +74,23 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
     final activeMemberships = tables[4]
         .where((m) => m['status'] == 'active')
         .toList();
+    final liveProjectIds = {
+      for (final project in tables[3])
+        if (projectIds.contains(project['_id']) &&
+            project['deleted_at'] == null)
+          project['_id'] as String,
+    };
     final memberCountByProject = <String, int>{};
+    // Miembros de la comunidad: personas distintas en al menos uno de sus
+    // proyectos, no quienes solo la siguen.
+    final communityMemberIds = <Object?>{};
     for (final membership in activeMemberships) {
       final projectId = membership['project_id'] as String;
       memberCountByProject[projectId] =
           (memberCountByProject[projectId] ?? 0) + 1;
+      if (liveProjectIds.contains(projectId)) {
+        communityMemberIds.add(membership['user_id']);
+      }
     }
 
     final stageNameById = {
@@ -90,9 +119,7 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
             stage: stageNameById[project['stage_id'] as String?],
             tags: tagNamesByProject[project['_id']] ?? const [],
             memberCount: memberCountByProject[project['_id']] ?? 1,
-            createdAt: DateTime.tryParse(
-              '${project['created_at']}',
-            )?.toLocal(),
+            createdAt: DateTime.tryParse('${project['created_at']}')?.toLocal(),
           ),
     ];
     projects.sort((a, b) {
@@ -106,15 +133,34 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
       name: row['name'] as String,
       description: row['description'] as String?,
       coverUrl: row['cover_url'] as String?,
-      memberCount: members.length,
-      isMember: myUserId != null && members.any((m) => m['user_id'] == myUserId),
+      memberCount: communityMemberIds.length,
+      followerCount: followers.length,
+      isFollowing:
+          myUserId != null && followers.any((m) => m['user_id'] == myUserId),
       isOwner: myUserId != null && row['created_by'] == myUserId,
       projects: projects,
     );
   }
 
+  /// Calienta las tablas que el detalle de un proyecto baja enteras (ROBLE no
+  /// filtra "id en esta lista"), para que abrir un proyecto desde este feed no
+  /// las espere en frío. Es solo un adelanto: si falla, el detalle las pedirá
+  /// él mismo.
+  void _warmProjectDetail() {
+    unawaited(
+      _cache
+          .readQueries(const [
+            RobleQuery(_tableUsers),
+            RobleQuery(_tableProjectRoleSkills),
+            RobleQuery(_tableSkills),
+          ])
+          .then<void>((_) {})
+          .catchError((Object _) {}),
+    );
+  }
+
   @override
-  Future<bool> toggleMembership(String communityId) async {
+  Future<bool> toggleFollowing(String communityId) async {
     final me = await _accountId();
     if (me == null) {
       throw const AccountRequiredException(
@@ -131,12 +177,12 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
     // sin dueño y sin quien pueda configurarla.
     if (existing.any((row) => row['role'] == 'owner')) return true;
 
-    final bool nowMember;
+    final bool nowFollowing;
     if (existing.isNotEmpty) {
       for (final row in existing) {
         await _db.delete(_tableCommunityMembers, row['_id'] as String);
       }
-      nowMember = false;
+      nowFollowing = false;
     } else {
       await _db.create(_tableCommunityMembers, {
         'community_id': communityId,
@@ -145,11 +191,11 @@ class RobleCommunityDetailSource implements ICommunityDetailSource {
         'status': 'active',
         'joined_at': DateTime.now().toUtc().toIso8601String(),
       });
-      nowMember = true;
+      nowFollowing = true;
     }
 
     _cache.invalidate([_tableCommunityMembers]);
-    return nowMember;
+    return nowFollowing;
   }
 
   /// Solo una cuenta de verdad sirve: un invitado es una identidad de usar y

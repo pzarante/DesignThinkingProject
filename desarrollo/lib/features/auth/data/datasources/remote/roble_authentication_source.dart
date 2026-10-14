@@ -1,6 +1,7 @@
 import 'package:loggy/loggy.dart';
 import 'package:roble/roble.dart';
 
+import '../../../../../core/roble_cache.dart';
 import '../../../../../core/roble_read.dart';
 import '../../../domain/models/authentication_user.dart';
 import '../../../domain/unknown_account_exception.dart';
@@ -10,9 +11,10 @@ import 'i_authentication_source.dart';
 /// devuelve el servidor y traducir los fallos es del repositorio y de
 /// `errorMessage`.
 class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
-  RobleAuthenticationSource(this._db);
+  RobleAuthenticationSource(this._db, this._cache);
 
   final RobleApiDataBase _db;
+  final RobleTableCache _cache;
 
   @override
   Future<bool> login(AuthenticationUser user) async {
@@ -20,6 +22,8 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
       email: await _resolveEmail(user.email),
       password: user.password ?? '',
     );
+    // Lo leído antes (como invitado u otra cuenta) no vale para esta sesión.
+    _cache.invalidate();
     await _ensureUserRow(profile);
     return true;
   }
@@ -152,7 +156,11 @@ class RobleAuthenticationSource with UiLoggy implements IAuthenticationSource {
 
   @override
   Future<bool> logOut() async {
-    await _db.logout();
+    try {
+      await _db.logout();
+    } finally {
+      _cache.invalidate();
+    }
     return true;
   }
 

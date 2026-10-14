@@ -1,5 +1,8 @@
 import 'dart:async';
 
+import 'dart:convert';
+
+import 'package:loggy/loggy.dart';
 import 'package:roble/roble.dart';
 
 import 'roble_read.dart';
@@ -69,6 +72,7 @@ class RobleTableCache {
       if (pending != null) return pending;
     }
 
+    final stopwatch = Stopwatch()..start();
     final request = readPublicOrPrivate(db, table, filters: filters)
         // Tope propio además del que trae el paquete: sobre web una petición
         // que se queda a medias deja la pantalla girando sin decir nada.
@@ -81,6 +85,7 @@ class RobleTableCache {
           ),
         )
         .then((rows) {
+          _logRead(key, rows, stopwatch);
           _tables[key] = _CachedTable(rows);
           return List.of(rows);
         })
@@ -100,6 +105,20 @@ class RobleTableCache {
 
     _inFlight[key] = request;
     return request;
+  }
+
+  /// TEMPORAL: tamaño y duración de cada lectura de red, solo en debug, para
+  /// decidir con datos si `users` o `project_role_skills` hay que tocarlas.
+  /// Quitar cuando se haya medido.
+  void _logRead(String key, List<Map<String, dynamic>> rows, Stopwatch watch) {
+    assert(() {
+      final bytes = utf8.encode(jsonEncode(rows)).length;
+      logDebug(
+        'RobleTableCache: $key → ${rows.length} filas, $bytes B, '
+        '${watch.elapsedMilliseconds} ms',
+      );
+      return true;
+    }());
   }
 
   /// Clave de una lectura: la tabla sola, o la tabla con sus filtros en un
@@ -197,7 +216,9 @@ class RobleTableCache {
     }
     for (final table in tables) {
       // Tanto la tabla entera como cualquiera de sus lecturas filtradas.
-      _tables.removeWhere((key, _) => key == table || key.startsWith('$table?'));
+      _tables.removeWhere(
+        (key, _) => key == table || key.startsWith('$table?'),
+      );
     }
   }
 }

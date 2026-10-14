@@ -16,7 +16,7 @@ class RobleProfileSource implements IProfileSource {
   static const _tableUsers = 'users';
   static const _tableProjects = 'projects';
   static const _tableProjectMembers = 'project_members';
-  static const _tableCommunityMembers = 'community_members';
+  static const _tableProjectCommunities = 'project_communities';
   static const _tableStages = 'project_stages';
   static const _tableTags = 'tags';
   static const _tableProjectTags = 'project_tags';
@@ -30,7 +30,7 @@ class RobleProfileSource implements IProfileSource {
       _tableUsers,
       _tableProjects,
       _tableProjectMembers,
-      _tableCommunityMembers,
+      _tableProjectCommunities,
       _tableSaved,
     ]);
 
@@ -50,12 +50,35 @@ class RobleProfileSource implements IProfileSource {
                   m['is_creator'] != true,
             )
             .length,
-        communities: tables[3]
-            .where((c) => c['user_id'] == userId && c['status'] == 'active')
-            .length,
+        communities: _communitiesOf(userId, tables[1], tables[2], tables[3]),
         saved: tables[4].where((s) => s['user_id'] == userId).length,
       ),
     );
+  }
+
+  /// Comunidades donde [userId] tiene membresía activa en al menos uno de sus
+  /// proyectos vigentes. Seguir una comunidad no cuenta.
+  int _communitiesOf(
+    String userId,
+    List<Map<String, dynamic>> projects,
+    List<Map<String, dynamic>> projectMembers,
+    List<Map<String, dynamic>> projectCommunities,
+  ) {
+    final liveProjectIds = {
+      for (final p in projects)
+        if (!_isDeleted(p)) p['_id'],
+    };
+    final myProjectIds = {
+      for (final m in projectMembers)
+        if (m['user_id'] == userId &&
+            m['status'] == 'active' &&
+            liveProjectIds.contains(m['project_id']))
+          m['project_id'],
+    };
+    return {
+      for (final link in projectCommunities)
+        if (myProjectIds.contains(link['project_id'])) link['community_id'],
+    }.length;
   }
 
   @override

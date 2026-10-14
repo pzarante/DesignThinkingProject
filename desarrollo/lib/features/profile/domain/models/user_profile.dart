@@ -75,7 +75,7 @@ class UserProfile {
 /// Los tres números del encabezado del perfil.
 ///
 /// Se cuentan en el cliente a partir de `projects`, `project_members` y
-/// `community_members`: ROBLE no tiene agregados en la API de tablas.
+/// `project_communities`: ROBLE no tiene agregados en la API de tablas.
 class ProfileStats {
   const ProfileStats({
     required this.createdProjects,
@@ -96,7 +96,7 @@ class ProfileStats {
   /// Proyectos donde aparece en `project_members` sin haberlos creado.
   final int memberships;
 
-  /// Comunidades activas en `community_members`.
+  /// Comunidades con al menos un proyecto donde tiene membresía activa.
   final int communities;
 
   /// Proyectos de otros marcados en `project_saved`.

@@ -31,7 +31,11 @@ class CommunityDetailController extends GetxController with UiLoggy {
         errorMessage.value = 'Esta comunidad ya no está disponible.';
       }
     } catch (exception, stackTrace) {
-      loggy.error('CommunityDetailController: load failed', exception, stackTrace);
+      loggy.error(
+        'CommunityDetailController: load failed',
+        exception,
+        stackTrace,
+      );
       community.value = null;
       errorMessage.value = errors.errorMessage(exception);
     } finally {
@@ -48,21 +52,27 @@ class CommunityDetailController extends GetxController with UiLoggy {
   ///
   /// Al terminar recarga el feed de inicio: "Comunidades que sigues" sale de
   /// la misma tabla que se acaba de tocar.
-  Future<void> toggleMembership() async {
+  Future<void> toggleFollowing() async {
     final current = community.value;
     if (current == null) return;
 
-    final wasMember = current.isMember;
+    final wasFollowing = current.isFollowing;
     community.value = current.copyWith(
-      isMember: !wasMember,
-      memberCount: current.memberCount + (wasMember ? -1 : 1),
+      isFollowing: !wasFollowing,
+      followerCount: current.followerCount + (wasFollowing ? -1 : 1),
     );
     actionError.value = '';
     try {
-      final isMember = await _repository.toggleMembership(current.id);
+      final isFollowing = await _repository.toggleFollowing(current.id);
+      // Lo que cambió de verdad respecto de antes de pulsar: quien creó la
+      // comunidad no puede dejarla y el servidor responde que sigue, así que
+      // el contador no se mueve.
       community.value = current.copyWith(
-        isMember: isMember,
-        memberCount: current.memberCount + (isMember ? 1 : -1),
+        isFollowing: isFollowing,
+        followerCount:
+            current.followerCount +
+            (isFollowing ? 1 : 0) -
+            (wasFollowing ? 1 : 0),
       );
       if (Get.isRegistered<HomeController>()) {
         await Get.find<HomeController>().getFeed();

@@ -9,6 +9,7 @@ import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/project_role.dart';
 import '../../domain/models/viewer_role.dart';
+import '../../domain/project_unavailable_exception.dart';
 import 'i_project_detail_source.dart';
 
 /// Habla con ROBLE sobre el detalle de un proyecto ya publicado.
@@ -59,20 +60,25 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
   @override
   Future<ProjectDetail?> getDetail(String projectId) async {
-    // Una sola tanda en paralelo en vez de doce lecturas encadenadas.
-    final tables = await _cache.readAll([
-      _tableProjects,
-      _tableStages,
-      _tableTags,
-      _tableProjectTags,
-      _tableProjectMembers,
-      _tableProjectRoles,
-      _tableProjectLinks,
-      _tableProjectCommunities,
-      _tableCommunities,
-      _tableUsers,
-      _tableProjectRoleSkills,
-      _tableSkills,
+    // Una sola tanda en paralelo, y con lo de este proyecto filtrado en el
+    // servidor. Se quedan enteros los catálogos (etapas, tags, habilidades,
+    // comunidades) y dos tablas que no se pueden filtrar por proyecto:
+    // `users` (ROBLE no admite "id en esta lista") y `project_role_skills`
+    // (solo trae el id del rol; una petición por rol sería más lenta).
+    final byProject = {'project_id': projectId};
+    final tables = await _cache.readQueries([
+      RobleQuery(_tableProjects, {'_id': projectId}),
+      const RobleQuery(_tableStages),
+      const RobleQuery(_tableTags),
+      RobleQuery(_tableProjectTags, byProject),
+      RobleQuery(_tableProjectMembers, byProject),
+      RobleQuery(_tableProjectRoles, byProject),
+      RobleQuery(_tableProjectLinks, byProject),
+      RobleQuery(_tableProjectCommunities, byProject),
+      const RobleQuery(_tableCommunities),
+      const RobleQuery(_tableUsers),
+      const RobleQuery(_tableProjectRoleSkills),
+      const RobleQuery(_tableSkills),
     ]);
     final projects = tables[0];
     final stages = tables[1];
@@ -89,6 +95,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
     final row = projects.where((p) => p['_id'] == projectId).firstOrNull;
     if (row == null) return null;
+    // Borrado lógico: el proyecto está pero no se puede abrir. No es `null`
+    // porque `null` significa "sin detalle guardado" y la pantalla lo cubre
+    // con lo que traía el feed.
+    if (row['deleted_at'] != null) throw const ProjectUnavailableException();
 
     final tagNameById = {
       for (final tag in tags) tag['_id'] as String: tag['name'] as String,
@@ -146,9 +156,11 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       projectId: projectId,
       name: row['name'] as String,
       coverUrl: row['cover_url'] as String?,
-      stage: stages
-          .where((stage) => stage['_id'] == row['stage_id'])
-          .firstOrNull?['name'] as String?,
+      stage:
+          stages
+                  .where((stage) => stage['_id'] == row['stage_id'])
+                  .firstOrNull?['name']
+              as String?,
       tags: projectTagNames,
       creator: leader,
       description: row['description'] as String?,
@@ -171,7 +183,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   }
 
   @override
-  Future<void> saveDetail(ProjectDetail detail) async {
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  }) async {
     final me = (await _authRepository.getLoggedUser())?.id;
     if (me != null) {
       final active = await _db.read(
@@ -182,13 +197,16 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         },
       );
       final myMembership = active.where((m) => m['user_id'] == me).firstOrNull;
-      final isAllowed = myMembership != null &&
+      final isAllowed =
+          myMembership != null &&
           (myMembership['is_creator'] == true ||
               myMembership['is_co_leader'] == true);
       if (!isAllowed && active.isNotEmpty) {
         final proj = await _cache.getById(_tableProjects, detail.projectId);
         if (proj?['creator_id'] != me) {
-          throw StateError('Solo el creador o co-líder pueden modificar el proyecto.');
+          throw StateError(
+            'Solo el creador o co-líder pueden modificar el proyecto.',
+          );
         }
       }
     }
@@ -200,7 +218,11 @@ class RobleProjectDetailSource implements IProjectDetailSource {
       'updated_at': DateTime.now().toUtc().toIso8601String(),
     });
     await _syncRoles(detail.projectId, detail.openRoles);
-    await _syncTeam(detail.projectId, detail.members);
+    await _syncTeam(
+      detail.projectId,
+      detail.members,
+      originalMemberIds: originalMemberIds,
+    );
     _cache.invalidate([
       _tableProjects,
       _tableProjectMembers,
@@ -208,26 +230,32 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     ]);
   }
 
+  /// Lleva el equipo guardado a lo que quedó en la configuración.
+  ///
+  /// Solo se retira a quien estaba en [originalMemberIds] (la línea base de
+  /// cuando se abrió la pantalla) y ya no está en [targetMembers]. Quien
+  /// entró mientras tanto no estaba en la copia que se editó, así que su
+  /// ausencia no es una decisión de quitarlo.
   Future<void> _syncTeam(
     String projectId,
-    List<ProjectMember> targetMembers,
-  ) async {
+    List<ProjectMember> targetMembers, {
+    required Set<String> originalMemberIds,
+  }) async {
     final now = DateTime.now().toUtc().toIso8601String();
     final activeRows = await _db.read(
       _tableProjectMembers,
-      filters: {
-        'project_id': projectId,
-        'status': ProjectMember.activeStatus,
-      },
+      filters: {'project_id': projectId, 'status': ProjectMember.activeStatus},
     );
 
     final targetUserIds = {for (final m in targetMembers) m.id};
 
-    // 1. Quitar del equipo integrantes retirados (salvo el creador).
+    // 1. Quitar del equipo a quienes se retiró a propósito (salvo el creador).
     for (final row in activeRows) {
       final userId = row['user_id'] as String;
       final isCreator = row['is_creator'] == true;
-      if (!targetUserIds.contains(userId) && !isCreator) {
+      final removedOnPurpose =
+          originalMemberIds.contains(userId) && !targetUserIds.contains(userId);
+      if (removedOnPurpose && !isCreator) {
         await _db.update(_tableProjectMembers, row['_id'] as String, {
           'status': 'removed',
           'left_at': now,
@@ -248,8 +276,9 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
     // 2. Actualizar o sumar integrantes.
     for (final member in targetMembers) {
-      final existing =
-          activeRows.where((r) => r['user_id'] == member.id).firstOrNull;
+      final existing = activeRows
+          .where((r) => r['user_id'] == member.id)
+          .firstOrNull;
       if (existing != null) {
         final currentCoLeader = existing['is_co_leader'] == true;
         if (currentCoLeader != member.isCoLeader) {
@@ -283,14 +312,13 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
     final active = await _db.read(
       _tableProjectMembers,
-      filters: {
-        'project_id': projectId,
-        'status': ProjectMember.activeStatus,
-      },
+      filters: {'project_id': projectId, 'status': ProjectMember.activeStatus},
     );
-    final creatorMember =
-        active.where((m) => m['is_creator'] == true).firstOrNull;
-    final creatorId = (creatorMember?['user_id'] as String?) ??
+    final creatorMember = active
+        .where((m) => m['is_creator'] == true)
+        .firstOrNull;
+    final creatorId =
+        (creatorMember?['user_id'] as String?) ??
         (project['creator_id'] as String?);
 
     if (creatorId != me) {
@@ -337,35 +365,9 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   }) async {
     final userId = member.id;
     final now = DateTime.now().toUtc().toIso8601String();
-    // Directo contra ROBLE y no por el caché: para escribir hace falta lo
-    // último, no lo de hace un minuto.
-    final roleRows = await _db.read(
-      _tableProjectRoles,
-      filters: {'project_id': projectId},
-    );
-    final requested = roleRows
-        .where((r) => r['_id'] == projectRoleId)
-        .firstOrNull;
-
-    // El cupo pedido, o si otra aceptación ya lo llenó, cualquier otro libre
-    // del mismo rol. Si el rol se borró, la persona entra sin cupo.
-    final slot = requested != null && _isOpenSlot(requested)
-        ? requested
-        : roleRows
-              .where(
-                (r) => r['name'] == requested?['name'] && _isOpenSlot(r),
-              )
-              .firstOrNull;
-
-    if (slot != null) {
-      await _db.update(_tableProjectRoles, slot['_id'] as String, {
-        'status': _slotFilled,
-        'assigned_user_id': userId,
-        'updated_at': now,
-      });
-    }
-
     try {
+      // Directo contra ROBLE y no por el caché: para escribir hace falta lo
+      // último, no lo de hace un minuto.
       final active = await _db.read(
         _tableProjectMembers,
         filters: {
@@ -374,15 +376,29 @@ class RobleProjectDetailSource implements IProjectDetailSource {
           'status': ProjectMember.activeStatus,
         },
       );
-      if (active.isNotEmpty) {
-        await _db.update(_tableProjectMembers, active.first['_id'] as String, {
-          'project_role_id': slot?['_id'],
-        });
-        return;
-      }
+      // Reintento (p. ej. falló marcar la postulación como aceptada): ya es
+      // del equipo, y buscarle otro cupo se llevaría uno más.
+      if (active.isNotEmpty) return;
 
-      // Fila nueva aunque haya estado antes en el equipo: la vieja queda como
-      // historial con su `left_at`.
+      final roleRows = await _db.read(
+        _tableProjectRoles,
+        filters: {'project_id': projectId},
+      );
+      final requested = roleRows
+          .where((r) => r['_id'] == projectRoleId)
+          .firstOrNull;
+
+      // El cupo pedido, o si otra aceptación ya lo llenó, cualquier otro libre
+      // del mismo rol. Si el rol se borró, la persona entra sin cupo.
+      final slot = requested != null && _isOpenSlot(requested)
+          ? requested
+          : roleRows
+                .where((r) => r['name'] == requested?['name'] && _isOpenSlot(r))
+                .firstOrNull;
+
+      // Primero la fila del equipo y luego el cupo: si falla la primera no
+      // queda un cupo ocupado por alguien que no entró. Fila nueva aunque
+      // haya estado antes: la vieja queda como historial con su `left_at`.
       await _db.create(_tableProjectMembers, {
         'project_id': projectId,
         'user_id': userId,
@@ -392,6 +408,13 @@ class RobleProjectDetailSource implements IProjectDetailSource {
         'status': ProjectMember.activeStatus,
         'joined_at': now,
       });
+      if (slot != null) {
+        await _db.update(_tableProjectRoles, slot['_id'] as String, {
+          'status': _slotFilled,
+          'assigned_user_id': userId,
+          'updated_at': now,
+        });
+      }
     } finally {
       _cache.invalidate([_tableProjectRoles, _tableProjectMembers]);
     }
@@ -478,7 +501,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
   @override
   Future<({int count, bool likedByMe})> getLikeStatus(String projectId) async {
-    final rows = await _cache.read(_tableReactions);
+    final rows = await _cache.read(
+      _tableReactions,
+      filters: {'project_id': projectId},
+    );
     final likes = rows.where(
       (r) => r['project_id'] == projectId && r['reaction_type'] == _likeType,
     );
@@ -521,7 +547,11 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     final me = await _accountId();
     if (me == null) return (saved: false, following: false);
 
-    final rows = await _cache.readAll([_tableSaved, _tableFollowers]);
+    final mineFilter = {'project_id': projectId, 'user_id': me};
+    final rows = await _cache.readQueries([
+      RobleQuery(_tableSaved, mineFilter),
+      RobleQuery(_tableFollowers, mineFilter),
+    ]);
     bool mine(Map<String, dynamic> row) =>
         row['project_id'] == projectId && row['user_id'] == me;
 
@@ -589,11 +619,12 @@ class RobleProjectDetailSource implements IProjectDetailSource {
 
   @override
   Future<List<ProjectComment>> getComments(String projectId) async {
-    final tables = await _cache.readAll([_tableComments, _tableUsers]);
-    final mine =
-        tables[0].where((r) => r['project_id'] == projectId).toList()..sort(
-          (a, b) => '${a['created_at']}'.compareTo('${b['created_at']}'),
-        );
+    final tables = await _cache.readQueries([
+      RobleQuery(_tableComments, {'project_id': projectId}),
+      const RobleQuery(_tableUsers),
+    ]);
+    final mine = tables[0].where((r) => r['project_id'] == projectId).toList()
+      ..sort((a, b) => '${a['created_at']}'.compareTo('${b['created_at']}'));
     if (mine.isEmpty) return const [];
 
     final nameById = {
@@ -863,7 +894,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     }
   }
 
-  Future<void> _syncSkills(List<String> roleIds, List<String> skillNames) async {
+  Future<void> _syncSkills(
+    List<String> roleIds,
+    List<String> skillNames,
+  ) async {
     if (roleIds.isEmpty) return;
     final links = await _db.read(_tableProjectRoleSkills);
     final wanted = <String>{};
@@ -898,8 +932,7 @@ class RobleProjectDetailSource implements IProjectDetailSource {
     final all = await _db.read(_tableSkills);
     final existing = all
         .where(
-          (s) =>
-              (s['name'] as String?)?.toLowerCase() == trimmed.toLowerCase(),
+          (s) => (s['name'] as String?)?.toLowerCase() == trimmed.toLowerCase(),
         )
         .firstOrNull;
     if (existing != null) return existing['_id'] as String;
@@ -913,10 +946,10 @@ class RobleProjectDetailSource implements IProjectDetailSource {
   String _displayName(Map<String, dynamic>? user) {
     final userName = user?['user_name'] as String?;
     if (userName != null && userName.isNotEmpty) return userName;
-    final full = [user?['first_name'], user?['last_name']]
-        .whereType<String>()
-        .where((part) => part.isNotEmpty)
-        .join(' ');
+    final full = [
+      user?['first_name'],
+      user?['last_name'],
+    ].whereType<String>().where((part) => part.isNotEmpty).join(' ');
     return full.isEmpty ? 'Sin nombre' : full;
   }
 

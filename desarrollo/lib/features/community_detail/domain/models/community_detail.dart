@@ -10,7 +10,8 @@ class CommunityDetail {
     this.description,
     this.coverUrl,
     this.memberCount = 0,
-    this.isMember = false,
+    this.followerCount = 0,
+    this.isFollowing = false,
     this.isOwner = false,
     this.projects = const [],
   });
@@ -20,11 +21,17 @@ class CommunityDetail {
   final String? description;
   final String? coverUrl;
 
-  /// Filas activas de `community_members`.
+  /// Personas distintas con membresía activa en al menos un proyecto de la
+  /// comunidad (`project_members` vía `project_communities`).
   final int memberCount;
 
-  /// Si quien mira ya sigue la comunidad.
-  final bool isMember;
+  /// Filas activas de `community_members`: quienes siguen la comunidad sin
+  /// pertenecer necesariamente a ella.
+  final int followerCount;
+
+  /// Si quien mira ya sigue la comunidad (fila activa suya en
+  /// `community_members`). No implica participar en ninguno de sus proyectos.
+  final bool isFollowing;
 
   /// Si quien mira la creó; es quien puede configurarla.
   final bool isOwner;
@@ -33,14 +40,15 @@ class CommunityDetail {
   /// antiguo.
   final List<CommunityProject> projects;
 
-  CommunityDetail copyWith({bool? isMember, int? memberCount}) =>
+  CommunityDetail copyWith({bool? isFollowing, int? followerCount}) =>
       CommunityDetail(
         id: id,
         name: name,
         description: description,
         coverUrl: coverUrl,
-        memberCount: memberCount ?? this.memberCount,
-        isMember: isMember ?? this.isMember,
+        memberCount: memberCount,
+        followerCount: followerCount ?? this.followerCount,
+        isFollowing: isFollowing ?? this.isFollowing,
         isOwner: isOwner,
         projects: projects,
       );

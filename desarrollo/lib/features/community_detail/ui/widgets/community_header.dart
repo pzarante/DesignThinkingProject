@@ -8,11 +8,11 @@ class CommunityHeader extends StatelessWidget {
   const CommunityHeader({
     super.key,
     required this.community,
-    required this.onToggleMembership,
+    required this.onToggleFollowing,
   });
 
   final CommunityDetail community;
-  final VoidCallback onToggleMembership;
+  final VoidCallback onToggleFollowing;
 
   @override
   Widget build(BuildContext context) {
@@ -43,12 +43,13 @@ class CommunityHeader extends StatelessWidget {
                     color: colors.onSurfaceVariant,
                   ),
                   const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    community.memberCount == 1
-                        ? '1 miembro'
-                        : '${community.memberCount} miembros',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
+                  Expanded(
+                    child: Text(
+                      '${community.memberCount == 1 ? '1 miembro' : '${community.memberCount} miembros'}'
+                      ' · ${community.followerCount == 1 ? '1 seguidor' : '${community.followerCount} seguidores'}',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -64,7 +65,7 @@ class CommunityHeader extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               SizedBox(
                 width: double.infinity,
-                // Quien la creó siempre es miembro: el botón se lo dice en
+                // Quien la creó siempre la sigue: el botón se lo dice en
                 // vez de ofrecerle salir de su propia comunidad.
                 child: community.isOwner
                     ? OutlinedButton.icon(
@@ -72,14 +73,14 @@ class CommunityHeader extends StatelessWidget {
                         icon: const Icon(Icons.verified_outlined),
                         label: const Text('Tu comunidad'),
                       )
-                    : community.isMember
+                    : community.isFollowing
                     ? OutlinedButton.icon(
-                        onPressed: onToggleMembership,
+                        onPressed: onToggleFollowing,
                         icon: const Icon(Icons.check),
                         label: const Text('Siguiendo'),
                       )
                     : FilledButton.icon(
-                        onPressed: onToggleMembership,
+                        onPressed: onToggleFollowing,
                         icon: const Icon(Icons.add),
                         label: const Text('Seguir comunidad'),
                       ),

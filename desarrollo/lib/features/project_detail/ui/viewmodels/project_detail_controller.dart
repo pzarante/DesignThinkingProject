@@ -11,6 +11,7 @@ import '../../domain/models/project_detail.dart';
 import '../../domain/models/project_member.dart';
 import '../../domain/models/publication.dart';
 import '../../domain/models/viewer_role.dart';
+import '../../domain/project_unavailable_exception.dart';
 import '../../domain/repositories/i_project_detail_repository.dart';
 
 /// Estado de la pantalla de detalle de un proyecto.
@@ -22,6 +23,9 @@ class ProjectDetailController extends GetxController with UiLoggy {
   final Rxn<ProjectDetail> _detail = Rxn<ProjectDetail>();
   final RxBool isLoading = false.obs;
   final RxnString errorMessage = RxnString();
+
+  /// El proyecto se borró: reintentar no sirve y no hay detalle que mostrar.
+  final RxBool isUnavailable = false.obs;
   final RxBool isFollowing = false.obs;
   final RxBool isSaved = false.obs;
   final RxList<Publication> publications = <Publication>[].obs;
@@ -36,6 +40,10 @@ class ProjectDetailController extends GetxController with UiLoggy {
 
   ProjectDetail? get detail => _detail.value;
 
+  /// Lo que la tarjeta del feed ya sabe del proyecto, para pintar la cabecera
+  /// mientras llega el detalle completo.
+  final Rxn<ProjectDetail> preview = Rxn<ProjectDetail>();
+
   /// Carga el detalle del proyecto abierto desde el feed.
   ///
   /// Recibe la entidad del feed porque es lo que entregan las tarjetas de
@@ -43,32 +51,57 @@ class ProjectDetailController extends GetxController with UiLoggy {
   /// mínimo con lo que el feed ya conoce.
   Future<void> load(Project project) async {
     loggy.debug('ProjectDetailController: loading ${project.id}');
+    preview.value = _fromFeedProject(project);
     isLoading.value = true;
     errorMessage.value = null;
+    isUnavailable.value = false;
     isFollowing.value = false;
     isSaved.value = false;
     publications.clear();
     try {
       // Todo a la vez: son consultas independientes y encadenarlas era
       // sumar una espera de red detrás de otra.
-      final [stored, user, likeStatus, loadedComments, flags] =
-          await Future.wait<Object?>([
-            _repository.getDetail(project.id),
-            _repository.getCurrentUser(),
-            _repository.getLikeStatus(project.id),
-            _repository.getComments(project.id),
-            _repository.getViewerFlags(project.id),
-          ]);
+      final [
+        stored,
+        user,
+        likeStatus,
+        loadedComments,
+        flags,
+      ] = await Future.wait<Object?>([
+        _repository.getDetail(project.id),
+        _repository.getCurrentUser(),
+        _repository.getLikeStatus(project.id),
+        _repository.getComments(project.id),
+        _repository.getViewerFlags(project.id),
+      ]);
 
       _detail.value = (stored as ProjectDetail?) ?? _fromFeedProject(project);
       currentUser.value = user as ProjectMember;
       final likes = likeStatus as ({int count, bool likedByMe});
       likeCount.value = likes.count;
       likedByMe.value = likes.likedByMe;
-      comments.value = loadedComments as List<ProjectComment>;
+      // Copia modificable: la fuente devuelve `const []` cuando no hay
+      // comentarios y luego se le añaden (y se le hace `clear`).
+      comments.value = List.of(loadedComments as List<ProjectComment>);
       final viewerFlags = flags as ({bool saved, bool following});
       isSaved.value = viewerFlags.saved;
       isFollowing.value = viewerFlags.following;
+    } on ProjectUnavailableException catch (exception) {
+      // Sin el respaldo del feed: lo que traía la tarjeta es justo lo que ya
+      // no vale. Se vacía todo lo del proyecto anterior y se refresca el
+      // feed para que la tarjeta desaparezca.
+      loggy.info(
+        'ProjectDetailController: ${project.id} ya no está disponible',
+      );
+      _detail.value = null;
+      comments.clear();
+      likeCount.value = 0;
+      likedByMe.value = false;
+      isUnavailable.value = true;
+      errorMessage.value = '$exception';
+      if (Get.isRegistered<HomeController>()) {
+        Get.find<HomeController>().getFeed();
+      }
     } catch (exception) {
       loggy.error(
         'ProjectDetailController: error loading ${project.id}',
@@ -77,6 +110,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
       _detail.value = null;
       errorMessage.value = 'No se pudo cargar la información del proyecto.';
     } finally {
+      preview.value = null;
       isLoading.value = false;
     }
   }
@@ -99,10 +133,16 @@ class ProjectDetailController extends GetxController with UiLoggy {
   /// la pantalla lo enseña y lo vacía.
   final RxString actionError = ''.obs;
 
-  Future<void> toggleFollowing() => _toggleFlag(
-    flag: isFollowing,
-    action: _repository.toggleFollowing,
-  );
+  Future<void> toggleFollowing() async {
+    await _toggleFlag(flag: isFollowing, action: _repository.toggleFollowing);
+    final projectId = detail?.projectId;
+    if (projectId != null && Get.isRegistered<HomeController>()) {
+      Get.find<HomeController>().markFollowed(
+        projectId,
+        followed: isFollowing.value,
+      );
+    }
+  }
 
   Future<void> toggleSaved() =>
       _toggleFlag(flag: isSaved, action: _repository.toggleSaved);

@@ -10,6 +10,7 @@ class HomeFeed {
     required this.opportunities,
     required this.myProjects,
     this.savedProjects = const [],
+    this.followedProjectIds = const {},
   });
 
   const HomeFeed.empty()
@@ -17,7 +18,8 @@ class HomeFeed {
       recommendedProjects = const [],
       opportunities = const [],
       myProjects = const [],
-      savedProjects = const [];
+      savedProjects = const [],
+      followedProjectIds = const {};
 
   final List<Community> followedCommunities;
   final List<Project> recommendedProjects;
@@ -27,6 +29,25 @@ class HomeFeed {
   /// Proyectos de otros que esta persona marcó como guardados
   /// (`project_saved`). Vacío sin cuenta: guardar exige una.
   final List<Project> savedProjects;
+
+  /// Ids de los proyectos que esta persona sigue (`project_followers`). Sirven
+  /// para poner esos proyectos primero en el home; Explorar no los prioriza.
+  final Set<String> followedProjectIds;
+
+  HomeFeed withFollowed(String projectId, {required bool followed}) => HomeFeed(
+    followedCommunities: followedCommunities,
+    recommendedProjects: recommendedProjects,
+    opportunities: opportunities,
+    myProjects: myProjects,
+    savedProjects: savedProjects,
+    // Un `if` y no `a ? b : c..remove()`: el cascade se aplicaría a toda la
+    // condicional y borraría el id recién añadido.
+    followedProjectIds: {
+      for (final id in followedProjectIds)
+        if (id != projectId) id,
+      if (followed) projectId,
+    },
+  );
 
   /// Proyectos anclados y/o los 2 visitados más recientemente, para la
   /// versión resumida de "Mis Proyectos" en el Home (validado semana 5).

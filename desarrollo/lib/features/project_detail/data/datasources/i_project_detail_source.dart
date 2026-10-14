@@ -5,7 +5,12 @@ import '../../domain/models/project_member.dart';
 abstract class IProjectDetailSource {
   Future<ProjectDetail?> getDetail(String projectId);
 
-  Future<void> saveDetail(ProjectDetail detail);
+  /// [originalMemberIds]: línea base del equipo al abrir la configuración;
+  /// solo esos usuarios pueden retirarse al guardar. Vacío no retira a nadie.
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  });
 
   /// Usuario en sesión, que es quien figura como creador de lo que publica.
   Future<ProjectMember> getCurrentUser();

@@ -4,10 +4,20 @@ import '../models/project_member.dart';
 
 abstract class IProjectDetailRepository {
   /// Detalle guardado de un proyecto, o null si todavía no tiene uno.
+  ///
+  /// Lanza `ProjectUnavailableException` si el proyecto se borró.
   Future<ProjectDetail?> getDetail(String projectId);
 
   /// Guarda el detalle recién creado o editado desde la configuración.
-  Future<void> saveDetail(ProjectDetail detail);
+  ///
+  /// [originalMemberIds] es la línea base del equipo: quiénes estaban activos
+  /// cuando se abrió la configuración. Solo a ellos se les puede retirar al
+  /// guardar; quien entró después no está en la copia que se edita y no debe
+  /// salir por eso. Vacío (un proyecto nuevo) no retira a nadie.
+  Future<void> saveDetail(
+    ProjectDetail detail, {
+    Set<String> originalMemberIds = const {},
+  });
 
   /// Usuario en sesión, que es quien figura como creador de lo que publica.
   Future<ProjectMember> getCurrentUser();

@@ -34,6 +34,10 @@ class ProjectSettingsController extends GetxController with UiLoggy {
 
   late ProjectDetail _original;
 
+  /// Quiénes estaban en el equipo al abrir la configuración (o al último
+  /// guardado). Es lo que distingue "lo quité yo" de "entró después".
+  Set<String> _originalMemberIds = const {};
+
   /// Detalle resultante del último guardado, para que la pantalla de detalle
   /// se actualice al volver.
   ProjectDetail? saved;
@@ -49,6 +53,7 @@ class ProjectSettingsController extends GetxController with UiLoggy {
   /// Carga la copia de trabajo a partir del detalle que se está viendo.
   void start(ProjectDetail detail) {
     _original = detail;
+    _originalMemberIds = {for (final member in detail.members) member.id};
     nameField.text = detail.name;
     descriptionField.text = detail.description ?? '';
     categoryField.text = detail.tags.isEmpty ? '' : detail.tags.first;
@@ -136,7 +141,11 @@ class ProjectSettingsController extends GetxController with UiLoggy {
       await homeController.getFeed();
       return true;
     } catch (exception, stackTrace) {
-      loggy.error('ProjectSettingsController: delete failed', exception, stackTrace);
+      loggy.error(
+        'ProjectSettingsController: delete failed',
+        exception,
+        stackTrace,
+      );
       return false;
     } finally {
       isSaving.value = false;
@@ -167,7 +176,10 @@ class ProjectSettingsController extends GetxController with UiLoggy {
         clearCommunity: communityName.value == null,
       );
 
-      await _repository.saveDetail(updated);
+      await _repository.saveDetail(
+        updated,
+        originalMemberIds: _originalMemberIds,
+      );
 
       final homeController = Get.find<HomeController>();
       for (final project in [
@@ -189,9 +201,14 @@ class ProjectSettingsController extends GetxController with UiLoggy {
 
       saved = updated;
       _original = updated;
+      _originalMemberIds = {for (final member in updated.members) member.id};
       return true;
     } catch (exception, stackTrace) {
-      loggy.error('ProjectSettingsController: save failed', exception, stackTrace);
+      loggy.error(
+        'ProjectSettingsController: save failed',
+        exception,
+        stackTrace,
+      );
       return false;
     } finally {
       isSaving.value = false;
