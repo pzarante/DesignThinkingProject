@@ -82,7 +82,11 @@ class ApplicantsController extends GetxController with UiLoggy {
         application.id,
         ProjectApplicationStatus.rejected,
       );
-      // Sin aviso propio: la bandeja de quien se postuló lo deriva del estado.
+      await Get.find<ProjectDetailController>().onApplicationRejected(
+        projectId: application.projectId,
+        applicantId: application.applicantId,
+        applicationId: application.id,
+      );
       return null;
     } catch (exception) {
       loggy.error('ApplicantsController: error rejecting', exception);

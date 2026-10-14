@@ -1,6 +1,5 @@
 import 'package:roble/roble.dart';
 
-import '../../../../core/i_local_preferences.dart';
 import '../../../../core/roble_cache.dart';
 import '../../../auth/domain/repositories/i_auth_repository.dart';
 import '../../domain/models/app_notification.dart';
@@ -14,25 +13,13 @@ import '../../domain/repositories/i_notification_repository.dart';
 /// cuenta y al abrir la pantalla. Sumar un push real si hace falta al
 /// instante.
 class RobleNotificationRepository implements INotificationRepository {
-  RobleNotificationRepository(
-    this._db,
-    this._cache,
-    this._authRepository,
-    this._preferences,
-  );
+  RobleNotificationRepository(this._db, this._cache, this._authRepository);
 
   final RobleApiDataBase _db;
   final RobleTableCache _cache;
   final IAuthRepository _authRepository;
-  final ILocalPreferences _preferences;
 
   static const _table = 'notifications';
-
-  /// Hasta cuándo vio esta persona sus rechazos, que no tienen fila propia
-  /// donde marcar `is_read`.
-  /// shortcut: se recuerda por teléfono; en otro teléfono vuelven a salir
-  /// como nuevos. Pasarlo a ROBLE si molesta.
-  String _seenKey(String me) => 'notifications.rejected_seen.$me';
 
   /// Solo una cuenta de verdad tiene bandeja: a un invitado nadie le escribe.
   Future<String?> _me() async {
@@ -44,15 +31,8 @@ class RobleNotificationRepository implements INotificationRepository {
   Future<List<AppNotification>> getAll() async {
     final me = await _me();
     if (me == null) return const [];
-    final [rows, rejected] = await _cache.readQueries([
-      RobleQuery(_table, {'recipient_id': me}),
-      RobleQuery('project_applications', {
-        'applicant_id': me,
-        'status': 'rejected',
-      }),
-    ]);
+    final rows = await _cache.read(_table, filters: {'recipient_id': me});
     return [
-      ...await _rejections(me, rejected),
       for (final row in rows)
         if (NotificationType.fromDb(row['notification_type']) case final type?)
           AppNotification(
@@ -66,35 +46,6 @@ class RobleNotificationRepository implements INotificationRepository {
             isRead: row['is_read'] == true,
           ),
     ]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
-  }
-
-  Future<List<AppNotification>> _rejections(
-    String me,
-    List<Map<String, dynamic>> applications,
-  ) async {
-    if (applications.isEmpty) return const [];
-    final seen = DateTime.tryParse(
-      await _preferences.getString(_seenKey(me)) ?? '',
-    );
-    final projects = await _cache.readQueries([
-      for (final a in applications)
-        RobleQuery('projects', {'_id': a['project_id']}),
-    ]);
-    return [
-      for (final (i, a) in applications.indexed)
-        if (DateTime.tryParse('${a['reviewed_at'] ?? a['updated_at']}')
-            case final reviewed?)
-          AppNotification(
-            id: 'application-${a['_id']}',
-            type: NotificationType.applicationRejected,
-            message:
-                'Tu postulación a ${projects[i].firstOrNull?['name'] ?? 'un proyecto'} '
-                'no fue aceptada esta vez.',
-            createdAt: reviewed.toLocal(),
-            projectId: a['project_id'] as String?,
-            isRead: seen != null && !reviewed.isAfter(seen),
-          ),
-    ];
   }
 
   @override
@@ -113,10 +64,8 @@ class RobleNotificationRepository implements INotificationRepository {
   }) async {
     final actor = (await _authRepository.getLoggedUser())?.id;
     final recipients = switch (type) {
-      NotificationType.applicationRejected => throw ArgumentError(
-        'Los rechazos no se guardan: salen de project_applications.',
-      ),
-      NotificationType.applicationAccepted => {?recipientId},
+      NotificationType.applicationAccepted ||
+      NotificationType.applicationRejected => {?recipientId},
       NotificationType.projectUpdate ||
       NotificationType.pollActivity => await _audience(projectId),
       _ => await _leaders(projectId),
@@ -174,38 +123,15 @@ class RobleNotificationRepository implements INotificationRepository {
 
   @override
   Future<void> markAsRead(String notificationId) async {
-    // Un rechazo no tiene fila: se marca con [markAllAsRead].
-    if (notificationId.startsWith('application-')) return;
     await _db.update(_table, notificationId, {'is_read': true});
     _cache.invalidate([_table]);
   }
 
   @override
   Future<void> markAllAsRead() async {
-    final me = await _me();
-    if (me == null) return;
     try {
-      final all = await getAll();
-      for (final n in all) {
-        if (n.isRead || n.type == NotificationType.applicationRejected) {
-          continue;
-        }
-        await _db.update(_table, n.id, {'is_read': true});
-      }
-      // La fecha del rechazo más nuevo y no la hora de este teléfono: el
-      // reloj de quien rechazó puede ir adelantado.
-      final latest = all
-          .where((n) => n.type == NotificationType.applicationRejected)
-          .map((n) => n.createdAt)
-          .fold<DateTime?>(
-            null,
-            (max, d) => max == null || d.isAfter(max) ? d : max,
-          );
-      if (latest != null) {
-        await _preferences.setString(
-          _seenKey(me),
-          latest.toUtc().toIso8601String(),
-        );
+      for (final n in await getAll()) {
+        if (!n.isRead) await _db.update(_table, n.id, {'is_read': true});
       }
     } finally {
       _cache.invalidate([_table]);

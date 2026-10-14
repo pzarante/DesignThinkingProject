@@ -10,12 +10,7 @@ import 'ui/viewmodels/notifications_controller.dart';
 void registerNotifications({bool remote = true}) {
   Get.put<INotificationRepository>(
     remote
-        ? RobleNotificationRepository(
-            Get.find(),
-            Get.find(),
-            Get.find(),
-            Get.find(),
-          )
+        ? RobleNotificationRepository(Get.find(), Get.find(), Get.find())
         : LocalNotificationRepository(),
     permanent: true,
   );

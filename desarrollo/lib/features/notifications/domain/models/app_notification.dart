@@ -1,12 +1,10 @@
 /// Qué pasó. [dbValue] es lo que se guarda en `notifications.notification_type`
-/// (la tabla tiene un CHECK con la lista de valores permitidos).
+/// (la columna tiene un CHECK con la lista de valores permitidos).
 enum NotificationType {
   applicationReceived('application_received', 'Nueva postulación'),
   applicationAccepted('application_accepted', 'Postulación aceptada'),
-
-  /// No se guarda: el CHECK de `notification_type` no lo admite y ROBLE no
-  /// deja cambiarlo. Sale de `project_applications` con `status` rejected.
   applicationRejected('application_rejected', 'Postulación no aceptada'),
+  memberLeft('member_left', 'Cambio en el equipo'),
   projectComment('project_comment', 'Nuevo comentario'),
   projectUpdate('project_update', 'Nueva publicación'),
   pollActivity('poll_activity', 'Nueva encuesta');

@@ -63,6 +63,20 @@ class NotificationsController extends GetxController with UiLoggy {
     }
   }
 
+  /// Optimista: se ve leída al instante; si ROBLE falla, se recarga.
+  Future<void> markAsRead(AppNotification notification) async {
+    if (notification.isRead) return;
+    final index = items.indexWhere((n) => n.id == notification.id);
+    if (index != -1) items[index] = notification.copyWith(isRead: true);
+    unreadCount.value = items.where((n) => !n.isRead).length;
+    try {
+      await repository.markAsRead(notification.id);
+    } catch (exception) {
+      loggy.error('NotificationsController: could not mark read', exception);
+      await refresh();
+    }
+  }
+
   Future<void> markAllAsRead() async {
     try {
       await repository.markAllAsRead();

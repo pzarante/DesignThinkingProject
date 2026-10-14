@@ -422,7 +422,7 @@ class ProjectDetailController extends GetxController with UiLoggy {
   }
 
   /// Sale del equipo del proyecto abierto. Si lidera, [newLeader] es quien
-  /// queda a cargo. Refresca "Mis Proyectos".
+  /// queda a cargo. Avisa a quienes lideran y refresca "Mis Proyectos".
   ///
   /// Devuelve null si salió bien, o el mensaje de error para mostrar.
   Future<String?> leaveProject({ProjectMember? newLeader}) async {
@@ -443,12 +443,37 @@ class ProjectDetailController extends GetxController with UiLoggy {
           : errors.errorMessage(exception);
     }
 
+    final whoLeft = currentUser.value?.name;
+    await notify(
+      type: NotificationType.memberLeft,
+      message: [
+        '${whoLeft == null || whoLeft.isEmpty ? 'Un integrante' : whoLeft} '
+            'salió de ${current.name}.',
+        if (newLeader != null) '${newLeader.name} ahora lo lidera.',
+      ].join(' '),
+      projectId: current.projectId,
+    );
+
     if (Get.isRegistered<HomeController>()) {
       await Get.find<HomeController>().getFeed();
     }
     isLeaving.value = false;
     return null;
   }
+
+  /// Se llama al rechazar una postulación: avisa a quien se postuló.
+  Future<void> onApplicationRejected({
+    required String projectId,
+    required String applicantId,
+    String? applicationId,
+  }) => notify(
+    type: NotificationType.applicationRejected,
+    recipientId: applicantId,
+    message:
+        'Tu postulación a ${_projectName(projectId)} no fue aceptada esta vez.',
+    projectId: projectId,
+    applicationId: applicationId,
+  );
 
   String _projectName(String projectId) =>
       detail?.projectId == projectId ? detail!.name : 'el proyecto';
