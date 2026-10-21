@@ -25,7 +25,8 @@ class AppSearchBar extends StatelessWidget {
         hintText: hintText,
         prefixIcon: const Icon(Icons.search),
         filled: true,
-        fillColor: colors.surfaceContainerHighest,
+        fillColor: const Color(0xFFF1E8FF),
+        prefixIconColor: colors.primary,
         contentPadding: const EdgeInsets.symmetric(
           vertical: AppSpacing.sm,
           horizontal: AppSpacing.md,

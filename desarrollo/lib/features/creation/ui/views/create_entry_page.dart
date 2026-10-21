@@ -6,6 +6,7 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_icon_badge.dart';
 import '../../../../core/widgets/app_option_card.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../auth/ui/viewmodels/authentication_controller.dart';
 
 /// Qué se está creando. Es la bifurcación entre el asistente de proyecto y
@@ -94,9 +95,21 @@ class _CreateEntryPageState extends State<CreateEntryPage> {
             ),
         ],
       ),
-      bottomNavigationBar: AppFormActions(
-        primaryLabel: 'Continuar',
-        onPrimary: _selected == null ? null : _continue,
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppFormActions(
+            primaryLabel: 'Continuar',
+            onPrimary: _selected == null ? null : _continue,
+          ),
+          AppBottomNavBar(
+            currentIndex: 0,
+            onDestinationSelected: (index) {
+              final route = AppRoutes.mainDestinations[index];
+              if (route != AppRoutes.home) Get.offAllNamed(route);
+            },
+          ),
+        ],
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_wizard_progress.dart';
 import '../viewmodels/project_creation_controller.dart';
 import '../widgets/basics_step.dart';
@@ -96,17 +97,29 @@ class _ProjectWizardPageState extends State<ProjectWizardPage> {
           ],
         );
       }),
-      bottomNavigationBar: Obx(
-        () => AppFormActions(
-          secondaryLabel: 'Atrás',
-          onSecondary: _goBack,
-          primaryLabel:
-              controller.currentStep.value ==
-                  ProjectCreationController.totalSteps
-              ? 'Revisar proyecto'
-              : 'Siguiente',
-          onPrimary: controller.canContinue ? _goForward : null,
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(
+            () => AppFormActions(
+              secondaryLabel: 'Atrás',
+              onSecondary: _goBack,
+              primaryLabel:
+                  controller.currentStep.value ==
+                      ProjectCreationController.totalSteps
+                  ? 'Revisar proyecto'
+                  : 'Siguiente',
+              onPrimary: controller.canContinue ? _goForward : null,
+            ),
+          ),
+          AppBottomNavBar(
+            currentIndex: 0,
+            onDestinationSelected: (index) {
+              final route = AppRoutes.mainDestinations[index];
+              if (route != AppRoutes.home) Get.offAllNamed(route);
+            },
+          ),
+        ],
       ),
     );
   }

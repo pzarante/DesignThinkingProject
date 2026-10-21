@@ -14,6 +14,7 @@ class AppBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
+      height: 72,
       selectedIndex: currentIndex,
       onDestinationSelected: onDestinationSelected,
       destinations: const [

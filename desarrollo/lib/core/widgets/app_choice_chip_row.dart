@@ -32,6 +32,15 @@ class AppChoiceChipRow<T> extends StatelessWidget {
                 label: Text(labelBuilder(option)),
                 selected: option == selected,
                 onSelected: (_) => onSelected(option),
+                showCheckmark: false,
+                labelStyle: TextStyle(
+                  color: option == selected
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontWeight: option == selected
+                      ? FontWeight.w600
+                      : FontWeight.normal,
+                ),
               ),
             ),
         ],

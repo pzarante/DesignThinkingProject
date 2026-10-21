@@ -97,6 +97,102 @@ class HomePage extends StatelessWidget {
   }
 }
 
+class _HomeIntro extends StatelessWidget {
+  const _HomeIntro();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '¡Hola! 👋',
+          style: Theme.of(
+            context,
+          ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          'Descubre ideas y compañeros de equipo para colaborar hoy',
+          style: Theme.of(
+            context,
+          ).textTheme.bodyLarge?.copyWith(color: colors.onSurfaceVariant),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF6500D9), Color(0xFF8B35ED)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x336500D9),
+                blurRadius: 12,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    '● CONVOCATORIA ABIERTA',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                const Text(
+                  'Hackathon Campus 2025:\nProyectos abiertos',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    height: 1.1,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                const Text(
+                  'Encuentra equipos y comparte tus ideas con la comunidad.',
+                  style: TextStyle(color: Colors.white, height: 1.3),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Color(0xFF6500D9),
+                  ),
+                  onPressed: () => Get.toNamed(AppRoutes.explore),
+                  child: const Text('Explorar retos  →'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _AppLogo extends StatelessWidget {
   const _AppLogo();
 
@@ -146,6 +242,8 @@ class _FeedList extends StatelessWidget {
           AppSpacing.scrollBottomInset,
         ),
         children: [
+          const _HomeIntro(),
+          const SizedBox(height: AppSpacing.md),
           AppSearchBar(
             hintText: 'Buscar proyectos, comunidades...',
             onChanged: controller.setSearchQuery,
@@ -186,10 +284,8 @@ class _FeedList extends StatelessWidget {
                   subtitle: community.lastActivity,
                   // Al feed de la comunidad, no a su configuración: lo
                   // normal al tocarla es querer ver sus proyectos.
-                  onTap: () => Get.toNamed(
-                    AppRoutes.community,
-                    arguments: community.id,
-                  ),
+                  onTap: () =>
+                      Get.toNamed(AppRoutes.community, arguments: community.id),
                 ),
             const AppSectionHeader(title: 'Mis Proyectos'),
             if (myProjects.isEmpty)

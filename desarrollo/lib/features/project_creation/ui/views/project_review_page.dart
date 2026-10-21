@@ -5,6 +5,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_semantic_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../viewmodels/project_creation_controller.dart';
 import '../widgets/review_section_card.dart';
@@ -150,23 +151,35 @@ class ProjectReviewPage extends StatelessWidget {
           ],
         );
       }),
-      bottomNavigationBar: Obx(
-        () => AppFormActions(
-          secondaryLabel: 'Atrás',
-          onSecondary: Get.back,
-          primaryLabel: 'Publicar proyecto',
-          primaryColor: AppSemanticColors.success,
-          onPrimaryColor: AppSemanticColors.onSuccess,
-          onPrimary: controller.isPublishing.value
-              ? null
-              : () async {
-                  final project = await controller.publish();
-                  Get.offNamed(
-                    AppRoutes.createProjectSuccess,
-                    arguments: project,
-                  );
-                },
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(
+            () => AppFormActions(
+              secondaryLabel: 'Atrás',
+              onSecondary: Get.back,
+              primaryLabel: 'Publicar proyecto',
+              primaryColor: AppSemanticColors.success,
+              onPrimaryColor: AppSemanticColors.onSuccess,
+              onPrimary: controller.isPublishing.value
+                  ? null
+                  : () async {
+                      final project = await controller.publish();
+                      Get.offNamed(
+                        AppRoutes.createProjectSuccess,
+                        arguments: project,
+                      );
+                    },
+            ),
+          ),
+          AppBottomNavBar(
+            currentIndex: 0,
+            onDestinationSelected: (index) {
+              final route = AppRoutes.mainDestinations[index];
+              if (route != AppRoutes.home) Get.offAllNamed(route);
+            },
+          ),
+        ],
       ),
     );
   }

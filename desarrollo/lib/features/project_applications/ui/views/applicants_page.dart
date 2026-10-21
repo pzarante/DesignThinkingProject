@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/app_empty_state.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../../../app_routes.dart';
 import '../../domain/models/project_application.dart';
 import '../viewmodels/applicants_controller.dart';
 
@@ -58,8 +60,22 @@ class _ApplicantsPageState extends State<ApplicantsPage> {
           },
         );
       }),
+      bottomNavigationBar: _BottomNavigation(),
     );
   }
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) => AppBottomNavBar(
+    currentIndex: 0,
+    onDestinationSelected: (index) {
+      final route = AppRoutes.mainDestinations[index];
+      if (route != AppRoutes.home) Get.offAllNamed(route);
+    },
+  );
 }
 
 class _ApplicantCard extends StatelessWidget {

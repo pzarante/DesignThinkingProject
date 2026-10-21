@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
+import '../../../../app_routes.dart';
 import '../viewmodels/apply_controller.dart';
 
 /// Postularse a un proyecto. Recibe por [Get.arguments] un mapa con
@@ -110,6 +112,20 @@ class _ApplyPageState extends State<ApplyPage> {
           ),
         ),
       ),
+      bottomNavigationBar: _BottomNavigation(),
     );
   }
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) => AppBottomNavBar(
+    currentIndex: 0,
+    onDestinationSelected: (index) {
+      final route = AppRoutes.mainDestinations[index];
+      if (route != AppRoutes.home) Get.offAllNamed(route);
+    },
+  );
 }

@@ -5,6 +5,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_section_header.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../profile/domain/models/user_profile.dart';
@@ -24,6 +25,19 @@ class ProjectSettingsPage extends StatefulWidget {
 
   @override
   State<ProjectSettingsPage> createState() => _ProjectSettingsPageState();
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) => AppBottomNavBar(
+    currentIndex: 0,
+    onDestinationSelected: (index) {
+      final route = AppRoutes.mainDestinations[index];
+      if (route != AppRoutes.home) Get.offAllNamed(route);
+    },
+  );
 }
 
 class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
@@ -286,29 +300,36 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
           ],
         ],
       ),
-      bottomNavigationBar: Obx(
-        () => AppFormActions(
-          primaryLabel: 'Guardar cambios',
-          onPrimary: controller.canSave
-              ? () async {
-                  final saved = await controller.save();
-                  if (saved && mounted) {
-                    Get.back();
-                    showSuccessSnack(
-                      'Cambios guardados',
-                      message: 'La configuración del proyecto se actualizó.',
-                    );
-                  } else if (mounted) {
-                    showErrorSnack(
-                      'No se pudo guardar',
-                      message:
-                          controller.saveError ??
-                          'Verifica los campos obligatorios y permisos.',
-                    );
-                  }
-                }
-              : null,
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(
+            () => AppFormActions(
+              primaryLabel: 'Guardar cambios',
+              onPrimary: controller.canSave
+                  ? () async {
+                      final saved = await controller.save();
+                      if (saved && mounted) {
+                        Get.back();
+                        showSuccessSnack(
+                          'Cambios guardados',
+                          message:
+                              'La configuración del proyecto se actualizó.',
+                        );
+                      } else if (mounted) {
+                        showErrorSnack(
+                          'No se pudo guardar',
+                          message:
+                              controller.saveError ??
+                              'Verifica los campos obligatorios y permisos.',
+                        );
+                      }
+                    }
+                  : null,
+            ),
+          ),
+          _BottomNavigation(),
+        ],
       ),
     );
   }

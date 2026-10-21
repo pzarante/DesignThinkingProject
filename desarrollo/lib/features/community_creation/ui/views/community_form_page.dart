@@ -5,6 +5,7 @@ import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_tag_input.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../viewmodels/community_creation_controller.dart';
@@ -16,6 +17,19 @@ class CommunityFormPage extends StatefulWidget {
 
   @override
   State<CommunityFormPage> createState() => _CommunityFormPageState();
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) => AppBottomNavBar(
+    currentIndex: 0,
+    onDestinationSelected: (index) {
+      final route = AppRoutes.mainDestinations[index];
+      if (route != AppRoutes.home) Get.offAllNamed(route);
+    },
+  );
 }
 
 class _CommunityFormPageState extends State<CommunityFormPage> {
@@ -123,10 +137,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text(
-            'Proyectos de la comunidad',
-            style: theme.textTheme.labelMedium,
-          ),
+          Text('Proyectos de la comunidad', style: theme.textTheme.labelMedium),
           Text(
             'Mínimo 1 proyecto requerido',
             style: theme.textTheme.bodyMedium?.copyWith(
@@ -173,8 +184,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
                       for (final project in selected)
                         InputChip(
                           label: Text(project.name),
-                          onDeleted: () =>
-                              controller.removeProject(project.id),
+                          onDeleted: () => controller.removeProject(project.id),
                         ),
                     ],
                   ),
@@ -194,13 +204,19 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Obx(
-        () => AppFormActions(
-          primaryLabel: 'Crear comunidad',
-          onPrimary: controller.canSubmit && !controller.isSaving.value
-              ? _submit
-              : null,
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(
+            () => AppFormActions(
+              primaryLabel: 'Crear comunidad',
+              onPrimary: controller.canSubmit && !controller.isSaving.value
+                  ? _submit
+                  : null,
+            ),
+          ),
+          _BottomNavigation(),
+        ],
       ),
     );
   }

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../app_routes.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
+import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_tag_input.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../../../home/domain/models/community.dart';
@@ -15,6 +17,19 @@ class CommunitySettingsPage extends StatefulWidget {
 
   @override
   State<CommunitySettingsPage> createState() => _CommunitySettingsPageState();
+}
+
+class _BottomNavigation extends StatelessWidget {
+  const _BottomNavigation();
+
+  @override
+  Widget build(BuildContext context) => AppBottomNavBar(
+    currentIndex: 0,
+    onDestinationSelected: (index) {
+      final route = AppRoutes.mainDestinations[index];
+      if (route != AppRoutes.home) Get.offAllNamed(route);
+    },
+  );
 }
 
 class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
@@ -104,9 +119,16 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
             () => SwitchListTile(
               contentPadding: EdgeInsets.zero,
               value: controller.isPublic.value,
-              onChanged: controller.isSaving.value ? null : (value) => controller.isPublic.value = value,
-              title: Text('Comunidad pública', style: theme.textTheme.titleMedium),
-              subtitle: const Text('Cualquier estudiante puede unirse libremente.'),
+              onChanged: controller.isSaving.value
+                  ? null
+                  : (value) => controller.isPublic.value = value,
+              title: Text(
+                'Comunidad pública',
+                style: theme.textTheme.titleMedium,
+              ),
+              subtitle: const Text(
+                'Cualquier estudiante puede unirse libremente.',
+              ),
             ),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -114,7 +136,10 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
           const SizedBox(height: AppSpacing.xs),
           Obx(() {
             final selected = controller.availableProjects
-                .where((project) => controller.selectedProjectIds.contains(project.id))
+                .where(
+                  (project) =>
+                      controller.selectedProjectIds.contains(project.id),
+                )
                 .toList();
 
             if (selected.isEmpty) {
@@ -144,18 +169,24 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
           ),
         ],
       ),
-      bottomNavigationBar: Obx(
-        () => AppFormActions(
-          primaryLabel: 'Guardar cambios',
-          onPrimary: controller.canSave && !controller.isSaving.value
-              ? () async {
-                  final saved = await controller.save();
-                  if (saved && mounted) {
-                    Get.back();
-                  }
-                }
-              : null,
-        ),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Obx(
+            () => AppFormActions(
+              primaryLabel: 'Guardar cambios',
+              onPrimary: controller.canSave && !controller.isSaving.value
+                  ? () async {
+                      final saved = await controller.save();
+                      if (saved && mounted) {
+                        Get.back();
+                      }
+                    }
+                  : null,
+            ),
+          ),
+          _BottomNavigation(),
+        ],
       ),
     );
   }
@@ -270,7 +301,8 @@ class _ProjectPickerSheetState extends State<_ProjectPickerSheet> {
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 FilledButton(
-                  onPressed: () => Navigator.of(context).pop(_selected.toList()),
+                  onPressed: () =>
+                      Navigator.of(context).pop(_selected.toList()),
                   child: Text(
                     widget.projects.isEmpty
                         ? 'Cerrar'
