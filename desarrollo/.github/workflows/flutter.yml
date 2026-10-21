@@ -47,3 +47,24 @@ jobs:
         run: flutter pub get
       - name: Run tests
         run: flutter test
+      - name: Set up ChromeDriver
+        uses: browser-actions/setup-chrome@v1
+        with:
+          install-chromedriver: true
+      - name: Start ChromeDriver
+        run: |
+          chromedriver --port=4444 > "$RUNNER_TEMP/chromedriver.log" 2>&1 &
+          for attempt in {1..10}; do
+            curl --fail --silent http://127.0.0.1:4444/status && break
+            sleep 1
+          done
+      - name: Run integration tests
+        run: flutter drive --driver=test_driver/integration_test.dart --target=integration_test/app_test.dart -d chrome
+      - name: Run integration tests on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          script: cd desarrollo && flutter test integration_test/app_test.dart
