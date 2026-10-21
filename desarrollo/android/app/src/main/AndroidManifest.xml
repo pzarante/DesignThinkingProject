@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="f_clean_template"
+        android:label="Innovation Hub"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

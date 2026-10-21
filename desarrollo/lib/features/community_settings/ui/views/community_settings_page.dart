@@ -179,7 +179,7 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
                   ? () async {
                       final saved = await controller.save();
                       if (saved && mounted) {
-                        Get.back();
+                        Get.back(closeOverlays: true);
                       }
                     }
                   : null,

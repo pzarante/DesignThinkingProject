@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_form_actions.dart';
@@ -61,6 +62,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      key: AppKeys.communityFormPage,
       appBar: AppBar(title: const Text('Crear comunidad')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
@@ -79,6 +81,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
+            key: AppKeys.communityNameField,
             label: 'Nombre de la comunidad',
             isRequired: true,
             controller: controller.nameField,
@@ -193,6 +196,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
           }),
           const SizedBox(height: AppSpacing.sm),
           OutlinedButton.icon(
+            key: AppKeys.communityPickProjectsButton,
             onPressed: _pickProjects,
             icon: const Icon(Icons.add),
             label: const Text('Seleccionar proyecto existente'),
@@ -209,6 +213,7 @@ class _CommunityFormPageState extends State<CommunityFormPage> {
         children: [
           Obx(
             () => AppFormActions(
+              primaryKey: AppKeys.communitySubmitButton,
               primaryLabel: 'Crear comunidad',
               onPrimary: controller.canSubmit && !controller.isSaving.value
                   ? _submit

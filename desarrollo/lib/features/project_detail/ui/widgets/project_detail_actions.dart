@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../domain/models/viewer_role.dart';
 
@@ -71,6 +72,7 @@ class ProjectDetailActions extends StatelessWidget {
             ],
             if (viewerRole.belongsToProject) ...[
               IconButton.outlined(
+                key: AppKeys.projectLeaveButton,
                 tooltip: 'Salir del proyecto',
                 onPressed: isLeaving ? null : onLeave,
                 color: colors.error,
@@ -101,6 +103,7 @@ class ProjectDetailActions extends StatelessWidget {
             ],
             Expanded(
               child: FilledButton(
+                key: AppKeys.projectDetailPrimaryButton,
                 onPressed: viewerRole.canPublish
                     ? onCreatePost
                     : (hasApplied

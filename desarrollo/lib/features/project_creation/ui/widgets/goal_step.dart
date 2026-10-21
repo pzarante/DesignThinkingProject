@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../viewmodels/project_creation_controller.dart';
@@ -16,6 +17,7 @@ class GoalStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppTextField(
+          key: AppKeys.projectObjectiveField,
           label: 'Objetivo general',
           isRequired: true,
           controller: controller.objectiveField,

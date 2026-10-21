@@ -12,6 +12,7 @@ class AppSuccessView extends StatelessWidget {
     required this.primaryLabel,
     required this.onPrimary,
     this.secondaryActions = const [],
+    this.primaryKey,
   });
 
   final String title;
@@ -21,6 +22,9 @@ class AppSuccessView extends StatelessWidget {
 
   /// Enlaces bajo el botón principal, p. ej. "Volver al inicio".
   final List<Widget> secondaryActions;
+
+  /// Key del botón principal, para encontrarlo en las pruebas.
+  final Key? primaryKey;
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +67,7 @@ class AppSuccessView extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
+                key: primaryKey,
                 onPressed: onPrimary,
                 child: Text(primaryLabel),
               ),

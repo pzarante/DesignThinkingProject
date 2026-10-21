@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
@@ -278,7 +279,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       showErrorSnack('No se pudo salir', message: error);
       return;
     }
-    Get.back();
+    // Con el aviso de un intento fallido todavía abierto, `Get.back()` solo
+    // cerraría el aviso y dejaría delante el proyecto del que se acaba de salir.
+    Get.back(closeOverlays: true);
     showSuccessSnack(
       'Saliste del proyecto',
       message: 'Ya no formas parte de ${detail.name}.',
@@ -419,11 +422,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       }
 
       return Scaffold(
+        key: AppKeys.projectDetailPage,
         appBar: AppBar(
           title: const AppTagChip(label: 'Proyecto'),
           actions: [
             if (detail.viewerRole.canConfigure) ...[
               IconButton(
+                key: AppKeys.projectApplicantsButton,
                 tooltip: 'Postulaciones',
                 onPressed: () => Get.toNamed(
                   AppRoutes.projectApplicants,

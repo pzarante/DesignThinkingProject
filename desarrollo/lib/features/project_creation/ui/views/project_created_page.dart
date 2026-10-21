@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/widgets/app_success_view.dart';
 import '../../../community_creation/ui/viewmodels/community_creation_controller.dart';
 import '../../../home/domain/models/project.dart';
@@ -17,7 +18,9 @@ class ProjectCreatedPage extends StatelessWidget {
     final project = Get.arguments as Project;
 
     return Scaffold(
+      key: AppKeys.projectCreatedPage,
       body: AppSuccessView(
+        primaryKey: AppKeys.projectCreatedViewButton,
         title: '¡Proyecto creado!',
         message:
             'Tu proyecto ${project.name} ha sido publicado exitosamente en la '

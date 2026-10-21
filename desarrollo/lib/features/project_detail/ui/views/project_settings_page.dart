@@ -310,7 +310,7 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
                   ? () async {
                       final saved = await controller.save();
                       if (saved && mounted) {
-                        Get.back();
+                        Get.back(closeOverlays: true);
                         showSuccessSnack(
                           'Cambios guardados',
                           message:

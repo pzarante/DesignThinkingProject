@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_avatar.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -31,6 +32,7 @@ class _ApplicantsPageState extends State<ApplicantsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: AppKeys.applicantsPage,
       appBar: AppBar(title: const Text('Postulantes')),
       body: Obx(() {
         if (controller.isLoading.value) {
@@ -137,6 +139,7 @@ class _ApplicantCard extends StatelessWidget {
                 children: [
                   Expanded(
                     child: OutlinedButton(
+                      key: AppKeys.applicantRejectButton(application.id),
                       onPressed: onReject,
                       child: const Text('Rechazar'),
                     ),
@@ -144,6 +147,7 @@ class _ApplicantCard extends StatelessWidget {
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: FilledButton(
+                      key: AppKeys.applicantAcceptButton(application.id),
                       onPressed: onAccept,
                       child: const Text('Aceptar'),
                     ),
