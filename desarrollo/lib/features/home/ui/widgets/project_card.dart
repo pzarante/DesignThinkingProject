@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_project_cover.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
@@ -9,7 +10,8 @@ import '../../domain/models/project.dart';
 
 /// Large project card with a cover, its labels, and the team size.
 class ProjectCard extends StatelessWidget {
-  const ProjectCard({super.key, required this.project, this.onTap});
+  ProjectCard({Key? key, required this.project, this.onTap})
+    : super(key: key ?? AppKeys.projectCard(project.id));
 
   final Project project;
   final VoidCallback? onTap;

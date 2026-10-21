@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
 import '../../../../core/widgets/app_form_actions.dart';
@@ -127,6 +128,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      key: AppKeys.signUpPage,
       appBar: AppBar(
         title: const Text('Crear cuenta'),
         leading: BackButton(
@@ -165,13 +167,17 @@ class _SignUpPageState extends State<SignUpPage> {
             if (error.isEmpty) return const SizedBox.shrink();
             return Padding(
               padding: const EdgeInsets.only(top: AppSpacing.md),
-              child: _ErrorBanner(message: error),
+              child: _ErrorBanner(
+                key: AppKeys.signUpErrorBanner,
+                message: error,
+              ),
             );
           }),
         ],
       ),
       bottomNavigationBar: Obx(
         () => AppFormActions(
+          primaryKey: AppKeys.signUpSubmitButton,
           secondaryLabel: _step == 0 ? null : 'Atrás',
           onSecondary: () => setState(() => _step = 0),
           primaryLabel: controller.isLoading
@@ -189,6 +195,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   List<Widget> _accountStep(ThemeData theme) => [
     AppTextField(
+      key: AppKeys.signUpUserNameField,
       label: 'Nombre de usuario',
       controller: _userNameField,
       hintText: 'ana.martinez',
@@ -203,6 +210,7 @@ class _SignUpPageState extends State<SignUpPage> {
     ),
     const SizedBox(height: AppSpacing.md),
     AppTextField(
+      key: AppKeys.signUpEmailField,
       label: 'Correo',
       controller: _emailField,
       hintText: 'tucorreo@uninorte.edu.co',
@@ -217,6 +225,7 @@ class _SignUpPageState extends State<SignUpPage> {
     ),
     const SizedBox(height: AppSpacing.md),
     AppTextField(
+      key: AppKeys.signUpPasswordField,
       label: 'Contraseña',
       controller: _passwordField,
       hintText: 'Tu contraseña',
@@ -296,7 +305,7 @@ class _SignUpPageState extends State<SignUpPage> {
 }
 
 class _ErrorBanner extends StatelessWidget {
-  const _ErrorBanner({required this.message});
+  const _ErrorBanner({super.key, required this.message});
 
   final String message;
 

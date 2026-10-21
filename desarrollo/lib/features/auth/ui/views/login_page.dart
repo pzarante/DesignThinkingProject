@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_snackbar.dart';
@@ -35,7 +36,10 @@ class _LoginPageState extends State<LoginPage> {
     );
     if (!mounted) return;
     if (loggedIn) {
-      Get.back();
+      // Con un aviso de error todavía abierto (clave equivocada hace un
+      // momento), `Get.back()` solo cerraría el aviso y dejaría la pantalla
+      // de login delante con la sesión ya iniciada.
+      Get.back(closeOverlays: true);
     } else {
       showErrorSnack(
         'No se pudo iniciar sesión',
@@ -49,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      key: AppKeys.loginPage,
       appBar: AppBar(title: const Text('Iniciar sesión')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
@@ -86,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: AppSpacing.xl),
           AppTextField(
+            key: AppKeys.loginIdentifierField,
             label: 'Correo o nombre de usuario',
             controller: _identifierField,
             hintText: 'tucorreo@uninorte.edu.co  ·  anamartinez',
@@ -94,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           const SizedBox(height: AppSpacing.md),
           AppTextField(
+            key: AppKeys.loginPasswordField,
             label: 'Contraseña',
             controller: _passwordField,
             hintText: 'Tu contraseña',
@@ -113,6 +120,7 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: AppSpacing.lg),
           Center(
             child: TextButton(
+              key: AppKeys.loginGoToSignUpButton,
               onPressed: () => Get.offNamed(AppRoutes.signup),
               child: const Text('¿No tienes cuenta? Crear una'),
             ),
@@ -121,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       bottomNavigationBar: Obx(
         () => AppFormActions(
+          primaryKey: AppKeys.loginSubmitButton,
           primaryLabel: controller.isLoading
               ? 'Ingresando...'
               : 'Iniciar sesión',

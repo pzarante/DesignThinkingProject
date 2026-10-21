@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_text_field.dart';
 import '../viewmodels/project_creation_controller.dart';
@@ -27,6 +28,7 @@ class ProblemStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
+          key: AppKeys.projectProblemField,
           controller: controller.problemField,
           minLines: 8,
           maxLines: 12,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_tag_input.dart';
 import '../../../../core/widgets/app_text_field.dart';
@@ -20,6 +21,7 @@ class BasicsStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppTextField(
+          key: AppKeys.projectNameField,
           label: 'Nombre del proyecto',
           isRequired: true,
           controller: controller.nameField,
@@ -28,6 +30,7 @@ class BasicsStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         AppTextField(
+          key: AppKeys.projectDescriptionField,
           label: 'Descripción breve',
           isRequired: true,
           controller: controller.descriptionField,

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_keys.dart';
+
 /// Avisa que no se puede salir: quien lidera no tiene a quién dejarle el
 /// proyecto.
 Future<void> showCannotLeaveDialog(BuildContext context) {
@@ -48,6 +50,7 @@ Future<bool> showConfirmLeaveDialog(
           child: const Text('Cancelar'),
         ),
         FilledButton(
+          key: AppKeys.projectLeaveConfirmButton,
           style: FilledButton.styleFrom(
             backgroundColor: colors.error,
             foregroundColor: colors.onError,

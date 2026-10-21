@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/widgets/app_success_view.dart';
 import '../../../../core/widgets/app_snackbar.dart';
 import '../../../home/domain/models/community.dart';
@@ -16,6 +17,7 @@ class CommunityCreatedPage extends StatelessWidget {
     final community = Get.arguments as Community;
 
     return Scaffold(
+      key: AppKeys.communityCreatedPage,
       body: AppSuccessView(
         title: '¡Comunidad creada!',
         message:
@@ -29,6 +31,7 @@ class CommunityCreatedPage extends StatelessWidget {
         ),
         secondaryActions: [
           TextButton(
+            key: AppKeys.communityCreatedHomeButton,
             onPressed: () => Get.offAllNamed(AppRoutes.home),
             child: const Text('Volver al inicio'),
           ),

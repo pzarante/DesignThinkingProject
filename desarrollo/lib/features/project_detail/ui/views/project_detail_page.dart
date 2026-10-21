@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_segmented_tab_bar.dart';
@@ -419,11 +420,13 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       }
 
       return Scaffold(
+        key: AppKeys.projectDetailPage,
         appBar: AppBar(
           title: const AppTagChip(label: 'Proyecto'),
           actions: [
             if (detail.viewerRole.canConfigure) ...[
               IconButton(
+                key: AppKeys.projectApplicantsButton,
                 tooltip: 'Postulaciones',
                 onPressed: () => Get.toNamed(
                   AppRoutes.projectApplicants,

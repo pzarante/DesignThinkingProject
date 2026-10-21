@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/widgets/app_success_view.dart';
 
 /// Confirmación del registro.
@@ -16,7 +17,9 @@ class SignUpSuccessPage extends StatelessWidget {
     final userName = Get.arguments as String?;
 
     return Scaffold(
+      key: AppKeys.signUpSuccessPage,
       body: AppSuccessView(
+        primaryKey: AppKeys.signUpSuccessProfileButton,
         title: '¡Tu cuenta está lista!',
         message: userName == null || userName.isEmpty
             ? 'Ya puedes crear proyectos, formar equipo y participar en '
@@ -27,6 +30,7 @@ class SignUpSuccessPage extends StatelessWidget {
         onPrimary: () => Get.offAllNamed(AppRoutes.profile),
         secondaryActions: [
           TextButton(
+            key: AppKeys.signUpSuccessHomeButton,
             onPressed: () => Get.offAllNamed(AppRoutes.home),
             child: const Text('Ir al inicio'),
           ),

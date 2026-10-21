@@ -28,36 +28,48 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   Loggy.initLoggy(logPrinter: const PrettyPrinter(showColors: true));
 
-  final ILocalPreferences preferences = kIsWeb
-      ? LocalPreferencesShared()
-      : LocalPreferencesSecured();
+  registerDependencies(
+    preferences: kIsWeb ? LocalPreferencesShared() : LocalPreferencesSecured(),
+  );
+  runApp(const MyApp());
+}
+
+/// Registra todo lo que la app necesita para arrancar.
+///
+/// [remote] en false cambia ROBLE por las fuentes en memoria de cada feature:
+/// es como corren las pruebas de integración, sin red ni cuentas reales.
+void registerDependencies({
+  required ILocalPreferences preferences,
+  bool remote = true,
+}) {
   Get.put<ILocalPreferences>(preferences, permanent: true);
 
-  // Un solo cliente para toda la app: crearlo de nuevo en cada pantalla le
-  // daría a cada copia su propia sesión.
-  final robleDb = RobleApiDataBase(
-    config: RobleApiConfig.fromContract(
-      baseUrl: RobleConfig.baseUrl,
-      contractId: RobleConfig.contractId,
-    ),
-  );
-  Get.put<RobleApiDataBase>(robleDb, permanent: true);
-  // Memoria corta compartida: sin ella cada pantalla vuelve a pedir las
-  // mismas tablas (`users`, `tags`, `project_stages`) una y otra vez.
-  Get.put<RobleTableCache>(RobleTableCache(robleDb), permanent: true);
+  if (remote) {
+    // Un solo cliente para toda la app: crearlo de nuevo en cada pantalla le
+    // daría a cada copia su propia sesión.
+    final robleDb = RobleApiDataBase(
+      config: RobleApiConfig.fromContract(
+        baseUrl: RobleConfig.baseUrl,
+        contractId: RobleConfig.contractId,
+      ),
+    );
+    Get.put<RobleApiDataBase>(robleDb, permanent: true);
+    // Memoria corta compartida: sin ella cada pantalla vuelve a pedir las
+    // mismas tablas (`users`, `tags`, `project_stages`) una y otra vez.
+    Get.put<RobleTableCache>(RobleTableCache(robleDb), permanent: true);
+  }
 
-  registerAuth();
-  registerNotifications();
-  registerProfile();
-  registerHome();
-  registerProjectDetail();
-  registerProjectCreation();
+  registerAuth(remote: remote);
+  registerNotifications(remote: remote);
+  registerProfile(remote: remote);
+  registerHome(remote: remote);
+  registerProjectDetail(remote: remote);
+  registerProjectCreation(remote: remote);
   registerCommunityCreation();
   registerCommunitySettings();
-  registerCommunityDetail();
-  registerProjectApplications();
+  registerCommunityDetail(remote: remote);
+  registerProjectApplications(remote: remote);
   registerProduct();
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {

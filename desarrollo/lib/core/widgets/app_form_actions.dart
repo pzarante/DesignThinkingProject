@@ -13,6 +13,7 @@ class AppFormActions extends StatelessWidget {
     this.onSecondary,
     this.primaryColor,
     this.onPrimaryColor,
+    this.primaryKey,
   });
 
   final String primaryLabel;
@@ -26,6 +27,9 @@ class AppFormActions extends StatelessWidget {
   /// de revisión lo cambia a verde para "Publicar proyecto".
   final Color? primaryColor;
   final Color? onPrimaryColor;
+
+  /// Key del botón principal, para encontrarlo en las pruebas.
+  final Key? primaryKey;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,7 @@ class AppFormActions extends StatelessWidget {
               Expanded(
                 flex: secondaryLabel == null ? 1 : 3,
                 child: FilledButton(
+                  key: primaryKey,
                   style: primaryColor == null
                       ? null
                       : FilledButton.styleFrom(

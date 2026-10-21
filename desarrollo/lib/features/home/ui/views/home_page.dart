@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_choice_chip_row.dart';
@@ -23,6 +24,7 @@ class HomePage extends StatelessWidget {
     final HomeController homeController = Get.find();
 
     return Scaffold(
+      key: AppKeys.homePage,
       appBar: AppBar(
         leadingWidth: 48,
         titleSpacing: AppSpacing.xs,
@@ -69,6 +71,7 @@ class HomePage extends StatelessWidget {
         );
       }),
       floatingActionButton: FloatingActionButton.extended(
+        key: AppKeys.homeCreateButton,
         onPressed: () => Get.toNamed(AppRoutes.create),
         icon: const Icon(Icons.add),
         label: const Text('Crear'),
