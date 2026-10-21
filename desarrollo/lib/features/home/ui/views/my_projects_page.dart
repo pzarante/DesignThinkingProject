@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_empty_state.dart';
@@ -78,14 +79,17 @@ class _MyProjectsPageState extends State<MyProjectsPage> {
   void initState() {
     super.initState();
     // Postularse, ser aceptado o salir de un equipo pasa en otras pantallas
-    // (o en otros dispositivos): se relee al entrar.
-    ctrl.getFeed();
+    // (o en otros dispositivos): se relee al entrar. Después del primer
+    // frame: `getFeed` cambia `isLoading` al instante, y hacerlo en pleno
+    // build marca como sucio el `Obx` del inicio, que sigue montado debajo.
+    WidgetsBinding.instance.addPostFrameCallback((_) => ctrl.getFeed());
   }
 
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
+      key: AppKeys.myProjectsPage,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text('Mis Proyectos'),

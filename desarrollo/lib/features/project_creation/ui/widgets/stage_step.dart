@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_empty_state.dart';
 import '../../../../core/widgets/app_option_card.dart';
@@ -50,6 +51,7 @@ class StageStep extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: AppOptionCard(
+                  key: AppKeys.stageOption(option.name),
                   title: option.name,
                   description: option.description,
                   selected: option.name == selected,

@@ -1,11 +1,11 @@
 {
-    "name": "f_clean_template",
-    "short_name": "f_clean_template",
+    "name": "Innovation Hub",
+    "short_name": "Innovation Hub",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Innovation Hub: proyectos y comunidades universitarias.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

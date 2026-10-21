@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../project_applications/domain/models/project_application.dart';
 import '../../../project_applications/ui/viewmodels/apply_controller.dart';
@@ -225,6 +226,7 @@ class _ApplicationFormState extends State<_ApplicationForm> {
             const SizedBox(height: AppSpacing.xs),
             Obx(
               () => DropdownButtonFormField<String>(
+                key: AppKeys.applicationRoleField,
                 initialValue: widget.controller.desiredRole.value?.title,
                 items: [
                   for (final role in widget.openRoles)
@@ -273,6 +275,7 @@ class _ApplicationFormState extends State<_ApplicationForm> {
             Text('Motivación', style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: AppSpacing.xs),
             TextFormField(
+              key: AppKeys.applicationMotivationField,
               controller: _motivationField,
               minLines: 2,
               maxLines: 4,
@@ -285,6 +288,7 @@ class _ApplicationFormState extends State<_ApplicationForm> {
 
             Obx(
               () => FilledButton(
+                key: AppKeys.applicationSubmitButton,
                 onPressed: widget.controller.isSubmitting.value
                     ? null
                     : _submit,

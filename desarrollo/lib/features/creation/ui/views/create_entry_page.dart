@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_icon_badge.dart';
@@ -63,6 +64,7 @@ class _CreateEntryPageState extends State<CreateEntryPage> {
     final colors = Theme.of(context).colorScheme;
 
     return Scaffold(
+      key: AppKeys.createEntryPage,
       appBar: AppBar(title: const Text('Crear nuevo')),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -76,6 +78,9 @@ class _CreateEntryPageState extends State<CreateEntryPage> {
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: AppOptionCard(
+                key: entry.key == CreationKind.proyecto
+                    ? AppKeys.createOptionProject
+                    : AppKeys.createOptionCommunity,
                 title: entry.value.title,
                 description: entry.value.text,
                 selected: _selected == entry.key,
@@ -95,6 +100,7 @@ class _CreateEntryPageState extends State<CreateEntryPage> {
         ],
       ),
       bottomNavigationBar: AppFormActions(
+        primaryKey: AppKeys.createContinueButton,
         primaryLabel: 'Continuar',
         onPrimary: _selected == null ? null : _continue,
       ),

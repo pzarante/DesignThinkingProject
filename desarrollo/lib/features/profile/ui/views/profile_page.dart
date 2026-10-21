@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_bottom_nav_bar.dart';
 import '../../../../core/widgets/app_empty_note.dart';
@@ -63,6 +64,7 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Text('Cancelar'),
           ),
           FilledButton(
+            key: AppKeys.profileLogoutConfirmButton,
             onPressed: () => Navigator.of(context).pop(true),
             child: const Text('Cerrar sesión'),
           ),
@@ -97,6 +99,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: AppKeys.profilePage,
       body: Obx(() {
         final profile = controller.profile.value;
 
@@ -121,6 +124,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   const NotificationsAction(),
                   if (controller.isOwnProfile.value && profile != null)
                     IconButton(
+                      key: AppKeys.profileLogoutButton,
                       tooltip: 'Cerrar sesión',
                       icon: const Icon(Icons.logout),
                       onPressed: _logOut,
@@ -280,6 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton(
+                key: AppKeys.profileLoginButton,
                 onPressed: _openLogin,
                 child: const Text('Ya tengo cuenta'),
               ),

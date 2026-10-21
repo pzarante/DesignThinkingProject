@@ -52,7 +52,9 @@ class AuthenticationSourceService
 
     users.add(
       AuthenticationUser(
-        id: DateTime.now().microsecondsSinceEpoch.toString(),
+        // Respetar un id dado deja sembrar una cuenta que coincida con los
+        // datos de ejemplo de las fuentes locales (`me`).
+        id: user.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
         email: email,
         name: user.name.trim().isEmpty ? email : user.name.trim(),
         password: user.password,

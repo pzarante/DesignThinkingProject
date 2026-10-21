@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_tag_chip.dart';
 import '../../../home/domain/models/project.dart';
@@ -120,6 +121,7 @@ class _ProjectPickerSheetState extends State<ProjectPickerSheet> {
               child: SizedBox(
                 width: double.infinity,
                 child: FilledButton(
+                  key: AppKeys.communityPickerConfirmButton,
                   onPressed: () =>
                       Navigator.of(context).pop(_selection.toList()),
                   child: const Text('Confirmar selección'),

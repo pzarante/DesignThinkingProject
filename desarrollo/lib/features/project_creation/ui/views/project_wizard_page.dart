@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../app_routes.dart';
+import '../../../../core/app_keys.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/app_form_actions.dart';
 import '../../../../core/widgets/app_wizard_progress.dart';
@@ -72,6 +73,7 @@ class _ProjectWizardPageState extends State<ProjectWizardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: AppKeys.projectWizardPage,
       appBar: AppBar(
         leading: BackButton(onPressed: _goBack),
         title: Obx(() => Text(controller.currentStepTitle)),
@@ -98,6 +100,7 @@ class _ProjectWizardPageState extends State<ProjectWizardPage> {
       }),
       bottomNavigationBar: Obx(
         () => AppFormActions(
+          primaryKey: AppKeys.wizardNextButton,
           secondaryLabel: 'Atrás',
           onSecondary: _goBack,
           primaryLabel:

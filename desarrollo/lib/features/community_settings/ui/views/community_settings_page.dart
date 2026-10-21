@@ -151,7 +151,9 @@ class _CommunitySettingsPageState extends State<CommunitySettingsPage> {
               ? () async {
                   final saved = await controller.save();
                   if (saved && mounted) {
-                    Get.back();
+                    // Con un aviso abierto, `Get.back()` cerraría el aviso y
+                    // no la pantalla.
+                    Get.back(closeOverlays: true);
                   }
                 }
               : null,
