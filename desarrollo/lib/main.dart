@@ -18,11 +18,9 @@ import 'features/community_detail/community_detail_dependencies.dart';
 import 'features/community_settings/community_settings_dependencies.dart';
 import 'features/home/home_dependencies.dart';
 import 'features/notifications/notifications_dependencies.dart';
-import 'features/product/product_dependencies.dart';
 import 'features/profile/profile_dependencies.dart';
 import 'features/project_creation/project_creation_dependencies.dart';
 import 'features/project_detail/project_detail_dependencies.dart';
-import 'features/project_applications/project_applications_dependencies.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,13 +61,12 @@ void registerDependencies({
   registerNotifications(remote: remote);
   registerProfile(remote: remote);
   registerHome(remote: remote);
+  // También registra las postulaciones: el detalle las necesita al abrirse.
   registerProjectDetail(remote: remote);
   registerProjectCreation(remote: remote);
   registerCommunityCreation();
   registerCommunitySettings();
   registerCommunityDetail(remote: remote);
-  registerProjectApplications(remote: remote);
-  registerProduct();
 }
 
 class MyApp extends StatelessWidget {
@@ -78,7 +75,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Clean template',
+      title: 'Innovation Hub',
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode

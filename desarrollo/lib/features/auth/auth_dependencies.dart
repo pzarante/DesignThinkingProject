@@ -12,8 +12,9 @@ import 'ui/viewmodels/authentication_controller.dart';
 
 /// Registers the authentication dependency chain with GetX.
 ///
-/// Authentication is needed by [Central] as soon as the application starts, so
-/// the source, repository, and controller are created eagerly.
+/// Authentication is needed as soon as the application starts (the home feed
+/// already asks whether there is an account), so the source, repository, and
+/// controller are created eagerly.
 ///
 /// [remote] en false usa [AuthenticationSourceService], que guarda las cuentas
 /// en las preferencias locales: así las pruebas no crean usuarios en ROBLE.
