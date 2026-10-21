@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 import 'package:f_clean_template/core/app_keys.dart';
 import 'package:f_clean_template/features/auth/data/datasources/remote/authentication_source_service.dart';
 import 'package:f_clean_template/features/auth/domain/models/authentication_user.dart';
-import 'package:f_clean_template/main.dart';
+import 'package:f_clean_template/main.dart'; 
 
 import 'in_memory_preferences.dart';
 import 'network_images.dart';

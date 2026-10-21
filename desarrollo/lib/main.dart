@@ -42,7 +42,7 @@ void registerDependencies({
 }) {
   Get.put<ILocalPreferences>(preferences, permanent: true);
 
-  if (remote) {
+  if (remote) { 
     // Un solo cliente para toda la app: crearlo de nuevo en cada pantalla le
     // daría a cada copia su propia sesión.
     final robleDb = RobleApiDataBase(

@@ -20,7 +20,7 @@ import 'flows/project_creation_flow.dart';
 /// # solo un flujo, por el nombre del grupo:
 /// flutter test integration_test/app_test.dart --plain-name "Autenticación"
 /// ```
-///
+/// 
 /// En web, con ChromeDriver de la misma versión que Chrome:
 ///
 /// ```bash
