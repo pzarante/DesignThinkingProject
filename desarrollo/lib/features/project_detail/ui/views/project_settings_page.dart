@@ -293,7 +293,9 @@ class _ProjectSettingsPageState extends State<ProjectSettingsPage> {
               ? () async {
                   final saved = await controller.save();
                   if (saved && mounted) {
-                    Get.back();
+                    // Sin `closeOverlays`, un aviso de error de un intento
+                    // anterior se llevaría el `back` y la pantalla seguiría.
+                    Get.back(closeOverlays: true);
                     showSuccessSnack(
                       'Cambios guardados',
                       message: 'La configuración del proyecto se actualizó.',

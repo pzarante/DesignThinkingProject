@@ -279,7 +279,9 @@ class _ProjectDetailPageState extends State<ProjectDetailPage> {
       showErrorSnack('No se pudo salir', message: error);
       return;
     }
-    Get.back();
+    // Con el aviso de un intento fallido todavía abierto, `Get.back()` solo
+    // cerraría el aviso y dejaría delante el proyecto del que se acaba de salir.
+    Get.back(closeOverlays: true);
     showSuccessSnack(
       'Saliste del proyecto',
       message: 'Ya no formas parte de ${detail.name}.',
