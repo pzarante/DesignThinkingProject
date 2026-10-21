@@ -204,7 +204,7 @@ void main() {
     await tester.enterText(find.byKey(AppKeys.signUpPasswordField), '123');
     await tester.tap(find.byKey(AppKeys.signUpSubmitButton));
     await tester.pumpAndSettle();
-
+ 
     expect(find.byKey(AppKeys.signUpPage), findsOneWidget);
   });
 }
